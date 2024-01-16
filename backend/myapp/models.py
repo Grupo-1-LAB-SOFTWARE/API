@@ -98,3 +98,27 @@ class Docente(models.Model):
     Titulacao = models.CharField(max_length=50)
     Campus = models.ForeignKey(Campus, on_delete=models.CASCADE)
     Instituto = models.ForeignKey(Instituto, on_delete=models.CASCADE)
+
+class AtividadeOrientacao(models.Model):
+    ano = models.IntegerField()
+    semestre = models.IntegerField()
+    carga_horaria = models.IntegerField()
+    tipo = models.CharField(max_lenght=100)
+
+class Orientando(models.Model):
+    ano = models.IntegerField()
+    semestre = models.IntegerField()
+    nome = models.CharField(max_length=100)
+    matricula = models.CharField(max_lenght=30)
+    curso = models.CharField(max_lenght=60)
+    tipo = models.CharField(max_lenght=50)
+    nivel = models.CharField(max_lenght=50)
+    atividade = models.ForeingKey(AtividadeOrientacao, on_delete=models.CASCADE)
+
+class BancaExaminacao(models.Model):
+    nome_candidato = models.CharField(max_lenght=100)
+    titulo_trabalho = models.CharField(max_lenght=100)
+    IES = models.CharField(max_lenght=100)
+    tipo = models.CharField(max_lenght=50)
+    ano = models.IntegerField()
+    semestre = models.IntegerField()
