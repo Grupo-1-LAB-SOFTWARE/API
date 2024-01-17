@@ -118,7 +118,6 @@ class AtividadePedagogicaComplementar(models.Model):
     DocentesEnvolvidos = models.ArrayField(models.CharField(max_length=500))
     CargaHorariaDocentesEnvolvidos = models.JSONField()
 
-
 class AtividadeOrientacao(models.Model):
     ano = models.IntegerField()
     semestre = models.IntegerField()
@@ -142,3 +141,15 @@ class BancaExaminacao(models.Model):
     tipo = models.CharField(max_lenght=50)
     ano = models.IntegerField()
     semestre = models.IntegerField()
+
+class ProjetoDePesquisa(models.Model):
+    CodigoProped = models.CharField(max_length=10)
+    Titulo = models.CharField(max_length=100)
+    PeriodoDoProjeto = models.JSONField()
+    TipoDeColaboracao = models.CharField(max_length=50)
+
+class Publicacao(models.Model):
+    Titulo = models.CharField(max_length=100)
+    Ano = models.IntegerField()
+    VeiculoDePublicacao = models.CharField(max_length=100)
+    Tipo = models.CharField(max_length=100)
