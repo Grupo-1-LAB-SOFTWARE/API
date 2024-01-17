@@ -99,6 +99,26 @@ class Docente(models.Model):
     Campus = models.ForeignKey(Campus, on_delete=models.CASCADE)
     Instituto = models.ForeignKey(Instituto, on_delete=models.CASCADE)
 
+    from django.db import models
+
+class AtividadeLetiva(models.Model):
+    CodigoDisciplina = models.CharField(max_length=10),
+    NomeDisciplina = models.CharField(max_length=70),
+    Ano = models.DateField()
+    Semestre = models.IntegerField()
+    Curso = models.Foreignkey(Curso, on_delete=models.CASCADE)
+    CargaHorariaDisciplina = models.IntegerField()
+    DocentesEnvolvidos = models.ArrayField(models.CharField(max_length=500))
+    CargaHorariaDocentesEnvolvidos = models.JSONField()
+
+class AtividadePedagogicaComplementar(models.Model):
+    Ano = models.DateField()
+    Semestre = models.IntegerField()
+    CargaHorariaSemanal = models.IntegerField()
+    DocentesEnvolvidos = models.ArrayField(models.CharField(max_length=500))
+    CargaHorariaDocentesEnvolvidos = models.JSONField()
+
+
 class AtividadeOrientacao(models.Model):
     ano = models.IntegerField()
     semestre = models.IntegerField()
