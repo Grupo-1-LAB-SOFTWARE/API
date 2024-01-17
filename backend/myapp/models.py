@@ -153,3 +153,28 @@ class Publicacao(models.Model):
     Ano = models.IntegerField()
     VeiculoDePublicacao = models.CharField(max_length=100)
     Tipo = models.CharField(max_length=100)
+
+class QualificacaoDocente(models.Model):
+    SEMESTRES = (
+        ('1', '1'),
+        ('2', '2'),
+    )
+    NIVELACADEMICO = (
+        ('graduacao', 'Graduação'),
+        ('pos', 'Pós-graduação'),
+        ('mestrado', 'Mestrado'),
+        ('doutorado', 'Doutorado'),
+    )
+    AnoDeReferencia = models.IntegerField()
+    SemestreDeReferencia = models.CharField(
+        max_length=1,
+        choices=SEMESTRES,
+        default='1')
+    NivelAcademico = models.CharField(
+        max_length=30,
+        choices=NIVEL,
+        default='pos'
+    )
+    AreasDePesquisa = models.ArrayField(models.CharField(max_length=200))
+    CursosCapacitacao = models.ArrayField(models.CharField(max_length=300))
+    ExperienciaProfissional = models.ArrayField(models.CharField(max_length=500))
