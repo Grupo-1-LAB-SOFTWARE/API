@@ -99,8 +99,6 @@ class Docente(models.Model):
     Campus = models.ForeignKey(Campus, on_delete=models.CASCADE)
     Instituto = models.ForeignKey(Instituto, on_delete=models.CASCADE)
 
-    from django.db import models
-
 class AtividadeLetiva(models.Model):
     CodigoDisciplina = models.CharField(max_length=10),
     NomeDisciplina = models.CharField(max_length=70),
@@ -142,3 +140,31 @@ class BancaExaminacao(models.Model):
     tipo = models.CharField(max_lenght=50)
     ano = models.IntegerField()
     semestre = models.IntegerField()
+
+# atividade de extensão
+class AtividadeExtensao(models.model):
+    cod_PROEX = models.CharField(max_lenght=50)
+    titulo = models.CharField(max_lenght=100)
+    inicio_projeto = models.DateField()
+    fim_projeto = models.DateField()
+    tipo_de_colaboracao = models.CharField(max_lenght=100)
+
+    @property
+    def periodo(self):
+        return f"{self.inicio_projeto} - {self.fim_projeto}"
+    
+class ProjetoExtensao(AtividadeExtensao):
+    def __str__(self):
+        return self.titulo
+    
+class EstagioExtensao(AtividadeExtensao):
+    def __str__(self):
+        return self.titulo
+
+class EnsinoNaoFormal(AtividadeExtensao):
+    def __str__(self):
+        return self.titulo
+    
+class OutrasAtividadesExtensao(AtividadeExtensao):
+    def __str__(self):
+        return self.titulo
