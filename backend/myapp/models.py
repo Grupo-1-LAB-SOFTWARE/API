@@ -206,3 +206,16 @@ class OutrasAtividadesExtensao(AtividadeExtensao):
     def __str__(self):
         return self.titulo
 
+class AtividadeGestaoRepresentacao(models.model):
+    cargo = models.CharField(max_lenght=50)
+    inicio_projeto = models.DateField()
+    fim_projeto = models.DateField()
+    carga_horaria_semanal = models.IntegerField()
+
+    @property
+    def periodo(self):
+        return f"{self.inicio_projeto} - {self.fim_projeto}"
+
+class RelatorioDocente(models.model):
+    data_criacao = models.DateField()
+    ano_relatorio = models.IntegerField()
