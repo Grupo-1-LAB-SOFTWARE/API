@@ -36,7 +36,7 @@ class Instituto(models.Model):
     Nome = models.CharField(max_length=150)
     Sigla = models.CharField(max_length=3)
     Campus = models.ForeignKey(Campus, on_delete=models.DO_NOTHING)
-    Diretor = models.ForeignKey(Campus.Diretor, on_delete=models.DO_NOTHING),
+    Diretor = models.CharField(max_length=150),
 
 class Curso(models.Model):
     NIVEL = (
@@ -89,7 +89,7 @@ class Docente(models.Model):
         choices=CLASSE,
         default='auxiliar_1'
     )
-    Vinculo = models.CharField()
+    Vinculo = models.CharField(max_length=100)
     RegimeDeTrabalho = models.CharField(
         max_length=50,
         choices=REGIME,
@@ -104,39 +104,39 @@ class AtividadeLetiva(models.Model):
     NomeDisciplina = models.CharField(max_length=70),
     Ano = models.DateField()
     Semestre = models.IntegerField()
-    Curso = models.Foreignkey(Curso, on_delete=models.CASCADE)
+    Curso = models.ForeignKey(Curso, on_delete=models.CASCADE)
     CargaHorariaDisciplina = models.IntegerField()
-    DocentesEnvolvidos = models.ArrayField(models.CharField(max_length=500))
+    DocentesEnvolvidos = models.JSONField()
     CargaHorariaDocentesEnvolvidos = models.JSONField()
 
 class AtividadePedagogicaComplementar(models.Model):
     Ano = models.DateField()
     Semestre = models.IntegerField()
     CargaHorariaSemanal = models.IntegerField()
-    DocentesEnvolvidos = models.ArrayField(models.CharField(max_length=500))
+    DocentesEnvolvidos = models.JSONField()
     CargaHorariaDocentesEnvolvidos = models.JSONField()
 
 class AtividadeOrientacao(models.Model):
     ano = models.IntegerField()
     semestre = models.IntegerField()
     carga_horaria = models.IntegerField()
-    tipo = models.CharField(max_lenght=100)
+    tipo = models.CharField(max_length=100)
 
 class Orientando(models.Model):
     ano = models.IntegerField()
     semestre = models.IntegerField()
     nome = models.CharField(max_length=100)
-    matricula = models.CharField(max_lenght=30)
-    curso = models.CharField(max_lenght=60)
-    tipo = models.CharField(max_lenght=50)
-    nivel = models.CharField(max_lenght=50)
-    atividade = models.ForeingKey(AtividadeOrientacao, on_delete=models.CASCADE)
+    matricula = models.CharField(max_length=30)
+    curso = models.CharField(max_length=60)
+    tipo = models.CharField(max_length=50)
+    nivel = models.CharField(max_length=50)
+    atividade = models.ForeignKey(AtividadeOrientacao, on_delete=models.CASCADE)
 
 class BancaExaminacao(models.Model):
-    nome_candidato = models.CharField(max_lenght=100)
-    titulo_trabalho = models.CharField(max_lenght=100)
-    IES = models.CharField(max_lenght=100)
-    tipo = models.CharField(max_lenght=50)
+    nome_candidato = models.CharField(max_length=100)
+    titulo_trabalho = models.CharField(max_length=100)
+    IES = models.CharField(max_length=100)
+    tipo = models.CharField(max_length=50)
     ano = models.IntegerField()
     semestre = models.IntegerField()
 
@@ -173,16 +173,16 @@ class QualificacaoDocente(models.Model):
         choices=NIVELACADEMICO,
         default='pos'
     )
-    AreasDePesquisa = models.ArrayField(models.CharField(max_length=200))
-    CursosCapacitacao = models.ArrayField(models.CharField(max_length=300))
-    ExperienciaProfissional = models.ArrayField(models.CharField(max_length=500))
+    AreasDePesquisa = models.JSONField()
+    CursosCapacitacao = models.JSONField()
+    ExperienciaProfissional = models.JSONField()
 
-class AtividadeExtensao(models.model):
-    cod_PROEX = models.CharField(max_lenght=50)
-    titulo = models.CharField(max_lenght=100)
+class AtividadeExtensao(models.Model):
+    cod_PROEX = models.CharField(max_length=50)
+    titulo = models.CharField(max_length=100)
     inicio_projeto = models.DateField()
     fim_projeto = models.DateField()
-    tipo_de_colaboracao = models.CharField(max_lenght=100)
+    tipo_de_colaboracao = models.CharField(max_length=100)
 
     @property
     def periodo(self):
@@ -204,8 +204,8 @@ class OutrasAtividadesExtensao(AtividadeExtensao):
     def __str__(self):
         return self.titulo
 
-class AtividadeGestaoRepresentacao(models.model):
-    cargo = models.CharField(max_lenght=50)
+class AtividadeGestaoRepresentacao(models.Model):
+    cargo = models.CharField(max_length=50)
     inicio_projeto = models.DateField()
     fim_projeto = models.DateField()
     carga_horaria_semanal = models.IntegerField()
@@ -214,6 +214,6 @@ class AtividadeGestaoRepresentacao(models.model):
     def periodo(self):
         return f"{self.inicio_projeto} - {self.fim_projeto}"
 
-class RelatorioDocente(models.model):
+class RelatorioDocente(models.Model):
     data_criacao = models.DateField()
     ano_relatorio = models.IntegerField()
