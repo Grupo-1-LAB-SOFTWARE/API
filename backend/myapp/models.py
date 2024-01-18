@@ -172,9 +172,37 @@ class QualificacaoDocente(models.Model):
         default='1')
     NivelAcademico = models.CharField(
         max_length=30,
-        choices=NIVEL,
+        choices=NIVELACADEMICO,
         default='pos'
     )
     AreasDePesquisa = models.ArrayField(models.CharField(max_length=200))
     CursosCapacitacao = models.ArrayField(models.CharField(max_length=300))
     ExperienciaProfissional = models.ArrayField(models.CharField(max_length=500))
+
+class AtividadeExtensao(models.model):
+    cod_PROEX = models.CharField(max_lenght=50)
+    titulo = models.CharField(max_lenght=100)
+    inicio_projeto = models.DateField()
+    fim_projeto = models.DateField()
+    tipo_de_colaboracao = models.CharField(max_lenght=100)
+
+    @property
+    def periodo(self):
+        return f"{self.inicio_projeto} - {self.fim_projeto}"
+    
+class ProjetoExtensao(AtividadeExtensao):
+    def __str__(self):
+        return self.titulo
+    
+class EstagioExtensao(AtividadeExtensao):
+    def __str__(self):
+        return self.titulo
+
+class EnsinoNaoFormal(AtividadeExtensao):
+    def __str__(self):
+        return self.titulo
+    
+class OutrasAtividadesExtensao(AtividadeExtensao):
+    def __str__(self):
+        return self.titulo
+
