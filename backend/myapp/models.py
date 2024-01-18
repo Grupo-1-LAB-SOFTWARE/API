@@ -99,8 +99,6 @@ class Docente(models.Model):
     Campus = models.ForeignKey(Campus, on_delete=models.CASCADE)
     Instituto = models.ForeignKey(Instituto, on_delete=models.CASCADE)
 
-    from django.db import models
-
 class AtividadeLetiva(models.Model):
     CodigoDisciplina = models.CharField(max_length=10),
     NomeDisciplina = models.CharField(max_length=70),
