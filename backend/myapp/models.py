@@ -18,6 +18,7 @@ class Usuario(models.Model):
     DataCadastro = models.DateField()
     Email = models.EmailField()
     Senha = models.CharField(max_length=8)
+    isEmailConfirmado = models.BooleanField(default=False)
 
 class Campus(models.Model):
     CIDADE = (
