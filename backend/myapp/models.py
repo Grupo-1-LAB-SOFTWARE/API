@@ -7,37 +7,37 @@ class Usuario(models.Model):
         ('docente', 'Docente'),
         ('admin', 'Administrador'),
     )
-    Id = models.AutoField(primary_key=True)
-    Login = models.CharField(max_length=13)
-    NomeCompleto = models.CharField(max_length=500)
-    Perfil = models.CharField(
+    id = models.AutoField(primary_key=True)
+    login = models.CharField(max_length=13)
+    nome_completo = models.CharField(max_length=500)
+    perfil = models.CharField(
         max_length=10,
         choices=PERFIL,
         default='docente'
     )
-    DataCadastro = models.DateField()
-    Email = models.EmailField()
-    Senha = models.CharField(max_length=8)
-    isEmailConfirmado = models.BooleanField(default=False)
+    data_cadastro = models.DateField()
+    email = models.EmailField()
+    senha = models.CharField(max_length=8)
+    is_email_confirmado = models.BooleanField(default=False)
 
 class Campus(models.Model):
     CIDADE = (
         ('belem', 'Belém'),
         ('capitao_poco', 'Capitão Poço'),
     )
-    Nome = models.CharField(max_length=150)
-    Cidade = models.CharField(
+    nome = models.CharField(max_length=150)
+    cidade = models.CharField(
         max_length=30,
         choices=CIDADE,
         default='belem'
     )
-    Diretor = models.CharField(max_length=150),
+    diretor = models.CharField(max_length=150),
 
 class Instituto(models.Model):
-    Nome = models.CharField(max_length=150)
-    Sigla = models.CharField(max_length=3)
-    Campus = models.ForeignKey(Campus, on_delete=models.DO_NOTHING)
-    Diretor = models.CharField(max_length=150),
+    nome = models.CharField(max_length=150)
+    sigla = models.CharField(max_length=3)
+    campus = models.ForeignKey(Campus, on_delete=models.DO_NOTHING)
+    diretor = models.CharField(max_length=150),
 
 class Curso(models.Model):
     NIVEL = (
@@ -45,11 +45,11 @@ class Curso(models.Model):
         ('licenciatura', 'Licenciatura'),
         ('tecnologo', 'Tecnólogo'),
     )
-    Nome = models.CharField(max_length=150),
-    Sigla = models.CharField(max_length=3),
-    Campus = models.ForeignKey(Campus, on_delete=models.DO_NOTHING)
-    Instituto = models.ForeignKey(Instituto, on_delete=models.DO_NOTHING)
-    Nivel = models.CharField(
+    nome = models.CharField(max_length=150),
+    sigla = models.CharField(max_length=3),
+    campus = models.ForeignKey(Campus, on_delete=models.DO_NOTHING)
+    instituto = models.ForeignKey(Instituto, on_delete=models.DO_NOTHING)
+    nivel = models.CharField(
         max_length=30,
         choices=NIVEL,
         default='bacharelado'
@@ -81,41 +81,41 @@ class Docente(models.Model):
         ('integral', 'Tempo Integral'),
         ('parcial', 'Tempo Parcial'),
     )
-    Usuario = models.ForeignKey(Usuario, on_delete=models.CASCADE)
-    Id = models.AutoField(primary_key=True)
-    NomeCompleto = models.CharField(max_length=500)
-    Email = models.EmailField()
-    Classe = models.CharField(
+    usuario = models.ForeignKey(Usuario, on_delete=models.CASCADE)
+    id = models.AutoField(primary_key=True)
+    nome_completo = models.CharField(max_length=500)
+    email = models.EmailField()
+    classe = models.CharField(
         max_length=30,
         choices=CLASSE,
         default='auxiliar_1'
     )
-    Vinculo = models.CharField(max_length=100)
-    RegimeDeTrabalho = models.CharField(
+    vinculo = models.CharField(max_length=100)
+    regime_de_trabalho = models.CharField(
         max_length=50,
         choices=REGIME,
         default='exclusivo'
     )
-    Titulacao = models.CharField(max_length=50)
-    Campus = models.ForeignKey(Campus, on_delete=models.CASCADE)
-    Instituto = models.ForeignKey(Instituto, on_delete=models.CASCADE)
+    titulacao = models.CharField(max_length=50)
+    campus = models.ForeignKey(Campus, on_delete=models.CASCADE)
+    instituto = models.ForeignKey(Instituto, on_delete=models.CASCADE)
 
 class AtividadeLetiva(models.Model):
-    CodigoDisciplina = models.CharField(max_length=10),
-    NomeDisciplina = models.CharField(max_length=70),
-    Ano = models.DateField()
-    Semestre = models.IntegerField()
-    Curso = models.ForeignKey(Curso, on_delete=models.CASCADE)
-    CargaHorariaDisciplina = models.IntegerField()
-    DocentesEnvolvidos = models.JSONField()
-    CargaHorariaDocentesEnvolvidos = models.JSONField()
+    codigo_disciplina = models.CharField(max_length=10)
+    nome_disciplina = models.CharField(max_length=70)
+    ano = models.DateField()
+    semestre = models.IntegerField()
+    curso = models.ForeignKey(Curso, on_delete=models.CASCADE)
+    carga_horaria_disciplina = models.IntegerField()
+    docentes_envolvidos = models.JSONField()
+    carga_horaria_docentes_envolvidos = models.JSONField()
 
 class AtividadePedagogicaComplementar(models.Model):
-    Ano = models.DateField()
-    Semestre = models.IntegerField()
-    CargaHorariaSemanal = models.IntegerField()
-    DocentesEnvolvidos = models.JSONField()
-    CargaHorariaDocentesEnvolvidos = models.JSONField()
+    ano = models.DateField()
+    semestre = models.IntegerField()
+    carga_horaria_semanal = models.IntegerField()
+    docentes_envolvidos = models.JSONField()
+    carga_horaria_docentes_envolvidos = models.JSONField()
 
 class AtividadeOrientacao(models.Model):
     ano = models.IntegerField()
@@ -136,22 +136,22 @@ class Orientando(models.Model):
 class BancaExaminacao(models.Model):
     nome_candidato = models.CharField(max_length=100)
     titulo_trabalho = models.CharField(max_length=100)
-    IES = models.CharField(max_length=100)
+    ies = models.CharField(max_length=100)
     tipo = models.CharField(max_length=50)
     ano = models.IntegerField()
     semestre = models.IntegerField()
 
 class ProjetoDePesquisa(models.Model):
-    CodigoProped = models.CharField(max_length=10)
-    Titulo = models.CharField(max_length=100)
-    PeriodoDoProjeto = models.JSONField()
-    TipoDeColaboracao = models.CharField(max_length=50)
+    codigo_proped = models.CharField(max_length=10)
+    titulo = models.CharField(max_length=100)
+    periodo_do_projeto = models.JSONField()
+    tipo_de_colaboracao = models.CharField(max_length=50)
 
 class Publicacao(models.Model):
-    Titulo = models.CharField(max_length=100)
-    Ano = models.IntegerField()
-    VeiculoDePublicacao = models.CharField(max_length=100)
-    Tipo = models.CharField(max_length=100)
+    titulo = models.CharField(max_length=100)
+    ano = models.IntegerField()
+    veiculo_de_publicacao = models.CharField(max_length=100)
+    tipo = models.CharField(max_length=100)
 
 class QualificacaoDocente(models.Model):
     SEMESTRES = (
@@ -164,22 +164,22 @@ class QualificacaoDocente(models.Model):
         ('mestrado', 'Mestrado'),
         ('doutorado', 'Doutorado'),
     )
-    AnoDeReferencia = models.IntegerField()
-    SemestreDeReferencia = models.CharField(
+    ano_de_referencia = models.IntegerField()
+    semestre_de_referencia = models.CharField(
         max_length=1,
         choices=SEMESTRES,
         default='1')
-    NivelAcademico = models.CharField(
+    nivel_academico = models.CharField(
         max_length=30,
         choices=NIVELACADEMICO,
         default='pos'
     )
-    AreasDePesquisa = models.JSONField()
-    CursosCapacitacao = models.JSONField()
-    ExperienciaProfissional = models.JSONField()
+    areas_de_pesquisa = models.JSONField()
+    cursos_capacitacao = models.JSONField()
+    experiencia_profissional = models.JSONField()
 
 class AtividadeExtensao(models.Model):
-    cod_PROEX = models.CharField(max_length=50)
+    cod_proex = models.CharField(max_length=50)
     titulo = models.CharField(max_length=100)
     inicio_projeto = models.DateField()
     fim_projeto = models.DateField()

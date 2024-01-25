@@ -12,10 +12,16 @@ from rest_framework.views import APIView
 
 
 class UsuarioView(APIView):
+    #Pra pegar todos os usuários, sem especificar id
+    def get(self, request):
+        user = Usuario.objects.all()
+        serializer = UsuarioSerializer(user, many=True)
+        return Response(serializer.data)
+
     def post(self, request):
         serializer = UsuarioSerializer(data=request.data)
         if serializer.is_valid():
-            user = serializer.save(commit=False)  # Cria o usuário mas não salva
+            user = serializer.save()  # commit=False - Cria o usuário mas não salva
             token = default_token_generator.make_token(user)
             mail_subject = 'Ative sua conta.'
             message = render_to_string('acc_active_email.html', {

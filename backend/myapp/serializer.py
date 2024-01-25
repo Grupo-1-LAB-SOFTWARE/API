@@ -3,23 +3,21 @@ from django.contrib.auth.hashers import make_password
 from myapp.models import Usuario, Docente, AtividadeLetiva, AtividadePedagogicaComplementar, AtividadeOrientacao, Campus, Instituto, Curso
 
 class UsuarioSerializer(serializers.ModelSerializer):
-    Senha = serializers.CharField(write_only=True)
+    senha = serializers.CharField(write_only=True)
 
     class Meta:
         model = Usuario
-        fields = ('Id', 'Login', 'NomeCompleto', 'Perfil', 'DataCadastro', 'Email', 'isEmailConfirmado')
-        extra_kwargs = {'Senha': {'write_only': True}}
+        fields = ('login', 'nome_completo', 'perfil', 'data_cadastro', 'email', 'is_email_confirmado', 'senha')
     
     def create(self, validated_data):
         user = Usuario.objects.create(
-            Id=validated_data['Id'],
-            Login=validated_data['Login'],
-            NomeCompleto=validated_data['NomeCompleto'],
-            Perfil=validated_data['Perfil'],
-            DataCadastro=validated_data['DataCadastro'],
-            Email=validated_data['Email'],
-            isEmailConfirmado=validated_data['isEmailConfirmado'],
-            Senha = make_password(validated_data['Senha'])
+            login=validated_data['login'],
+            nome_completo=validated_data['nome_completo'],
+            perfil=validated_data['perfil'],
+            data_cadastro=validated_data['data_cadastro'],
+            email=validated_data['email'],
+            is_email_confirmado=validated_data['is_email_confirmado'],
+            senha = make_password(validated_data['senha'])
         )
         user.save()
         return user
