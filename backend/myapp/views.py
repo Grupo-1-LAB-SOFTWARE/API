@@ -9,15 +9,38 @@ from myapp.models import Usuario
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from django.http import Http404
 
+class UsuariosTesteView(APIView):
+    def get(self, request, user_id=None):
+        if user_id is not None:
+            return self.getById(request, user_id)
+        else:
+            return self.getAll(request)
 
-class UsuarioView(APIView):
     #Pra pegar todos os usuários, sem especificar id
-    def get(self, request):
+    def getAll(self, request):
         user = Usuario.objects.all()
         serializer = UsuarioSerializer(user, many=True)
         return Response(serializer.data)
+    
+    def getById(self, request, user_id):
+        try:
+            user = Usuario.objects.get(pk=user_id)
+            serializer = UsuarioSerializer(user)
+            return Response(serializer.data)
+        except Usuario.DoesNotExist:
+            raise Http404
+    
+    def post(self, request):
+        serializer = UsuarioSerializer(data=request.data)
+        if serializer.is_valid():
+            user = serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+
+class UsuarioView(APIView):
     def post(self, request):
         serializer = UsuarioSerializer(data=request.data)
         if serializer.is_valid():
