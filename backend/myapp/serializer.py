@@ -19,7 +19,6 @@ class UsuarioSerializer(serializers.ModelSerializer):
             is_email_confirmado=validated_data['is_email_confirmado'],
             senha = make_password(validated_data['senha'])
         )
-        user.save()
         return user
 
 class CampusSerializer(serializers.ModelSerializer):
