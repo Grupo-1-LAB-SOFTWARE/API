@@ -19,6 +19,27 @@ class UsuarioView(APIView):
             return self.getById(request, user_id)
         else:
             return self.getAll(request)
+            
+    def put(self, request, user_id):
+        if user_id is not None:
+            try:
+                user = Usuario.objects.get(pk=user_id)
+                data = request.data.copy()
+                if 'id' in data:
+                    return Response({'error': 'Não é possível atualizar o campo "id"'}, status=status.HTTP_400_BAD_REQUEST)
+                if 'is_email_confirmado' in data:
+                    return Response({'error': 'Não é possível atualizar o campo "is_email_confirmado"'}, status=status.HTTP_400_BAD_REQUEST)
+
+                serializer = UsuarioSerializer(user, data=data, partial=True)
+
+                if serializer.is_valid():
+                    serializer.save()
+                    return Response(serializer.data)
+                else:
+                    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+            except Usuario.DoesNotExist:
+                raise Http404
 
     #Pra pegar todos os usuários, sem especificar id
     def getAll(self, request):
