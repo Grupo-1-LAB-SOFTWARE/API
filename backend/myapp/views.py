@@ -1,4 +1,5 @@
 from django.core.mail import send_mail
+from django.forms.models import model_to_dict
 from django.contrib.auth.tokens import default_token_generator
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.template.loader import render_to_string
@@ -10,8 +11,9 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.http import Http404
+from .utils import Util
 
-class UsuariosTesteView(APIView):
+class UsuarioView(APIView):
     def get(self, request, user_id=None):
         if user_id is not None:
             return self.getById(request, user_id)
@@ -36,39 +38,25 @@ class UsuariosTesteView(APIView):
         serializer = UsuarioSerializer(data=request.data)
         if serializer.is_valid():
             user = serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
-class UsuarioView(APIView):
-    def post(self, request):
-        serializer = UsuarioSerializer(data=request.data)
-        if serializer.is_valid():
-            user = serializer.save()  # commit=False - Cria o usuário mas não salva
-            token = default_token_generator.make_token(user)
-            mail_subject = 'Ative sua conta.'
-            message = render_to_string('acc_active_email.html', {
-                'user': user,
-                'domain': get_current_site(request).domain,
-                'uid': urlsafe_base64_encode(force_bytes(user.pk)),
-                'token': token,
-            })
-            send_mail(mail_subject, message, 'meu_email@example.com', [user.Email])
-            return Response("Por favor confirme seu email para completar o registro.")
+            user_dict = model_to_dict(user)
+            user_login = user_dict.get('login', None)
+            user_email = user_dict.get('email', None)
+            print(user_login)
+            print(user_email)
+            if (user_login, user_email) is not None:
+                Util.send_verification_email(user_login, user_email, request)
+                return Response({'message': 'Email de verificação enviado'}, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
-class AtivarContaView(APIView):
-    def get(self, request, uidb64, token):
+class ActivateEmail(APIView):
+    def get(self, request, login):
         try:
-            uid = force_str(urlsafe_base64_decode(uidb64))
-            user = Usuario.objects.get(pk=uid)
-            if default_token_generator.check_token(user, token):
-                user.isEmailConfirmado = True
-                user.save()  # Salva o usuário
-                return Response("Obrigado pela sua confirmação de email. Agora você pode fazer login na sua conta.")
-            else:
-                return Response("O link de ativação é inválido!")
-        except(TypeError, ValueError, OverflowError, Usuario.DoesNotExist):
-            user = None
-            return Response("O link de ativação é inválido!")
+            print(login)
+            Usuario.objects.filter(login=login).update(
+                is_email_confirmado=True
+            )
+        except Usuario.DoesNotExist:
+            return Response({'error': 'Usuário não encontrado'}, status=status.HTTP_404_NOT_FOUND)
+
+        return Response({'message': 'Ativação bem-sucedida'}, status=status.HTTP_200_OK)
         
