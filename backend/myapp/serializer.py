@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth.hashers import make_password
-from myapp.models import Usuario, Docente, AtividadeLetiva, AtividadePedagogicaComplementar, AtividadeOrientacao, Campus, Instituto, Curso
+from myapp.models import BancaExaminacao, Orientando, ProjetoDePesquisa, Publicacao, Usuario, Docente, AtividadeLetiva, AtividadePedagogicaComplementar, AtividadeOrientacao, Campus, Instituto, Curso
 
 class UsuarioSerializer(serializers.ModelSerializer):
     senha = serializers.CharField(write_only=True)
@@ -61,4 +61,28 @@ class AtividadeOrientacaoSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = AtividadeOrientacao
+        fields = '__all__'
+
+class OrientandoSerializer(serializers.ModelSerializer):
+    
+    class Meta:
+        model = Orientando
+        fields = '__all__'
+
+class BancaExaminacaoSerialixer(serializers.ModelSerializer):
+    
+    class Meta: 
+        models = BancaExaminacao
+        fields = '__all__'
+
+class ProjetoDePesquisaSerializer(serializers.ModelSerializer):
+    
+    class Meta:
+        models = ProjetoDePesquisa
+        fields = '__all__'
+
+class PublicacaoSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        models = Publicacao
         fields = '__all__'
