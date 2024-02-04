@@ -1,6 +1,25 @@
 from rest_framework import serializers
 from django.contrib.auth.hashers import make_password
-from myapp.models import BancaExaminacao, Orientando, ProjetoDePesquisa, Publicacao, Usuario, Docente, AtividadeLetiva, AtividadePedagogicaComplementar, AtividadeOrientacao, Campus, Instituto, Curso
+from myapp.models import ( BancaExaminacao, 
+                          Orientando, 
+                          ProjetoDePesquisa, 
+                          Publicacao, 
+                          Usuario, 
+                          Docente, 
+                          AtividadeLetiva, 
+                          AtividadePedagogicaComplementar, 
+                          AtividadeOrientacao, 
+                          Campus, 
+                          Instituto, 
+                          Curso, 
+                          QualificacaoDocente, 
+                          AtividadeExtensao, 
+                          ProjetoExtensao, 
+                          EstagioExtensao, 
+                          EnsinoNaoFormal, 
+                          OutrasAtividadesExtensao, 
+                          AtividadeGestaoRepresentacao, 
+                          RelatorioDocente )
 
 class UsuarioSerializer(serializers.ModelSerializer):
     senha = serializers.CharField(write_only=True)
@@ -85,4 +104,45 @@ class PublicacaoSerializer(serializers.ModelSerializer):
 
     class Meta:
         models = Publicacao
+        fields = '__all__'
+
+class QualificacaoDocenteSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        models = QualificacaoDocente
+        fields = '__all__'
+class AtividadeExtensaoSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        models = AtividadeExtensao
+        fields = '__all__'
+class ProjetoExtensaoSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        models = ProjetoExtensao
+        fields = '__all__'
+class EstagioExtensaoSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        models = EstagioExtensao
+        fields = '__all__'
+class EnsinoNaoFormalSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        models = EnsinoNaoFormal
+        fields = '__all__'
+class OutrasAtividadesExtensaoSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        models = OutrasAtividadesExtensao
+        fields = '__all__'
+class AtividadeGestaoRepresentacaoSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        models = AtividadeGestaoRepresentacao
+        fields = '__all__'
+class RelatorioDocenteSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        models = RelatorioDocente
         fields = '__all__'
