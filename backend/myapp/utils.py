@@ -25,7 +25,7 @@ class Util:
     @staticmethod
     def from_usuario_to_user(usuario):
         user = User.objects.create_user(
-        id = usuario.id,
+        id = usuario.pk,
         username=usuario.login,
         first_name=usuario.nome_completo.split()[0],
         last_name=usuario.nome_completo.split()[-1],
