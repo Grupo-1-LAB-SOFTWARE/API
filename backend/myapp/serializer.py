@@ -2,6 +2,7 @@ from rest_framework import serializers
 from django.contrib.auth.hashers import make_password
 from myapp.models import Usuario, Docente, AtividadeLetiva, AtividadePedagogicaComplementar, AtividadeOrientacao, Campus, Instituto, Curso
 
+
 class UsuarioSerializer(serializers.ModelSerializer):
     senha = serializers.CharField(write_only=True)
 
@@ -10,7 +11,7 @@ class UsuarioSerializer(serializers.ModelSerializer):
         fields = ('id', 'login', 'nome_completo', 'perfil', 'data_cadastro', 'email', 'is_email_confirmado', 'senha')
     
     def create(self, validated_data):
-        user = Usuario.objects.create(
+        usuario = Usuario.objects.create(
             login=validated_data['login'],
             nome_completo=validated_data['nome_completo'],
             perfil=validated_data['perfil'],
@@ -19,7 +20,7 @@ class UsuarioSerializer(serializers.ModelSerializer):
             is_email_confirmado=validated_data['is_email_confirmado'],
             senha = make_password(validated_data['senha'])
         )
-        return user
+        return usuario
 
 class CampusSerializer(serializers.ModelSerializer):
 
