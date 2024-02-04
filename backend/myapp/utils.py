@@ -2,6 +2,8 @@ from django.core.mail import send_mail, EmailMessage, get_connection
 from django.contrib.sites.shortcuts import get_current_site
 from django.urls import reverse
 from .models import Usuario
+from django.contrib.auth.models import User
+
 class Util:
     @staticmethod
     def send_verification_email(user_login, user_email, request):
@@ -19,3 +21,15 @@ class Util:
         connection = get_connection()
 
         send_mail(subject, message, from_email, recipient_list, connection=connection)
+    
+    @staticmethod
+    def from_usuario_to_user(usuario):
+        user = User.objects.create_user(
+        id = usuario.id,
+        username=usuario.login,
+        first_name=usuario.nome_completo.split()[0],
+        last_name=usuario.nome_completo.split()[-1],
+        email=usuario.email,
+        password=usuario.senha,
+    )
+        return user
