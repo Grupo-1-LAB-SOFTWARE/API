@@ -174,9 +174,7 @@ class QualificacaoDocente(models.Model):
         choices=NIVELACADEMICO,
         default='pos'
     )
-    areas_de_pesquisa = models.JSONField()
-    cursos_capacitacao = models.JSONField()
-    experiencia_profissional = models.JSONField()
+    
 
 class AtividadeExtensao(models.Model):
     cod_proex = models.CharField(max_length=50)
