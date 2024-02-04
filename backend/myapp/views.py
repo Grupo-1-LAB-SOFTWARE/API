@@ -43,6 +43,7 @@ class UsuarioView(APIView):
             except Usuario.DoesNotExist:
                 return Response('{erro: Não foi possível encontrar um usuário com o id fornecido}', status=status.HTTP_404_NOT_FOUND)
 
+
     #Pra pegar todos os usuários, sem especificar id
     def getAll(self, request):
         user = Usuario.objects.all()
