@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'myapp',
     'rest_framework',
     'corsheaders',
+    'rest_framework.authtoken',
 ]
 
 CORS_ORIGIN_ALLOW_ALL = True
@@ -135,3 +136,7 @@ EMAIL_HOST='smtp.gmail.com'
 EMAIL_PORT=587
 EMAIL_HOST_USER='reynanvt@gmail.com'
 EMAIL_HOST_PASSWORD='sdnwfnoshnphzohm'
+
+#AUTH_USER_MODEL = "myapp.Usuario"
+CORS_ORIGIN_ALLOW_ALL = True
+CORS_ALLOW_CREDENTIALS = True

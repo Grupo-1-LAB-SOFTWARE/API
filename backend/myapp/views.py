@@ -12,11 +12,13 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.http import Http404
 from .utils import Util
+from rest_framework.authtoken.models import Token
+from django.contrib.auth.hashers import check_password
 
 class UsuarioView(APIView):
-    def get(self, request, user_id=None):
-        if user_id is not None:
-            return self.getById(request, user_id)
+    def get(self, request, email=None):
+        if email:
+            return self.getByEmail(request, email)
         else:
             return self.getAll(request)
             
@@ -39,7 +41,8 @@ class UsuarioView(APIView):
                     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
             except Usuario.DoesNotExist:
-                raise Http404
+                return Response('{erro: Não foi possível encontrar um usuário com o id fornecido}', status=status.HTTP_404_NOT_FOUND)
+
 
     #Pra pegar todos os usuários, sem especificar id
     def getAll(self, request):
@@ -53,7 +56,7 @@ class UsuarioView(APIView):
             serializer = UsuarioSerializer(user)
             return Response(serializer.data)
         except Usuario.DoesNotExist:
-            raise Http404
+            return Response('{erro: Não foi possível encontrar um usuário com o id fornecido}', status=status.HTTP_404_NOT_FOUND)
     
     def post(self, request):
         serializer = UsuarioSerializer(data=request.data)
@@ -62,13 +65,47 @@ class UsuarioView(APIView):
             user_dict = model_to_dict(user)
             user_login = user_dict.get('login', None)
             user_email = user_dict.get('email', None)
-            print(user_login)
-            print(user_email)
             if (user_login, user_email) is not None:
                 Util.send_verification_email(user_login, user_email, request)
                 return Response({'message': 'Email de verificação enviado'}, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class LoginView(APIView):
+    def post(self, request):
+        login = request.data.get('login', None)
+        email = request.data.get('email', None)
+        senha = request.data.get('senha', None)
+        if email and senha:
+            return self.getTokenEmailESenha(request, email, senha)
+        if login and senha:
+            return self.getTokenLoginESenha(request, login, senha)
+        return Response({'erro': 'É necessário fornecer email e senha ou login e senha para logar'}, status=status.HTTP_404_NOT_FOUND)
     
+    def getTokenEmailESenha(self, request, email, senha):
+        try:
+            usuario = Usuario.objects.get(email=email)
+            if check_password(senha, usuario.senha):
+                user = Util.from_usuario_to_user(usuario)
+                token, created = Token.objects.get_or_create(user=user)
+                return Response({'token': token.key}, status=status.HTTP_200_OK)
+            else:
+                return Response({'acesso_negado': 'Senha incorreta.'}, status=status.HTTP_401_UNAUTHORIZED)
+        except Usuario.DoesNotExist:
+                return Response({'usuario_nao_encontrado': 'Não existe nenhum usuário cadastrado com esse e-mail.'}, status=status.HTTP_401_UNAUTHORIZED)
+
+    def getTokenLoginESenha(self, request, login, senha):
+        try:
+            usuario = Usuario.objects.get(login=login)
+            if check_password(senha, usuario.senha):
+                user = Util.from_usuario_to_user(usuario)
+                token, created = Token.objects.get_or_create(user=user)
+                return Response({'token': token.key}, status=status.HTTP_200_OK)
+            else:
+                return Response({'acesso_negado': 'Senha incorreta.'}, status=status.HTTP_401_UNAUTHORIZED)
+        except Usuario.DoesNotExist:
+            return Response({'usuario_nao_encontrado': 'Não existe nenhum usuário cadastrado com esse login.'}, status=status.HTTP_401_UNAUTHORIZED)
+
+
 class ActivateEmail(APIView):
     def get(self, request, login):
         try:
