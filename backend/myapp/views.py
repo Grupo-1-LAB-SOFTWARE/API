@@ -16,9 +16,9 @@ from rest_framework.authtoken.models import Token
 from django.contrib.auth.hashers import check_password
 
 class UsuarioView(APIView):
-    def get(self, request, email=None):
-        if email:
-            return self.getByEmail(request, email)
+    def get(self, request, user_id=None):
+        if user_id:
+            return self.getById(request, user_id)
         else:
             return self.getAll(request)
             
