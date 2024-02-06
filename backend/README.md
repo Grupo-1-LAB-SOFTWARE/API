@@ -1,7 +1,7 @@
 # Instalar MongoDB
 - [Download Compass](https://www.mongodb.com/products/tools/compass)
 - [Download MongoDB](https://www.mongodb.com/try/download/community)
-- [Tutorial de Instalação no Windowns](https://www.youtube.com/watch?v=rtAPwlvoNoI)
+- [Tutorial de Instalação no Windows](https://www.youtube.com/watch?v=rtAPwlvoNoI)
 ## Iniciar o servidor do MongoDB e realizar as migrações após a configuração do ambiente.
 
 # Configuração do Ambiente
@@ -28,7 +28,7 @@
 ## 4. Executar o Projeto
 - python manage.py runserver
 
-### OBS: Criar um arquivo ".env" para as variaveis de ambiente de configuração para envio de email.
+### OBS: Criar um arquivo ".env" dentro da pasta "backend" para as variaveis de ambiente de configuração para envio de email.
 Com os seguintes campos:
 
 - EMAIL_BACKEND=django.core.mail.backends.smtp.EmailBackend
@@ -36,4 +36,4 @@ Com os seguintes campos:
 - EMAIL_HOST=smtp.gmail.com
 - EMAIL_PORT=587
 - EMAIL_HOST_USER= algum_email@gmail.com
-- EMAIL_HOST_PASSWORD=[Senha de App Google](https://dev.to/abderrahmanemustapha/how-to-send-email-with-django-and-gmail-in-production-the-right-way-24ab)
+- EMAIL_HOST_PASSWORD=[Senha de App Google - Clique aqui e siga as instruções em "The Gmail Part"](https://dev.to/abderrahmanemustapha/how-to-send-email-with-django-and-gmail-in-production-the-right-way-24ab)
