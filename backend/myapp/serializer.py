@@ -22,6 +22,7 @@ from myapp.models import ( BancaExaminacao,
                           RelatorioDocente )
 
 
+
 class UsuarioSerializer(serializers.ModelSerializer):
     senha = serializers.CharField(write_only=True)
 
