@@ -2,11 +2,16 @@
 - [Download Compass](https://www.mongodb.com/products/tools/compass)
 - [Download MongoDB](https://www.mongodb.com/try/download/community)
 - [Tutorial de Instalação no Windowns](https://www.youtube.com/watch?v=rtAPwlvoNoI)
+## Iniciar o servidor do MongoDB e realizar as migrações após a configuração do ambiente.
 
 # Configuração do Ambiente
 
 ## 1. ativar ambiente virtual (venv)
 ### certifique-se de estar no diretório /backend
+### considere para MacOS ou Linux utilizar "python3" e "pip3"
+
+### Criar venv:
+- python -m venv venv
 
 ### Windowns
 - venv\Scripts\activate
