@@ -70,40 +70,38 @@ class UsuarioView(APIView):
                 return Response({'message': 'Email de verificação enviado'}, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+
 class LoginView(APIView):
     def post(self, request):
         login = request.data.get('login', None)
         email = request.data.get('email', None)
         senha = request.data.get('senha', None)
         if email and senha:
-            return self.getTokenEmailESenha(request, email, senha)
+            return self.getToken(request, None, email, senha)
         if login and senha:
-            return self.getTokenLoginESenha(request, login, senha)
+            return self.getToken(request, login, None, senha)
         return Response({'erro': 'É necessário fornecer email e senha ou login e senha para logar'}, status=status.HTTP_404_NOT_FOUND)
-    
-    def getTokenEmailESenha(self, request, email, senha):
-        try:
-            usuario = Usuario.objects.get(email=email)
-            if check_password(senha, usuario.senha):
-                user = Util.from_usuario_to_user(usuario)
-                token, created = Token.objects.get_or_create(user=user)
-                return Response({'token': token.key}, status=status.HTTP_200_OK)
-            else:
-                return Response({'acesso_negado': 'Senha incorreta.'}, status=status.HTTP_401_UNAUTHORIZED)
-        except Usuario.DoesNotExist:
-                return Response({'usuario_nao_encontrado': 'Não existe nenhum usuário cadastrado com esse e-mail.'}, status=status.HTTP_401_UNAUTHORIZED)
 
-    def getTokenLoginESenha(self, request, login, senha):
-        try:
-            usuario = Usuario.objects.get(login=login)
+    def getToken(self, request, login, email, senha):
+        usuario = None
+        if email and senha:
+            try:
+                usuario = Usuario.objects.get(email=email)
+            except Usuario.DoesNotExist:
+                return Response({'usuario_nao_encontrado': 'Não existe nenhum usuário cadastrado com esse e-mail.'}, status=status.HTTP_404_NOT_FOUND)
+        elif login and senha:
+            try:
+                usuario = Usuario.objects.get(login=login)
+            except Usuario.DoesNotExist:
+                return Response({'usuario_nao_encontrado': 'Não existe nenhum usuário cadastrado com esse login.'}, status=status.HTTP_404_NOT_FOUND)
+        if usuario:
             if check_password(senha, usuario.senha):
-                user = Util.from_usuario_to_user(usuario)
-                token, created = Token.objects.get_or_create(user=user)
-                return Response({'token': token.key}, status=status.HTTP_200_OK)
+                        userUtil = Util.from_usuario_to_user(usuario)
+                        token, created = Token.objects.get_or_create(user=userUtil)
+                        return Response({'token': token.key}, status=status.HTTP_200_OK)
             else:
                 return Response({'acesso_negado': 'Senha incorreta.'}, status=status.HTTP_401_UNAUTHORIZED)
-        except Usuario.DoesNotExist:
-            return Response({'usuario_nao_encontrado': 'Não existe nenhum usuário cadastrado com esse login.'}, status=status.HTTP_401_UNAUTHORIZED)
+        return Response({'erro': 'Ocorreu algum erro desconhecido'}, status=status.HTTP_404_NOT_FOUND)
 
 
 class ActivateEmail(APIView):
