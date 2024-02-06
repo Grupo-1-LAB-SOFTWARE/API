@@ -1,4 +1,4 @@
-#!/Users/labes/Desktop/sisradoc_backend/api_sisradoc/venv/bin/python3.11
+#!/Users/user/Documents/GitHub/API/backend/venv/bin/python3.11
 # -*- coding: utf-8 -*-
 import re
 import sys
