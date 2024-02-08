@@ -21,24 +21,6 @@ class Usuario(AbstractUser):
     senha = models.CharField(max_length=8)
     is_email_confirmado = models.BooleanField(default=False)
 
-class Usuario2(models.Model):
-    PERFIL = (
-        ('docente', 'Docente'),
-        ('admin', 'Administrador'),
-    )
-    id = models.AutoField(primary_key=True)
-    login = models.CharField(max_length=13)
-    nome_completo = models.CharField(max_length=500)
-    perfil = models.CharField(
-        max_length=10,
-        choices=PERFIL,
-        default='docente'
-    )
-    data_cadastro = models.DateField()
-    email = models.EmailField()
-    senha = models.CharField(max_length=8)
-    is_email_confirmado = models.BooleanField(default=False)
-
 class Campus(models.Model):
     CIDADE = (
         ('belem', 'Belém'),
