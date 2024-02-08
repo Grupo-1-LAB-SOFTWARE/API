@@ -12,14 +12,7 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 
 from pathlib import Path
 import os
-with open('.env') as f:
-    lines = f.readlines()
-
-env_vars = {}
-for line in lines:
-    if line.strip():
-        key, value = line.strip().split('=', 1)
-        env_vars[key] = value
+from decouple import config
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -138,12 +131,14 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Configurações de envio de Email
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_USE_TLS = env_vars['EMAIL_USE_TLS']
-EMAIL_HOST = env_vars['EMAIL_HOST']
-EMAIL_PORT = int(env_vars['EMAIL_PORT'])
-EMAIL_HOST_USER = env_vars['EMAIL_HOST_USER']
-EMAIL_HOST_PASSWORD = env_vars['EMAIL_HOST_PASSWORD']
-AUTH_USER_MODEL = "myapp.Usuario"
+EMAIL_BACKEND = config('EMAIL_BACKEND')
+EMAIL_USE_TLS = config('EMAIL_USE_TLS')
+EMAIL_HOST = config('EMAIL_HOST')
+EMAIL_PORT = config('EMAIL_PORT', cast=int)
+EMAIL_HOST_USER = config('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
+
+print(EMAIL_BACKEND,EMAIL_HOST,EMAIL_PORT,EMAIL_HOST_PASSWORD,EMAIL_USE_TLS,EMAIL_HOST_USER)
+#AUTH_USER_MODEL = "myapp.Usuario"
 CORS_ORIGIN_ALLOW_ALL = True
 CORS_ALLOW_CREDENTIALS = True

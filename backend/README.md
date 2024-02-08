@@ -37,3 +37,14 @@ Com os seguintes campos:
 - EMAIL_PORT=587
 - EMAIL_HOST_USER= algum_email@gmail.com
 - EMAIL_HOST_PASSWORD=[Senha de App Google - Clique aqui e siga as instruções em "The Gmail Part"](https://dev.to/abderrahmanemustapha/how-to-send-email-with-django-and-gmail-in-production-the-right-way-24ab)
+
+### OBS: Caso você esteja usando vs code, após ativar sua venv considere:
+#### Windowns
+- Ctrl + Shift + P
+#### MacOs
+- Cmmd + Shift + P
+
+- Digitar: Select Python Interpreter
+- Enter Interpreter path
+- copiar o caminho relativo: backend/venv/bin/python
+#### Isso evita que a as bibliotecas não sejam encontradas

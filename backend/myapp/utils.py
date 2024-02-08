@@ -4,7 +4,6 @@ from django.urls import reverse
 from .models import Usuario
 from django.contrib.auth.models import User
 from bson import ObjectId
-from django.conf import settings
 
 class Util:
     @staticmethod
@@ -17,7 +16,7 @@ class Util:
 
         subject = 'Ative sua conta'
         message = f'Clique no link para verificar sua conta \n {activate_url}'
-        from_email = settings.EMAIL_HOST_USER
+        from_email = 'reynanvt@gmail.com'
         recipient_list = [user_email]
 
         connection = get_connection()
