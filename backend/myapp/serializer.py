@@ -37,7 +37,7 @@ class UsuarioSerializer(serializers.ModelSerializer):
             perfil=validated_data['perfil'],
             data_cadastro=validated_data['data_cadastro'],
             email=validated_data['email'],
-            is_email_confirmado=validated_data['is_email_confirmado'],
+            is_email_confirmado=False,
             senha = make_password(validated_data['senha'])
         )
         return usuario

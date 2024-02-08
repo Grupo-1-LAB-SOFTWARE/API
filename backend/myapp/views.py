@@ -14,6 +14,8 @@ from django.http import Http404
 from .utils import Util
 from rest_framework.authtoken.models import Token
 from django.contrib.auth.hashers import check_password
+from rest_framework.authentication import TokenAuthentication
+from django.contrib.auth import authenticate
 
 class UsuarioView(APIView):
     def get(self, request, user_id=None):
@@ -28,9 +30,9 @@ class UsuarioView(APIView):
                 user = Usuario.objects.get(pk=user_id)
                 data = request.data.copy()
                 if 'id' in data:
-                    return Response({'error': 'Não é possível atualizar o campo "id"'}, status=status.HTTP_400_BAD_REQUEST)
+                    return Response({'erro': 'Não é possível atualizar o campo "id"'}, status=status.HTTP_400_BAD_REQUEST)
                 if 'is_email_confirmado' in data:
-                    return Response({'error': 'Não é possível atualizar o campo "is_email_confirmado"'}, status=status.HTTP_400_BAD_REQUEST)
+                    return Response({'erro': 'Não é possível atualizar o campo "is_email_confirmado"'}, status=status.HTTP_400_BAD_REQUEST)
 
                 serializer = UsuarioSerializer(user, data=data, partial=True)
 
@@ -41,7 +43,7 @@ class UsuarioView(APIView):
                     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
             except Usuario.DoesNotExist:
-                return Response('{erro: Não foi possível encontrar um usuário com o id fornecido}', status=status.HTTP_404_NOT_FOUND)
+                return Response({'erro': 'Não foi possível encontrar um usuário com o id fornecido'}, status=status.HTTP_404_NOT_FOUND)
 
 
     #Pra pegar todos os usuários, sem especificar id
@@ -56,7 +58,7 @@ class UsuarioView(APIView):
             serializer = UsuarioSerializer(user)
             return Response(serializer.data)
         except Usuario.DoesNotExist:
-            return Response('{erro: Não foi possível encontrar um usuário com o id fornecido}', status=status.HTTP_404_NOT_FOUND)
+            return Response({'erro': 'Não foi possível encontrar um usuário com o id fornecido'}, status=status.HTTP_404_NOT_FOUND)
     
     def post(self, request):
         serializer = UsuarioSerializer(data=request.data)
@@ -67,7 +69,7 @@ class UsuarioView(APIView):
             user_email = user_dict.get('email', None)
             if (user_login, user_email) is not None:
                 Util.send_verification_email(user_login, user_email, request)
-                return Response({'message': 'Email de verificação enviado'}, status=status.HTTP_201_CREATED)
+                return Response({'sucesso': 'Email de verificação enviado'}, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -77,31 +79,34 @@ class LoginView(APIView):
         email = request.data.get('email', None)
         senha = request.data.get('senha', None)
         if email and senha:
-            return self.getToken(request, None, email, senha)
+            return self.getToken(None, email, senha)
         if login and senha:
-            return self.getToken(request, login, None, senha)
+            return self.getToken(login, None, senha)
         return Response({'erro': 'É necessário fornecer email e senha ou login e senha para logar'}, status=status.HTTP_404_NOT_FOUND)
 
-    def getToken(self, request, login, email, senha):
+    def getToken(self, login, email, senha):
         usuario = None
         if email and senha:
             try:
                 usuario = Usuario.objects.get(email=email)
             except Usuario.DoesNotExist:
-                return Response({'usuario_nao_encontrado': 'Não existe nenhum usuário cadastrado com esse e-mail.'}, status=status.HTTP_404_NOT_FOUND)
+               return Response({'erro': 'Não existe nenhum usuário cadastrado com esse e-mail.'}, status=status.HTTP_404_NOT_FOUND)
         elif login and senha:
             try:
                 usuario = Usuario.objects.get(login=login)
             except Usuario.DoesNotExist:
-                return Response({'usuario_nao_encontrado': 'Não existe nenhum usuário cadastrado com esse login.'}, status=status.HTTP_404_NOT_FOUND)
+                return Response({'erro': 'Não existe nenhum usuário cadastrado com esse login.'}, status=status.HTTP_404_NOT_FOUND)
         if usuario:
+            if usuario.is_email_confirmado == False:
+                return Response({'acesso_negado': 'O usuário fornecido não pode realizar login pois ainda não confirmou o seu e-mail.'}, status=status.HTTP_401_UNAUTHORIZED)
+                
             if check_password(senha, usuario.senha):
-                        userUtil = Util.from_usuario_to_user(usuario)
-                        token, created = Token.objects.get_or_create(user=userUtil)
-                        return Response({'token': token.key}, status=status.HTTP_200_OK)
+                token, created = Token.objects.get_or_create(user=usuario)
+                return Response({'token': token.key}, status=status.HTTP_200_OK)
             else:
                 return Response({'acesso_negado': 'Senha incorreta.'}, status=status.HTTP_401_UNAUTHORIZED)
-        return Response({'erro': 'Ocorreu algum erro desconhecido'}, status=status.HTTP_404_NOT_FOUND)
+        else:
+            return Response({'erro': 'Ocorreu algum erro desconhecido'}, status=status.HTTP_404_NOT_FOUND)
 
 
 class ActivateEmail(APIView):
@@ -112,7 +117,7 @@ class ActivateEmail(APIView):
                 is_email_confirmado=True
             )
         except Usuario.DoesNotExist:
-            return Response({'error': 'Usuário não encontrado'}, status=status.HTTP_404_NOT_FOUND)
+            return Response({'erro': 'Usuário não encontrado'}, status=status.HTTP_404_NOT_FOUND)
 
-        return Response({'message': 'Ativação bem-sucedida'}, status=status.HTTP_200_OK)
+        return Response({'sucesso': 'Ativação bem-sucedida'}, status=status.HTTP_200_OK)
         
