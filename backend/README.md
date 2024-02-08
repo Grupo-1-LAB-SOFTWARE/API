@@ -44,7 +44,7 @@ Com os seguintes campos:
 #### MacOs
 - Cmmd + Shift + P
 
-- Digitar: Select Python Interpreter
+- Digitar: Python Select Interpreter
 - Enter Interpreter path
 - copiar o caminho relativo: backend/venv/bin/python
 #### Isso evita que a as bibliotecas não sejam encontradas
