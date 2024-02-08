@@ -20,7 +20,6 @@ for line in lines:
     if line.strip():
         key, value = line.strip().split('=', 1)
         env_vars[key] = value
-        print(env_vars)
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
