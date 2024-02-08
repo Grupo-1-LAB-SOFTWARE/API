@@ -31,12 +31,17 @@
 ### OBS: Criar um arquivo ".env" dentro da pasta "backend" para as variaveis de ambiente de configuração para envio de email.
 Com os seguintes campos:
 
-- EMAIL_BACKEND=django.core.mail.backends.smtp.EmailBackend
-- EMAIL_USE_TLS=True
-- EMAIL_HOST=smtp.gmail.com
-- EMAIL_PORT=587
-- EMAIL_HOST_USER= algum_email@gmail.com
-- EMAIL_HOST_PASSWORD=[Senha de App Google - Clique aqui e siga as instruções em "The Gmail Part"](https://dev.to/abderrahmanemustapha/how-to-send-email-with-django-and-gmail-in-production-the-right-way-24ab)
+EMAIL_BACKEND=django.core.mail.backends.smtp.EmailBackend
+
+EMAIL_USE_TLS=True
+
+EMAIL_HOST=smtp.gmail.com
+
+EMAIL_PORT=587
+
+EMAIL_HOST_USER= algum_email@gmail.com
+
+EMAIL_HOST_PASSWORD=[Senha de App Google - Clique aqui e siga as instruções em "The Gmail Part"](https://dev.to/abderrahmanemustapha/how-to-send-email-with-django-and-gmail-in-production-the-right-way-24ab)
 
 ### OBS: Caso você esteja usando vs code, após ativar sua venv considere:
 #### Windowns
