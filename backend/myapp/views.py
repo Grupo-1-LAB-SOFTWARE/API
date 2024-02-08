@@ -96,10 +96,11 @@ class LoginView(APIView):
                 usuario = Usuario.objects.get(login=login)
             except Usuario.DoesNotExist:
                 return Response({'erro': 'Não existe nenhum usuário cadastrado com esse login.'}, status=status.HTTP_404_NOT_FOUND)
+
         if usuario:
             if usuario.is_email_confirmado == False:
                 return Response({'acesso_negado': 'O usuário fornecido não pode realizar login pois ainda não confirmou o seu e-mail.'}, status=status.HTTP_401_UNAUTHORIZED)
-                
+
             if check_password(senha, usuario.senha):
                 token, created = Token.objects.get_or_create(user=usuario)
                 return Response({'token': token.key}, status=status.HTTP_200_OK)
