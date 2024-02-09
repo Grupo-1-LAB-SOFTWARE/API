@@ -121,4 +121,3 @@ class ActivateEmail(APIView):
             return Util.response_not_found('Usuário não encontrado')
 
         return Util.response_ok('Ativação do usuário bem-sucedida')
-        
