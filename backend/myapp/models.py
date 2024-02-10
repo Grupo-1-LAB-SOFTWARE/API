@@ -9,17 +9,13 @@ class Usuario(AbstractUser):
         ('admin', 'Administrador'),
     )
     id = models.AutoField(primary_key=True)
-    login = models.CharField(max_length=13)
     nome_completo = models.CharField(max_length=500)
     perfil = models.CharField(
         max_length=10,
         choices=PERFIL,
         default='docente'
     )
-    data_cadastro = models.DateField()
-    email = models.EmailField()
-    senha = models.CharField(max_length=8)
-    is_email_confirmado = models.BooleanField(default=False)
+    email = models.EmailField(unique=True)
 
 class Campus(models.Model):
     CIDADE = (
