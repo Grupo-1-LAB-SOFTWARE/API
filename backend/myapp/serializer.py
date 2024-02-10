@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from django.utils import timezone
 from django.contrib.auth.hashers import make_password
 from myapp.models import ( BancaExaminacao, 
                           Orientando, 
@@ -24,21 +25,21 @@ from myapp.models import ( BancaExaminacao,
 
 
 class UsuarioSerializer(serializers.ModelSerializer):
-    senha = serializers.CharField(write_only=True)
+    password = serializers.CharField(write_only=True)
 
     class Meta:
         model = Usuario
-        fields = ('id', 'login', 'nome_completo', 'perfil', 'data_cadastro', 'email', 'is_email_confirmado', 'senha')
+        fields = ('id', 'username', 'nome_completo', 'perfil', 'date_joined', 'email', 'is_active', 'password')
     
     def create(self, validated_data):
         usuario = Usuario.objects.create(
-            login=validated_data['login'],
+            username=validated_data['username'],
             nome_completo=validated_data['nome_completo'],
             perfil=validated_data['perfil'],
-            data_cadastro=validated_data['data_cadastro'],
+            date_joined=timezone.now(),
             email=validated_data['email'],
-            is_email_confirmado=False,
-            senha = make_password(validated_data['senha'])
+            is_active=False,
+            password = make_password(validated_data['password'])
         )
         return usuario
 
