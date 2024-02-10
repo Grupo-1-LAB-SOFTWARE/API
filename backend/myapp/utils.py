@@ -15,7 +15,7 @@ class Util:
         login = user_login
         print(login)
         domain = get_current_site(request).domain
-        link = reverse('activate', kwargs={'login': user_login})
+        link = reverse('activate', kwargs={'username': user_login})
         activate_url = 'http://'+domain+link
 
         subject = 'Ative sua conta'
