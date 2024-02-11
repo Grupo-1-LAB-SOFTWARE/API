@@ -23,9 +23,18 @@ class UsuarioView(APIView):
                 user = Usuario.objects.get(pk=user_id)
                 data = request.data.copy()
                 if 'id' in data:
-                    return Util.response_bad_request('Não é possível atualizar o campo "id"')
-                if 'is_email_confirmado' in data:
-                    return Util.response_bad_request('Não é possível atualizar o campo "is_email_confirmado"')
+                    return Util.response_unauthorized('Não é permitido atualizar o campo "id"')
+                if 'is_active' in data:
+                    return Util.response_unauthorized('Não é permitido atualizar o campo "is_active"')
+                if 'date_joined' in data:
+                    return Util.response_unauthorized('Não é permitido atualizar o campo "date_joined"')
+
+                username = request.data.get('username')
+                email = request.data.get('email')
+                if self.is_username_disponivel(username) == False:
+                    return Util.response_bad_request('Já existe um usuário cadastrado com esse username.')
+                if self.is_email_disponivel(email) == False:
+                    return Util.response_bad_request('Já existe um usuário cadastrado com esse e-mail.')
 
                 serializer = UsuarioSerializer(user, data=data, partial=True)
 
