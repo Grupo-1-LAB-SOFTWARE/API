@@ -54,27 +54,50 @@ class UsuarioView(APIView):
             return Util.response_not_found('Não foi possível encontrar um usuário com o id fornecido')
     
     def post(self, request):
-        serializer = UsuarioSerializer(data=request.data)
-        if serializer.is_valid():
-            user = serializer.save()
-            user_dict = model_to_dict(user)
-            user_login = user_dict.get('username', None)
-            user_email = user_dict.get('email', None)
-            if (user_login, user_email) is not None:
-                Util.send_verification_email(user_login, user_email, request)
-                return Response({'message': 'Email de verificação enviado'}, status=status.HTTP_201_CREATED)
-        return Util.response_bad_request(serializer.errors)
+            username = request.data.get('username')
+            email = request.data.get('email')
+            
+            if self.is_username_disponivel(username) == False:
+                return Util.response_bad_request('Já existe um usuário cadastrado com esse username.')
+            if self.is_email_disponivel(email) == False:
+                return Util.response_bad_request('Já existe um usuário cadastrado com esse e-mail.')
+
+            serializer = UsuarioSerializer(data=request.data)
+            if serializer.is_valid():
+                user = serializer.save()
+                user_dict = model_to_dict(user)
+                user_login = user_dict.get('username', None)
+                user_email = user_dict.get('email', None)
+                if (user_login, user_email) is not None:
+                    Util.send_verification_email(user_login, user_email, request)
+                    return Response({'message': 'Email de verificação enviado'}, status=status.HTTP_201_CREATED)
+            return Util.response_bad_request(serializer.errors)
+
+    def is_username_disponivel(self, username):
+        try:
+            Usuario.objects.get(username=username)
+            return False
+        except Usuario.DoesNotExist:
+            return True
+
+    def is_email_disponivel(self, email):
+        try:
+            Usuario.objects.get(email=email)
+            return False
+        except Usuario.DoesNotExist:
+            return True
 
 class LoginView(APIView):
     def post(self, request):
         username = request.data.get('username', None)
         email = request.data.get('email', None)
         password = request.data.get('password', None)
-        if email and password:
+        if email and password and username is None:
             return self.getToken(None, email, password)
-        if username and password:
+        elif username and password and email is None:
             return self.getToken(username, None, password)
-        return Util.response_unauthorized('É necessário fornecer email e senha ou username e senha para logar')
+        else:
+            return Util.response_unauthorized('É necessário fornecer email e senha ou username e senha para logar')
 
     def getToken(self, username, email, password):
         usuario = None
