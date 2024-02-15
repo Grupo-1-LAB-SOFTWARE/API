@@ -5,8 +5,8 @@ from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.template.loader import render_to_string
 from django.utils.encoding import force_bytes,force_str
 from django.contrib.sites.shortcuts import get_current_site
-from myapp.serializer import UsuarioSerializer
-from myapp.models import Usuario
+from myapp.serializer import UsuarioSerializer, AtividadeLetivaSerializer
+from myapp.models import Usuario, AtividadeLetiva
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -121,4 +121,40 @@ class ActivateEmail(APIView):
             return Util.response_not_found('Usuário não encontrado')
 
         return Util.response_ok('Ativação do usuário bem-sucedida')
+        
+class AtividadeLetivaView(APIView):
+    def getAll(self, request):
+        atividade_letiva = AtividadeLetiva.objects.all()
+        serializer = AtividadeLetivaSerializer(atividade_letiva)
+        return Util.response_ok_no_message(serializer.data)
+    
+    def put(self, request, atividade_letiva_id):
+        if atividade_letiva_id is not None:
+            atividade_letiva = AtividadeLetiva.objects.get(pk=atividade_letiva_id)
+            data = request.data.copy()
+            if 'id' in data:
+                return Util.response_bad_request('Não é possível atualiza o campo "id"')
+            serializer = AtividadeLetivaSerializer(atividade_letiva, data=data, partial=True)
+
+            if serializer.is_valid():
+                serializer.save()
+                return Util.response_ok_no_message(serializer.data)
+            else:
+                return Util.response_bad_request(serializer.errors)
+                
+    def post(self, request):
+        serializer = AtividadeLetivaSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Util.response_ok_no_message(serializer.data)
+        else:
+            return Util.response_bad_request(serializer.errors)
+        
+    def delete(self,request,  atividade_letiva_id):
+        atividade_letiva = AtividadeLetiva.objects.get(pk=atividade_letiva_id)
+        delete = object.delete(atividade_letiva)
+        if delete:
+            return Util.response_ok_no_message('Deletado')
+        else:
+            return Util.response_bad_request('Não deletado')
         
