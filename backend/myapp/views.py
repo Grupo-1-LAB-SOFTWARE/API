@@ -5,12 +5,8 @@ from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.template.loader import render_to_string
 from django.utils.encoding import force_bytes,force_str
 from django.contrib.sites.shortcuts import get_current_site
-from myapp.serializer import (UsuarioSerializer, 
-                            AtividadeLetivaSerializer, 
-                            AtividadePedagogicaComplementarSerializer, 
-                            AtividadeOrientacaoSerializer, 
-                            BancaExaminacaoSerializer)
-from myapp.models import Usuario, AtividadeLetiva
+from myapp.serializer import UsuarioSerializer, AtividadeLetivaSerializer, AtividadePedagogicaComplementarSerializer, AtividadeOrientacaoSerializer, BancaExaminacaoSerializer
+from myapp.models import Usuario, AtividadeLetiva, AtividadePedagogicaComplementar, AtividadeOrientacao, BancaExaminacao
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -126,6 +122,7 @@ class ActivateEmail(APIView):
 
         return Util.response_ok('Ativação do usuário bem-sucedida')
         
+
 class AtividadeLetivaView(APIView):
     def getAll(self, request):
         atividade_letiva = AtividadeLetiva.objects.all()
@@ -154,15 +151,122 @@ class AtividadeLetivaView(APIView):
         else:
             return Util.response_bad_request(serializer.errors)
         
-    def delete(self,request,  atividade_letiva_id):
+    def delete(self, request,  atividade_letiva_id):
         atividade_letiva = AtividadeLetiva.objects.get(pk=atividade_letiva_id)
         delete = object.delete(atividade_letiva)
         if delete:
             return Util.response_ok_no_message('Deletado')
         else:
             return Util.response_bad_request('Não deletado')
-class AtividadePedagogicaComplementar(APIView):
+        
 
-class AtividadeOrientaçao(APIView):
+class AtividadePedagogicaComplementarView(APIView):
+    def getAll(self, request):
+        atividade_pedagogicacomp = AtividadeLetiva.objects.all()
+        serializer = AtividadeLetivaSerializer(atividade_pedagogicacomp)
+        return Util.response_ok_no_message(serializer.data)
+    
+    def put(self, request, atividade_pedagogicacomp_id):
+        if atividade_pedagogicacomp_id is not None:
+            atividade_pedagogicacomp = AtividadePedagogicaComplementar.objects.get(pk=atividade_pedagogicacomp_id)
+            data = request.data.copy()
+            if 'id' in data:
+                return Util.response_bad_request('Não é possível atualiza o campo "id"')
+            serializer = AtividadePedagogicaComplementarSerializer(atividade_pedagogicacomp, data=data, partial=True)
 
-class BancaExaminacao(APIView):   
+            if serializer.is_valid():
+                serializer.save()
+                return Util.response_ok_no_message(serializer.data)
+            else:
+                return Util.response_bad_request(serializer.errors)
+                
+    def post(self, request):
+        serializer = AtividadePedagogicaComplementarSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Util.response_ok_no_message(serializer.data)
+        else:
+            return Util.response_bad_request(serializer.errors)
+        
+    def delete(self, request,  atividade_pedagogicacomp_id):
+        atividade_pedagogicacomp = AtividadePedagogicaComplementar.objects.get(pk=atividade_pedagogicacomp_id)
+        delete = object.delete(atividade_pedagogicacomp)
+        if delete:
+            return Util.response_ok_no_message('Deletado')
+        else:
+            return Util.response_bad_request('Não deletado')
+        
+
+class AtividadeOrientaçaoView(APIView):
+    def getAll(self, request):
+        atividade_orientacao = AtividadeOrientacao.objects.all()
+        serializer = AtividadeOrientacaoSerializer(atividade_orientacao)
+        return Util.response_ok_no_message(serializer.data)
+    
+    def put(self, request, atividade_orientacao_id):
+        if atividade_orientacao_id is not None:
+            atividade_orientacao = AtividadeOrientacao.objects.get(pk=atividade_orientacao_id)
+            data = request.data.copy()
+            if 'id' in data:
+                return Util.response_bad_request('Não é possível atualiza o campo "id"')
+            serializer = AtividadeOrientacaoSerializer(atividade_orientacao, data=data, partial=True)
+
+            if serializer.is_valid():
+                serializer.save()
+                return Util.response_ok_no_message(serializer.data)
+            else:
+                return Util.response_bad_request(serializer.errors)
+                
+    def post(self, request):
+        serializer = AtividadeOrientacaoSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Util.response_ok_no_message(serializer.data)
+        else:
+            return Util.response_bad_request(serializer.errors)
+        
+    def delete(self, request,  atividade_orientacao_id):
+        atividade_orientacao = AtividadeOrientacao.objects.get(pk=atividade_orientacao_id)
+        delete = atividade_orientacao.objects.delete() #formato diferente para teste
+        if delete:
+            return Util.response_ok_no_message('Deletado')
+        else:
+            return Util.response_bad_request('Não deletado')
+        
+        
+class BancaExaminacaoView(APIView):
+    def getAll(self, request):
+        banca_examinacao = BancaExaminacao.objects.all()
+        serializer = BancaExaminacaoSerializer(banca_examinacao)
+        return Util.response_ok_no_message(serializer.data)
+
+    def put(self, request, banca_examinacao_id):
+        if banca_examinacao_id is not None:
+            banca_examinacao = BancaExaminacao.objects.get(pk=banca_examinacao_id)
+            data = request.data.copy()
+            if 'id' in data:
+                return Util.response_bad_request('Não é possível atualiza o campo "id"')
+            serializer = BancaExaminacaoSerializer(banca_examinacao, data=data, partial=True)
+
+            if serializer.is_valid():
+                serializer.save()
+                return Util.response_ok_no_message(serializer.data)
+            else:
+                return Util.response_bad_request(serializer.errors)
+                
+    def post(self, request):
+        serializer = BancaExaminacaoSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Util.response_ok_no_message(serializer.data)
+        else:
+            return Util.response_bad_request(serializer.errors)
+        
+    def delete(self, request,  banca_examinacao_id):
+        banca_examinacao = BancaExaminacao.objects.get(pk=banca_examinacao_id)
+        delete = object.delete(banca_examinacao)
+        if delete:
+            return Util.response_ok_no_message('Deletado')
+        else:
+            return Util.response_bad_request('Não deletado')
+        
