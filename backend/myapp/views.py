@@ -5,7 +5,11 @@ from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.template.loader import render_to_string
 from django.utils.encoding import force_bytes,force_str
 from django.contrib.sites.shortcuts import get_current_site
-from myapp.serializer import UsuarioSerializer, AtividadeLetivaSerializer
+from myapp.serializer import (UsuarioSerializer, 
+                            AtividadeLetivaSerializer, 
+                            AtividadePedagogicaComplementarSerializer, 
+                            AtividadeOrientacaoSerializer, 
+                            BancaExaminacaoSerializer)
 from myapp.models import Usuario, AtividadeLetiva
 from rest_framework import status
 from rest_framework.response import Response
@@ -157,4 +161,8 @@ class AtividadeLetivaView(APIView):
             return Util.response_ok_no_message('Deletado')
         else:
             return Util.response_bad_request('Não deletado')
-        
+class AtividadePedagogicaComplementar(APIView):
+
+class AtividadeOrientaçao(APIView):
+
+class BancaExaminacao(APIView):   
