@@ -1,5 +1,9 @@
+from email.policy import default
+from random import choices
+from unittest.util import _MAX_LENGTH
 from django.db import models
 from django.contrib.auth.models import AbstractUser
+from networkx import to_directed
 
 # Create your models here.
 
@@ -77,27 +81,33 @@ class Docente(models.Model):
         ('associado_d_4', 'Associado D-4'),
         ('titular', 'Titular'),
     )
+    # A; B; C; D; E(No formulário tem só essas opções)
     REGIME = (
         ('exclusivo', 'Dedicação Exclusiva'),
         ('integral', 'Tempo Integral'),
         ('parcial', 'Tempo Parcial'),
     )
+    #DE, 40H, 20H
     usuario = models.ForeignKey(Usuario, on_delete=models.CASCADE)
     id = models.AutoField(primary_key=True)
     nome_completo = models.CharField(max_length=500)
-    email = models.EmailField()
+    siape = models.CharField(max_length=500) #tava faltando
+    email = models.EmailField() #não tem no doc
     classe = models.CharField(
         max_length=30,
         choices=CLASSE,
         default='auxiliar_1'
     )
     vinculo = models.CharField(max_length=100)
+    #Estatutário(contrato formal)
     regime_de_trabalho = models.CharField(
         max_length=50,
         choices=REGIME,
         default='exclusivo'
     )
     titulacao = models.CharField(max_length=50)
+    #grad, especialização, mestre, doutor
+    ano = models.DateField()
     campus = models.ForeignKey(Campus, on_delete=models.CASCADE)
     instituto = models.ForeignKey(Instituto, on_delete=models.CASCADE)
 
@@ -107,25 +117,49 @@ class AtividadeLetiva(models.Model):
     ano = models.DateField()
     semestre = models.IntegerField()
     curso = models.ForeignKey(Curso, on_delete=models.CASCADE)
-    carga_horaria_disciplina = models.IntegerField()
+    nivel =  models.IntegerField() #adicionado
+    numero_turmas = models.IntegerField() #adicionado
+    # T, P
+    carga_horaria_disciplina = models.IntegerField() #por turma?
+    # T, P 
     docentes_envolvidos = models.JSONField()
     carga_horaria_docentes_envolvidos = models.JSONField()
+    carga_horaria_total = models.IntegerField(
+        default = 60
+    ) #adicionado
+    
+
+class CHSemanalAulas(models.Model):
+    semestre = models.IntegerField()
+    ch_semanal_grad = models.IntegerField()
+    ch_semanal_pos_grad = models.IntegerField()
+    ch_semanal_total = models.IntegerField()
+
 
 class AtividadePedagogicaComplementar(models.Model):
-    ano = models.DateField()
+    #ano = models.DateField()
     semestre = models.IntegerField()
-    carga_horaria_semanal = models.IntegerField()
-    docentes_envolvidos = models.JSONField()
-    carga_horaria_docentes_envolvidos = models.JSONField()
+    ch_semanal_grad = models.IntegerField()
+    ch_semanal_pos_grad = models.IntegerField()
+    ch_semanal_total = models.IntegerField()
+    
+    #docentes_envolvidos = models.JSONField()
+    #carga_horaria_docentes_envolvidos = models.JSONField()
 
 class AtividadeOrientacao(models.Model):
-    ano = models.IntegerField()
+    #ano = models.IntegerField()
     semestre = models.IntegerField()
-    carga_horaria = models.IntegerField()
-    tipo = models.CharField(max_length=100)
+    #carga_horaria = models.IntegerField()
+    #tipo = models.CharField(max_length=100)
+    ch_semanal_orientacao = models.IntegerField()
+    ch_semanal_coorientacao = models.IntegerField()
+    ch_semanal_supervisao = models.IntegerField()
+    ch_semanal_precep_tutoria = models.IntegerField()
+    ch_semanal_total = models.IntegerField()
 
 class Orientando(models.Model):
-    ano = models.IntegerField()
+    ch_semanal_1 = models.IntegerField()
+    ch_semanal_2 = models.IntegerField()
     semestre = models.IntegerField()
     nome = models.CharField(max_length=100)
     matricula = models.CharField(max_length=30)
@@ -134,13 +168,48 @@ class Orientando(models.Model):
     nivel = models.CharField(max_length=50)
     atividade = models.ForeignKey(AtividadeOrientacao, on_delete=models.CASCADE)
 
+
+class SupervisaoAcademica(models.Model):
+    ch_semanal_1 = models.IntegerField()
+    ch_semanal_2 = models.IntegerField()
+    semestre = models.IntegerField()
+    nome = models.CharField(max_length=100)
+    matricula = models.CharField(max_length=30)
+    curso = models.CharField(max_length=60)
+    tipo = models.CharField(max_length=50)
+    nivel = models.CharField(max_length=50)
+    #atividade = models.ForeignKey(AtividadePedagogicaComplementar, on_delete=models.CASCADE) ?? não sei se essa relação está certa
+    #Ch semanal não pode exceder 12h
+
+
+class PreceptoriaTutoria(models.Model):
+    ch_semanal_1 = models.IntegerField()
+    ch_semanal_2 = models.IntegerField()
+    nome = models.CharField(max_length=100)
+    matricula = models.CharField(max_length=30)
+    tipo = models.CharField(max_length=50)
+    atividade = models.ForeignKey(AtividadeOrientacao, on_delete=models.CASCADE)
+
+
 class BancaExaminacao(models.Model):
     nome_candidato = models.CharField(max_length=100)
     titulo_trabalho = models.CharField(max_length=100)
     ies = models.CharField(max_length=100)
     tipo = models.CharField(max_length=50)
-    ano = models.IntegerField()
+    ch_semanal_1 = models.IntegerField()
+    ch_semanal_2 = models.IntegerField()
+
+class CHSemanalEnsino(models.Model):
+    semestre = models.IntegerField() #exitem 2 semestre para preencher
+    item1 = models.ForeignKey(CHSemanalAulas, to_directed)
+    item2 = models.ForeignKey(AtividadePedagogicaComplementar, to_directed)
+    item3 = models.ForeignKey(AtividadeOrientacao, to_directed)
+    item4 = models.ForeignKey(BancaExaminacao, to_directed)
+
+
+class AvaliacaoDiscente(models.Model):
     semestre = models.IntegerField()
+    numero_documento = models.IntegerField()
 
 class ProjetoDePesquisa(models.Model):
     codigo_proped = models.CharField(max_length=10)
@@ -176,6 +245,7 @@ class QualificacaoDocente(models.Model):
         default='pos'
     )
     
+    #FALTA CAMPOS PARA ATIVIDADE DE PESQUISA E PRODUÇÃO INTELECTUAL
 
 class AtividadeExtensao(models.Model):
     cod_proex = models.CharField(max_length=50)
