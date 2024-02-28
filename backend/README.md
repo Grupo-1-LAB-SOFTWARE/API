@@ -44,7 +44,7 @@ EMAIL_HOST_USER= algum_email@gmail.com
 EMAIL_HOST_PASSWORD=[Senha de App Google - Clique aqui e siga as instruções em "The Gmail Part"](https://dev.to/abderrahmanemustapha/how-to-send-email-with-django-and-gmail-in-production-the-right-way-24ab)
 
 ### OBS: Caso você esteja usando vs code, após ativar sua venv considere:
-#### Windowns
+#### Windows
 - Ctrl + Shift + P
 #### MacOs
 - Cmmd + Shift + P
@@ -53,3 +53,11 @@ EMAIL_HOST_PASSWORD=[Senha de App Google - Clique aqui e siga as instruções em
 - Enter Interpreter path
 - copiar o caminho relativo: backend/venv/bin/python
 #### Isso evita que a as bibliotecas não sejam encontradas
+
+## 5. Para desenvolver nessa API, sempre utilize os comandos:
+
+- python manage.py makemigrations myapp || python3 manage.py makemigrations myapp (usar toda vez que mudar algo dentro do arquivo myapp/models.py. Esse comando serve para criar uma pasta migrations dentro de myapp que informa como as tabelas devem ser criadas no banco de dados a partir dos models);
+
+- python manage.py migrate || python3 manage.py migrate (usar logo após usar o comando makemigrations. O migrate serve para criar todas as tabelas necessárias no seu banco de dados local. Após utilizar, olhe o seu Database sisradoc e veja que as tabelas foram criadas automaticamente pelo Django);
+
+- python manage.py runserver || python3 manage.py runserver (quando quiser rodar a API localmente).
