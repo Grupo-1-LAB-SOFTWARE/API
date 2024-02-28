@@ -32,8 +32,8 @@ class CampusSerializer(serializers.ModelSerializer):
         fields = '__all__' 
 
 class InstitutoSerializer(serializers.ModelSerializer):
-    campus = CampusSerializer(many=False, required=False)
-    campus_nome = serializers.CharField(required=True)
+    campus = CampusSerializer(many=False, required=False, read_only=True)
+    campus_nome = serializers.CharField(required=True, write_only=True)
 
     class Meta:
         model = Instituto
@@ -49,7 +49,6 @@ class InstitutoSerializer(serializers.ModelSerializer):
         instituto = Instituto.objects.create(
             nome=validated_data['nome'],
             sigla=validated_data['sigla'],
-            campus_nome = validated_data['campus_nome'],
             campus=campus_instance,
             diretor=validated_data['diretor']
         )
@@ -64,18 +63,17 @@ class InstitutoSerializer(serializers.ModelSerializer):
         if campus_nome is not None:
             try:
                 instituto.campus = Campus.objects.get(nome=campus_nome)
-                instituto.campus_nome = campus_nome
             except Campus.DoesNotExist:
-                raise ValidationError("Não existe nenhum campus com o nome fornecido.")
+                raise ValueError("Não existe nenhum campus com o nome fornecido.")
 
         instituto.save()
         return instituto
 
 
 class DocenteSerializer(serializers.ModelSerializer):
-    instituto = InstitutoSerializer(many=False, required=False)
-    campus = CampusSerializer(many=False, required=False)
-    instituto_nome = serializers.CharField(required=True)
+    instituto = InstitutoSerializer(many=False, required=False, read_only=True)
+    campus = CampusSerializer(many=False, required=False, read_only=True)
+    instituto_nome = serializers.CharField(required=True, write_only = True)
 
     class Meta:
         model = Docente
@@ -93,7 +91,6 @@ class DocenteSerializer(serializers.ModelSerializer):
             vinculo=validated_data['vinculo'],
             regime_de_trabalho=validated_data['regime_de_trabalho'],
             titulacao=validated_data['titulacao'],
-            instituto_nome = validated_data['instituto_nome'],
             instituto=instituto_instance,
             campus=instituto_instance.campus
         )
@@ -110,9 +107,8 @@ class DocenteSerializer(serializers.ModelSerializer):
         if instituto_nome is not None:
             try:
                 docente.instituto = Instituto.objects.get(nome=instituto_nome)
-                docente.instituto_nome = instituto_nome
             except Instituto.DoesNotExist:
-                raise ValidationError("Não existe nenhum instituto com o nome fornecido.")
+                raise ValueError("Não existe nenhum instituto com o nome fornecido.")
 
         docente.save()
         return docente

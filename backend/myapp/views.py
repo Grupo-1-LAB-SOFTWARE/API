@@ -77,12 +77,6 @@ class UsuarioView(APIView):
             if self.is_email_disponivel(email) == False:
                 return Util.response_bad_request('Já existe um usuário cadastrado com esse e-mail.')
 
-            #docente_serializer = DocenteSerializer(data=docente_recebido)
-            #if docente_serializer.is_valid():
-            #    docenteCriado = docente_serializer.save()
-            #    docente_id = docenteCriado.pk
-            #    request.data['docente'] = docente_id
-
             serializer = UsuarioSerializer(data=request.data)
             if serializer.is_valid():
                 user = serializer.save()
