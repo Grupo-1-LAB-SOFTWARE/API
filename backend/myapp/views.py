@@ -1,8 +1,11 @@
 from django.utils import timezone
 from django.urls import get_resolver
 from django.forms.models import model_to_dict
-from myapp.serializer import UsuarioSerializer, DocenteSerializer
-from myapp.models import Usuario, Docente
+from myapp.serializer import (UsuarioSerializer,CampusSerializer,
+                              InstitutoSerializer, CursoSerializer)
+from .models import (Usuario, Campus, 
+                     Instituto, Curso
+                     )
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -150,6 +153,157 @@ class ActivateEmail(APIView):
             return Util.response_not_found('Usuário não encontrado')
 
         return Util.response_ok('Ativação do usuário bem-sucedida')
+    
+class CampusView(APIView):
+    def get(self, request, campus_id=None):
+        if campus_id:
+            return self.getById(request, campus_id)
+        else:
+            return self.getAll(request)
+        
+    def getById(self, request, campus_id):
+        try:
+            campus = Usuario.objects.get(pk=campus_id)
+            serializer = CampusSerializer(campus)
+            return Util.response_ok_no_message(serializer.data)
+        except Usuario.DoesNotExist:
+            return Util.response_not_found('Não foi possível encontrar um campus com o id fornecido')
+
+    def getAll(self, request):
+        campus = Campus.objects.all()
+        serializer = CampusSerializer(campus, many=True)
+        return Util.response_ok_no_message(serializer.data)
+    
+    def put(self, request, campus_id):
+        if campus_id is not None:
+            campus = Campus.objects.get(pk=campus_id)
+            data = request.data.copy()
+            if 'id' in data:
+                return Util.response_bad_request('Não é possível atualizar o campo "id"')
+            serializer = CampusSerializer(campus, data=data, partial=True)
+
+            if serializer.is_valid():
+                serializer.save()
+                return Util.response_ok_no_message(serializer.data)
+            else:
+                return Util.response_bad_request(serializer.errors)
+                
+    def post(self, request):
+        serializer = CampusSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Util.response_ok_no_message(serializer.data)
+        else:
+            return Util.response_bad_request(serializer.errors)
+        
+    def delete(self, request,  campus_id):
+        campus = CampusSerializer.objects.get(pk=campus_id)
+        delete = object.delete(campus)
+        if delete:
+            return Util.response_ok_no_message('Deletado')
+        else:
+            return Util.response_bad_request('Não deletado')
+        
+class InstitutoView(APIView):
+    def get(self, request, instituto_id=None):
+        if instituto_id:
+            return self.getById(request, instituto_id)
+        else:
+            return self.getAll(request)
+        
+    def getById(self, request, instituto_id):
+        try:
+            instituto = Usuario.objects.get(pk=instituto_id)
+            serializer = InstitutoSerializer(instituto)
+            return Util.response_ok_no_message(serializer.data)
+        except Usuario.DoesNotExist:
+            return Util.response_not_found('Não foi possível encontrar um instituto com o id fornecido')
+        
+    def getAll(self, request):
+        instituto = Instituto.objects.all()
+        serializer = InstitutoSerializer(instituto, many=True)
+        return Util.response_ok_no_message(serializer.data)
+    
+    def put(self, request, instituto_id):
+        if instituto_id is not None:
+            instituto = Instituto.objects.get(pk=instituto_id)
+            data = request.data.copy()
+            if 'id' in data:
+                return Util.response_bad_request('Não é possível atualizar o campo "id"')
+            serializer = InstitutoSerializer(instituto, data=data, partial=True)
+
+            if serializer.is_valid():
+                serializer.save()
+                return Util.response_ok_no_message(serializer.data)
+            else:
+                return Util.response_bad_request(serializer.errors)
+                
+    def post(self, request):
+        serializer = InstitutoSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Util.response_ok_no_message(serializer.data)
+        else:
+            return Util.response_bad_request(serializer.errors)
+        
+    def delete(self, request,  instituto_id):
+        campus = InstitutoSerializer.objects.get(pk=instituto_id)
+        delete = object.delete(campus)
+        if delete:
+            return Util.response_ok_no_message('Deletado')
+        else:
+            return Util.response_bad_request('Não deletado')
+        
+class CursoView(APIView):
+    def get(self, request, curso_id=None):
+        if curso_id:
+            return self.getById(request, curso_id)
+        else:
+            return self.getAll(request)
+        
+    def getById(self, request, curso_id):
+        try:
+            instituto = Usuario.objects.get(pk=curso_id)
+            serializer = InstitutoSerializer(instituto)
+            return Util.response_ok_no_message(serializer.data)
+        except Usuario.DoesNotExist:
+            return Util.response_not_found('Não foi possível encontrar um instituto com o id fornecido')
+        
+    def getAll(self, request):
+        curso = Curso.objects.all()
+        serializer = CursoSerializer(curso, many=True)
+        return Util.response_ok_no_message(serializer.data)
+    
+    def put(self, request, curso_id):
+        if curso_id is not None:
+            curso = Curso.objects.get(pk=curso_id)
+            data = request.data.copy()
+            if 'id' in data:
+                return Util.response_bad_request('Não é possível atualizar o campo "id"')
+            serializer = CursoSerializer(curso, data=data, partial=True)
+
+            if serializer.is_valid():
+                serializer.save()
+                return Util.response_ok_no_message(serializer.data)
+            else:
+                return Util.response_bad_request(serializer.errors)
+                
+    def post(self, request):
+        serializer = CursoSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Util.response_ok_no_message(serializer.data)
+        else:
+            return Util.response_bad_request(serializer.errors)
+        
+    def delete(self, request,  curso_id):
+        curso = CampusSerializer.objects.get(pk=curso_id)
+        delete = object.delete(curso)
+        if delete:
+            return Util.response_ok_no_message('Deletado')
+        else:
+            return Util.response_bad_request('Não deletado')
+ 
 
 class EndpointsView(APIView):
     def get(self, request):
