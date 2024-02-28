@@ -3,6 +3,26 @@ from django.contrib.auth.models import AbstractUser
 
 # Create your models here.
 
+class Campus(models.Model):
+    CIDADE = (
+        ('belem', 'Belém'),
+        ('capitao_poco', 'Capitão Poço'),
+    )
+    nome = models.CharField(max_length=150)
+    cidade = models.CharField(
+        max_length=30,
+        choices=CIDADE,
+        default='belem'
+    )
+    diretor = models.CharField(max_length=150)
+
+class Instituto(models.Model):
+    nome = models.CharField(max_length=150)
+    sigla = models.CharField(max_length=3)
+    campus = models.ForeignKey(Campus, on_delete=models.DO_NOTHING)
+    campus_nome = models.CharField(max_length = 150)
+    diretor = models.CharField(max_length=150)
+
 class Docente(models.Model):
     CLASSE = (
         ('auxiliar_1', 'Auxiliar 1'),
@@ -40,10 +60,10 @@ class Docente(models.Model):
         choices=REGIME,
         default='exclusivo'
     )
-    titulacao = models.CharField(max_length=50)
-    campus = models.CharField(max_length=50)
-    instituto = models.CharField(max_length=50)
-
+    titulacao = models.CharField(max_length=100)
+    campus = models.ForeignKey(Campus, related_name="campus", on_delete=models.DO_NOTHING)
+    instituto = models.ForeignKey(Instituto, related_name="instituto", on_delete=models.DO_NOTHING)
+    instituto_nome = models.CharField(max_length = 150)
 
 class Usuario(AbstractUser):
     PERFIL = (
@@ -59,26 +79,6 @@ class Usuario(AbstractUser):
     )
     email = models.EmailField(unique=True)
     docente = models.ForeignKey(Docente, related_name="docente", on_delete=models.CASCADE)
-
-
-class Campus(models.Model):
-    CIDADE = (
-        ('belem', 'Belém'),
-        ('capitao_poco', 'Capitão Poço'),
-    )
-    nome = models.CharField(max_length=150)
-    cidade = models.CharField(
-        max_length=30,
-        choices=CIDADE,
-        default='belem'
-    )
-    diretor = models.CharField(max_length=150),
-
-class Instituto(models.Model):
-    nome = models.CharField(max_length=150)
-    sigla = models.CharField(max_length=3)
-    campus = models.ForeignKey(Campus, on_delete=models.DO_NOTHING)
-    diretor = models.CharField(max_length=150),
 
 class Curso(models.Model):
     NIVEL = (
