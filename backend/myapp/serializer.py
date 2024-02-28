@@ -71,17 +71,14 @@ class UsuarioSerializer(serializers.ModelSerializer):
         if docente_data is not None:
             docente_serializer = DocenteSerializer(data=docente_data)
             if docente_serializer.is_valid():
-                #usuario.docente.classe = validated_data.get('docente', usuario.is_active)
-                Docente.objects.update_or_create(
-                    pk=usuario.docente.id,
-                    defaults={
-                    'classe': docente_data.get('classe', usuario.docente.classe),
-                    'vinculo': docente_data.get('vinculo', usuario.docente.vinculo),
-                    'regime_de_trabalho': docente_data.get('regime_de_trabalho', usuario.docente.regime_de_trabalho),
-                    'titulacao': docente_data.get('titulacao', usuario.docente.titulacao),
-                    'campus': docente_data.get('campus', usuario.docente.campus),
-                    'instituto': docente_data.get('instituto', usuario.docente.instituto)
-                })
+                usuario.docente.classe = docente_data.get('classe', usuario.docente.classe)
+                usuario.docente.vinculo = docente_data.get('vinculo', usuario.docente.vinculo)
+                usuario.docente.regime_de_trabalho = docente_data.get('regime_de_trabalho', usuario.docente.regime_de_trabalho)
+                usuario.docente.titulacao = docente_data.get('titulacao', usuario.docente.titulacao)
+                usuario.docente.campus = docente_data.get('campus', usuario.docente.campus)
+                usuario.docente.instituto = docente_data.get('instituto', usuario.docente.instituto)
+
+        usuario.docente.save()
         usuario.save()
         return usuario
 
