@@ -54,7 +54,9 @@ EMAIL_HOST_PASSWORD=[Senha de App Google - Clique aqui e siga as instruções em
 - copiar o caminho relativo: backend/venv/bin/python
 #### Isso evita que a as bibliotecas não sejam encontradas
 
-## 5. Para desenvolver nessa API, sempre utilize os comandos:
+## 5. Para desenvolver nessa API, sempre utilize estes comandos (preferencialmente em sequência):
+
+- cd backend;
 
 - python manage.py makemigrations myapp || python3 manage.py makemigrations myapp (usar toda vez que mudar algo dentro do arquivo myapp/models.py. Esse comando serve para criar uma pasta migrations dentro de myapp que informa como as tabelas devem ser criadas no banco de dados a partir dos models);
 
