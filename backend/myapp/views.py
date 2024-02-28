@@ -161,9 +161,23 @@ class ActivateEmail(APIView):
         return Util.response_ok('Ativação do usuário bem-sucedida')
     
 class CampusView(APIView):
+    def get(self, request, campus_id=None):
+        if campus_id:
+            return self.getById(request, campus_id)
+        else:
+            return self.getAll(request)
+        
+    def getById(self, request, campus_id):
+        try:
+            campus = Usuario.objects.get(pk=campus_id)
+            serializer = CampusSerializer(campus)
+            return Util.response_ok_no_message(serializer.data)
+        except Usuario.DoesNotExist:
+            return Util.response_not_found('Não foi possível encontrar um campus com o id fornecido')
+
     def getAll(self, request):
         campus = Campus.objects.all()
-        serializer = CampusSerializer(campus)
+        serializer = CampusSerializer(campus, many=True)
         return Util.response_ok_no_message(serializer.data)
     
     def put(self, request, campus_id):
@@ -197,9 +211,23 @@ class CampusView(APIView):
             return Util.response_bad_request('Não deletado')
         
 class InstitutoView(APIView):
+    def get(self, request, instituto_id=None):
+        if instituto_id:
+            return self.getById(request, instituto_id)
+        else:
+            return self.getAll(request)
+        
+    def getById(self, request, instituto_id):
+        try:
+            instituto = Usuario.objects.get(pk=instituto_id)
+            serializer = InstitutoSerializer(instituto)
+            return Util.response_ok_no_message(serializer.data)
+        except Usuario.DoesNotExist:
+            return Util.response_not_found('Não foi possível encontrar um instituto com o id fornecido')
+        
     def getAll(self, request):
         instituto = Instituto.objects.all()
-        serializer = InstitutoSerializer(instituto)
+        serializer = InstitutoSerializer(instituto, many=True)
         return Util.response_ok_no_message(serializer.data)
     
     def put(self, request, instituto_id):
@@ -233,9 +261,23 @@ class InstitutoView(APIView):
             return Util.response_bad_request('Não deletado')
         
 class CursoView(APIView):
+    def get(self, request, curso_id=None):
+        if curso_id:
+            return self.getById(request, curso_id)
+        else:
+            return self.getAll(request)
+        
+    def getById(self, request, curso_id):
+        try:
+            instituto = Usuario.objects.get(pk=curso_id)
+            serializer = InstitutoSerializer(instituto)
+            return Util.response_ok_no_message(serializer.data)
+        except Usuario.DoesNotExist:
+            return Util.response_not_found('Não foi possível encontrar um instituto com o id fornecido')
+        
     def getAll(self, request):
         curso = Curso.objects.all()
-        serializer = CursoSerializer(curso)
+        serializer = CursoSerializer(curso, many=True)
         return Util.response_ok_no_message(serializer.data)
     
     def put(self, request, curso_id):
