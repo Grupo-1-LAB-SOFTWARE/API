@@ -1,8 +1,8 @@
 from django.utils import timezone
 from django.urls import get_resolver
 from django.forms.models import model_to_dict
-from myapp.serializer import UsuarioSerializer
-from myapp.models import Usuario
+from myapp.serializer import UsuarioSerializer, DocenteSerializer
+from myapp.models import Usuario, Docente
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -65,11 +65,18 @@ class UsuarioView(APIView):
     def post(self, request):
             username = request.data.get('username')
             email = request.data.get('email')
+            docente_recebido = request.data.get('docente')
             
             if self.is_username_disponivel(username) == False:
                 return Util.response_bad_request('Já existe um usuário cadastrado com esse username.')
             if self.is_email_disponivel(email) == False:
                 return Util.response_bad_request('Já existe um usuário cadastrado com esse e-mail.')
+
+            #docente_serializer = DocenteSerializer(data=docente_recebido)
+            #if docente_serializer.is_valid():
+            #    docenteCriado = docente_serializer.save()
+            #    docente_id = docenteCriado.pk
+            #    request.data['docente'] = docente_id
 
             serializer = UsuarioSerializer(data=request.data)
             if serializer.is_valid():
