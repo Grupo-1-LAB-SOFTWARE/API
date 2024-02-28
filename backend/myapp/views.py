@@ -20,7 +20,7 @@ class UsuarioView(APIView):
         else:
             return self.getAll(request)
             
-    def put(self, request, user_id):
+    def put(self, request, user_id=None):
         if user_id is not None:
             try:
                 user = Usuario.objects.get(pk=user_id)
@@ -48,7 +48,9 @@ class UsuarioView(APIView):
                     return Util.response_bad_request(serializer.errors)
 
             except Usuario.DoesNotExist:
-                return Util.response_not_found('Não foi possível encontrar um usuário com o id fornecido')
+                return Util.response_not_found('Não foi possível encontrar um usuário com o id fornecido.')
+
+        return Util.response_bad_request('É necessário fornecer o id do usuário que você deseja atualizar em usuarios/{id}')
 
 
     #Pra pegar todos os usuários, sem especificar id
