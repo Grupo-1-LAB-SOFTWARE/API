@@ -1,6 +1,8 @@
 from rest_framework import serializers
 from django.utils import timezone
 from django.contrib.auth.hashers import make_password
+from .utils import Util
+from django.forms.models import model_to_dict
 from myapp.models import ( BancaExaminacao, 
                           Orientando, 
                           ProjetoDePesquisa, 
@@ -23,15 +25,27 @@ from myapp.models import ( BancaExaminacao,
                           RelatorioDocente )
 
 
+class DocenteSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Docente
+        fields = '__all__'
+
 
 class UsuarioSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
+    docente = DocenteSerializer(many=False)
 
     class Meta:
         model = Usuario
-        fields = ('id', 'username', 'nome_completo', 'perfil', 'date_joined', 'email', 'is_active', 'password')
+        fields = '__all__'
     
     def create(self, validated_data):
+        docente_instance = None
+        docente_data = validated_data.pop('docente')
+        docente_serializer = DocenteSerializer(data=docente_data)
+        if docente_serializer.is_valid():
+            docente_instance = docente_serializer.save()
         usuario = Usuario.objects.create(
             username=validated_data['username'],
             nome_completo=validated_data['nome_completo'],
@@ -39,8 +53,33 @@ class UsuarioSerializer(serializers.ModelSerializer):
             date_joined=timezone.now(),
             email=validated_data['email'],
             is_active=False,
-            password = make_password(validated_data['password'])
+            password = make_password(validated_data['password']),
+            docente = docente_instance
         )
+        return usuario
+
+    def update(self, usuario, validated_data):
+        usuario.username = validated_data.get('username', usuario.username)
+        usuario.nome_completo = validated_data.get('nome_completo', usuario.nome_completo)
+        usuario.perfil = validated_data.get('perfil', usuario.perfil)
+        usuario.date_joined = validated_data.get('date_joined', usuario.date_joined)
+        usuario.email = validated_data.get('email', usuario.email)
+        usuario.is_active = validated_data.get('is_active', usuario.is_active)
+        usuario.password = make_password(validated_data.get('password', usuario.password))
+        
+        docente_data = validated_data.get('docente', None)
+        if docente_data is not None:
+            docente_serializer = DocenteSerializer(data=docente_data)
+            if docente_serializer.is_valid():
+                usuario.docente.classe = docente_data.get('classe', usuario.docente.classe)
+                usuario.docente.vinculo = docente_data.get('vinculo', usuario.docente.vinculo)
+                usuario.docente.regime_de_trabalho = docente_data.get('regime_de_trabalho', usuario.docente.regime_de_trabalho)
+                usuario.docente.titulacao = docente_data.get('titulacao', usuario.docente.titulacao)
+                usuario.docente.campus = docente_data.get('campus', usuario.docente.campus)
+                usuario.docente.instituto = docente_data.get('instituto', usuario.docente.instituto)
+
+        usuario.docente.save()
+        usuario.save()
         return usuario
 
 class CampusSerializer(serializers.ModelSerializer):
@@ -59,12 +98,6 @@ class CursoSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Curso
-        fields = '__all__' 
-
-class DocenteSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = Docente
         fields = '__all__' 
 
 class AtividadeLetivaSerializer(serializers.ModelSerializer):
