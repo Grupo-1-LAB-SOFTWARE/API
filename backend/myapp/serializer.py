@@ -26,12 +26,6 @@ from myapp.models import ( BancaExaminacao,
                           RelatorioDocente )
 
 
-class CursoSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = Curso
-        fields = '__all__' 
-
 class CampusSerializer(serializers.ModelSerializer):
 
     class Meta:
@@ -73,6 +67,45 @@ class InstitutoSerializer(serializers.ModelSerializer):
 
         instituto.save()
         return instituto
+
+class CursoSerializer(serializers.ModelSerializer):
+    instituto = InstitutoSerializer(many=False, required=False, read_only=True)
+    campus = CampusSerializer(many=False, required=False, read_only=True)
+    instituto_nome = serializers.CharField(required=True, write_only = True)
+
+    class Meta:
+        model = Curso
+        fields = '__all__' 
+
+    def create(self, validated_data):
+        instituto_instance = None
+        try:
+            instituto_instance = Instituto.objects.get(nome=validated_data['instituto_nome'])
+        except Instituto.DoesNotExist:
+            raise ValidationError("Não existe nenhum instituto com o nome fornecido.")
+
+        curso = Curso.objects.create(
+            **validated_data,
+            instituto=instituto_instance,
+            campus=instituto_instance.campus
+        )
+        return curso
+    
+    def update(self, curso, validated_data):
+        curso.nome = validated_data.get('nome', curso.nome)
+        curso.sigla = validated_data.get('sigla', curso.sigla)
+        curso.nivel = validated_data.get('nivel', curso.nivel)
+
+        instituto_nome = validated_data.get('instituto_nome', None)
+        if instituto_nome is not None:
+            try:
+                curso.instituto = Instituto.objects.get(nome=instituto_nome)
+            except Instituto.DoesNotExist:
+                raise ValueError("Não existe nenhum instituto com o nome fornecido.")
+        
+        curso.save()
+        return curso
+
 
 
 class AtividadeLetivaSerializer(serializers.ModelSerializer):
@@ -123,7 +156,6 @@ class AtividadeLetivaSerializer(serializers.ModelSerializer):
             except Instituto.DoesNotExist:
                 raise ValueError("Não existe nenhum campus com o nome fornecido.")
 
-        atividade_letiva.campus.save()
         atividade_letiva.save()
         return atividade_letiva
 
@@ -164,8 +196,7 @@ class DocenteSerializer(serializers.ModelSerializer):
                 docente.instituto = Instituto.objects.get(nome=instituto_nome)
             except Instituto.DoesNotExist:
                 raise ValueError("Não existe nenhum instituto com o nome fornecido.")
-
-        docente.instituto.save()
+                
         docente.save()
         return docente
 
