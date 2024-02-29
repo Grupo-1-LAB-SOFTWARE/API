@@ -75,6 +75,7 @@ class Docente(models.Model):
     instituto_nome = models.CharField(max_length = 150)
 
 
+
 class Usuario(AbstractUser):
     PERFIL = (
         ('docente', 'Docente'),
@@ -189,6 +190,7 @@ class BancaExaminacao(models.Model):
     ch_semanal_2 = models.IntegerField()
 
 
+
 class CHSemanalEnsino(models.Model):
     semestre = models.IntegerField()
     item1 = models.ForeignKey(CHSemanalAulas, related_name="ch_semanal_aulas", on_delete=models.DO_NOTHING)
@@ -301,12 +303,13 @@ class ProgressaoPromocao(models.Model):
         choices=OPCOES
     )
 
+
 class OutrasInformacoes(models.Model):
     cod_proex = models.CharField(max_length=50)
     decricao = models.CharField(max_length=500)
 
 
-class Afastamentos(models.Model):
+class Afasttamentos(models.Model):
     cod_proex = models.CharField(max_length=50)
     motivo = models.CharField(max_length=500)
     portaria = models.CharField(max_length=50)
