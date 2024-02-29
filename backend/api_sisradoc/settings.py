@@ -86,7 +86,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'sisradoc',
         'USER': 'postgres',
-        'PASSWORD': 'admin',
+        'PASSWORD': '',
         'HOST': 'localhost'
     }
 }

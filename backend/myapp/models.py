@@ -4,7 +4,7 @@ from random import choices
 from unittest.util import _MAX_LENGTH
 from django.db import models
 from django.contrib.auth.models import AbstractUser
-from networkx import to_directed
+from django.core.exceptions import ValidationError
 
 # Create your models here.
 
@@ -20,7 +20,7 @@ class Campus(models.Model):
         default='belem'
     )
     diretor = models.CharField(max_length=150)
-
+    
 class Instituto(models.Model):
     nome = models.CharField(max_length=150)
     sigla = models.CharField(max_length=3)
@@ -47,13 +47,13 @@ class Docente(models.Model):
     )
     TITULACAO = (
         ('graduacao', 'Graduação'),
-        ('especializacao', 'Especiallização'),
+        ('especializacao', 'Especialização'),
         ('mestre', 'Mestre'),
         ('doutor', 'Doutor'),
     )
     id = models.AutoField(primary_key=True)
     nome_completo = models.CharField(max_length=500)
-    siape = models.CharField(max_length=500) #tava faltando
+    siape = models.CharField(max_length=500)
 
     classe = models.CharField(
         max_length=30,
@@ -70,9 +70,11 @@ class Docente(models.Model):
         default='exclusivo'
     )
     titulacao = models.CharField(max_length=100)
-    campus = models.ForeignKey(Campus, related_name="campus", on_delete=models.DO_NOTHING)
-    instituto = models.ForeignKey(Instituto, related_name="instituto", on_delete=models.DO_NOTHING)
+    campus = models.ForeignKey(Campus, related_name="docente_campus", on_delete=models.DO_NOTHING)
+    instituto = models.ForeignKey(Instituto, related_name="docente_instituto", on_delete=models.DO_NOTHING)
     instituto_nome = models.CharField(max_length = 150)
+
+
 
 class Usuario(AbstractUser):
     PERFIL = (
@@ -87,7 +89,8 @@ class Usuario(AbstractUser):
         default='docente'
     )
     email = models.EmailField(unique=True)
-    docente = models.ForeignKey(Docente, related_name="docente", on_delete=models.CASCADE)
+    docente = models.ForeignKey(Docente, related_name="usuario_docente", on_delete=models.CASCADE)
+
 
 class Curso(models.Model):
     NIVEL = (
@@ -95,34 +98,34 @@ class Curso(models.Model):
         ('licenciatura', 'Licenciatura'),
         ('tecnologo', 'Tecnólogo'),
     )
-    nome = models.CharField(max_length=150),
-    sigla = models.CharField(max_length=3),
-    campus = models.ForeignKey(Campus, on_delete=models.DO_NOTHING)
-    instituto = models.ForeignKey(Instituto, on_delete=models.DO_NOTHING)
+    nome = models.CharField(max_length=150, unique=True),
+    sigla = models.CharField(max_length=3, unique=True),
+    campus = models.ForeignKey(Campus, related_name="curso_campus", on_delete=models.DO_NOTHING)
+    instituto = models.ForeignKey(Instituto, related_name="curso_instituto", on_delete=models.DO_NOTHING)
+    instituto_nome = models.CharField(max_length=150)
     nivel = models.CharField(
         max_length=30,
         choices=NIVEL,
         default='bacharelado'
     )
 
-
 class AtividadeLetiva(models.Model):
     codigo_disciplina = models.CharField(max_length=10)
     nome_disciplina = models.CharField(max_length=70)
-    ano = models.DateField()
+    ano = models.CharField(max_length=4)
     semestre = models.IntegerField()
-    curso = models.ForeignKey(Curso, on_delete=models.CASCADE)
-    nivel =  models.IntegerField() #adicionado
-    numero_turmas = models.IntegerField() #adicionado
-    # T, P
-    carga_horaria_disciplina = models.IntegerField() #por turma?
-    # T, P 
-    docentes_envolvidos = models.JSONField()
-    carga_horaria_docentes_envolvidos = models.JSONField()
-    carga_horaria_total = models.IntegerField(
-        default = 60
-    ) #adicionado
-    
+    curso_nome = models.CharField(max_length=150),
+    curso = models.ForeignKey(Curso, related_name="atividade_letiva_curso", on_delete=models.CASCADE)
+    nivel = models.IntegerField() 
+    qtd_turmas = models.IntegerField()
+    carga_horaria_disciplina = models.IntegerField() 
+    docentes_envolvidos_e_cargas_horarias = models.JSONField()
+    carga_horaria_total = models.IntegerField()
+
+    def clean(self):
+        super().clean()
+        if self.carga_horaria_total > 60:
+            raise ValidationError({'total': 'O valor máximo para a carga horária total é 60.'})
 
 class CHSemanalAulas(models.Model):
     semestre = models.IntegerField()
@@ -130,13 +133,11 @@ class CHSemanalAulas(models.Model):
     ch_semanal_pos_grad = models.IntegerField()
     ch_semanal_total = models.IntegerField()
 
-
 class AtividadePedagogicaComplementar(models.Model):
     semestre = models.IntegerField()
     ch_semanal_grad = models.IntegerField()
     ch_semanal_pos_grad = models.IntegerField()
     ch_semanal_total = models.IntegerField()
-
 
 class AtividadeOrientacao(models.Model):
     semestre = models.IntegerField()
@@ -156,7 +157,7 @@ class Orientando(models.Model):
     curso = models.CharField(max_length=60)
     tipo = models.CharField(max_length=50)
     nivel = models.CharField(max_length=50)
-    atividade = models.ForeignKey(AtividadeOrientacao, on_delete=models.CASCADE)
+    atividade_orientacao = models.ForeignKey(AtividadeOrientacao, related_name="orientando_atividade_orientacao", on_delete=models.DO_NOTHING)
 
 
 class SupervisaoAcademica(models.Model):
@@ -168,7 +169,7 @@ class SupervisaoAcademica(models.Model):
     curso = models.CharField(max_length=60)
     tipo = models.CharField(max_length=50)
     nivel = models.CharField(max_length=50)
-    atividade = models.ForeignKey(AtividadePedagogicaComplementar, on_delete=models.CASCADE)
+    atividade_pedagogica_complementar = models.ForeignKey(AtividadePedagogicaComplementar, related_name="supervisao_atividade_pedagogica_complementar", on_delete=models.DO_NOTHING)
 
 
 class PreceptoriaTutoria(models.Model):
@@ -177,7 +178,7 @@ class PreceptoriaTutoria(models.Model):
     nome = models.CharField(max_length=100)
     matricula = models.CharField(max_length=30)
     tipo = models.CharField(max_length=50)
-    atividade = models.ForeignKey(AtividadeOrientacao, on_delete=models.CASCADE)
+    atividade_orientacao = models.ForeignKey(AtividadeOrientacao, related_name="preceptoria_atividade_orientacao", on_delete=models.DO_NOTHING)
 
 
 class BancaExaminacao(models.Model):
@@ -188,12 +189,20 @@ class BancaExaminacao(models.Model):
     ch_semanal_1 = models.IntegerField()
     ch_semanal_2 = models.IntegerField()
 
+
+
 class CHSemanalEnsino(models.Model):
-    semestre = models.IntegerField() 
-    item1 = models.ForeignKey(CHSemanalAulas, to_directed)
-    item2 = models.ForeignKey(AtividadePedagogicaComplementar, to_directed)
-    item3 = models.ForeignKey(AtividadeOrientacao, to_directed)
-    item4 = models.ForeignKey(BancaExaminacao, to_directed)
+    semestre = models.IntegerField()
+    item1 = models.ForeignKey(CHSemanalAulas, related_name="ch_semanal_aulas", on_delete=models.DO_NOTHING)
+    item2 = models.ForeignKey(AtividadePedagogicaComplementar, related_name="ch_atividade_pedagogica_complementar", on_delete=models.DO_NOTHING)
+    item3 = models.ForeignKey(AtividadeOrientacao, related_name="ch_atividade_orientacao", on_delete=models.DO_NOTHING)
+    item4 = models.ForeignKey(BancaExaminacao, related_name="ch_banca_examinacao", on_delete=models.DO_NOTHING)
+    total = models.IntegerField()
+
+    def clean(self):
+        super().clean()
+        if self.total > 40:
+            raise ValidationError({'total': 'O valor máximo para a ch semanal total é 40.'})
 
 
 class AvaliacaoDiscente(models.Model):
@@ -214,11 +223,8 @@ class Publicacao(models.Model):
     veiculo_de_publicacao = models.CharField(max_length=100)
     tipo = models.CharField(max_length=100)
 
-
 class CHSemanalPesquisa(models.Model):
     semestre = models.IntegerField()
-
-
 
 class AtividadeExtensao(models.Model):
     cod_proex = models.CharField(max_length=50)
@@ -227,7 +233,7 @@ class AtividadeExtensao(models.Model):
     situacao = models.CharField(max_length=100)
     inicio_projeto = models.DateField()
     fim_projeto = models.DateField()
-    ano = models.DateField(default='2024-02-19')
+    ano = models.CharField(max_length=4)
 
     @property
     def periodo(self):
@@ -296,12 +302,14 @@ class ProgressaoPromocao(models.Model):
         max_length=3,
         choices=OPCOES
     )
+
+
 class OutrasInformacoes(models.Model):
     cod_proex = models.CharField(max_length=50)
     decricao = models.CharField(max_length=500)
 
 
-class Afasamentos(models.Model):
+class Afastamentos(models.Model):
     cod_proex = models.CharField(max_length=50)
     motivo = models.CharField(max_length=500)
     portaria = models.CharField(max_length=50)
