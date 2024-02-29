@@ -25,6 +25,13 @@ from myapp.models import ( BancaExaminacao,
                           AtividadeGestaoRepresentacao, 
                           RelatorioDocente )
 
+
+class CursoSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Curso
+        fields = '__all__' 
+
 class CampusSerializer(serializers.ModelSerializer):
 
     class Meta:
@@ -68,6 +75,59 @@ class InstitutoSerializer(serializers.ModelSerializer):
         return instituto
 
 
+class AtividadeLetivaSerializer(serializers.ModelSerializer):
+    curso = CursoSerializer(many=False, required=False, read_only=True)
+    curso_nome = serializers.CharField(required=True, write_only = True)
+
+    class Meta:
+        model = AtividadeLetiva
+        fields = '__all__'
+
+    def create(self, validated_data):
+        curso_instance = None
+        try:
+            curso_instance = Curso.objects.get(nome=validated_data['curso_nome'])
+        except Curso.DoesNotExist:
+            raise ValidationError("Não existe nenhum curso com o nome fornecido.")
+
+        atividade_letiva = AtividadeLetiva.objects.create(
+            **validated_data,
+            curso=curso_instance
+        )
+        return atividade_letiva
+    
+    def update(self, atividade_letiva, validated_data):
+        atividade_letiva.codigo_disciplina = validated_data.get('codigo_disciplina', atividade_letiva.codigo_disciplina)
+
+        atividade_letiva.nome_disciplina = validated_data.get('nome_disciplina', atividade_letiva.nome_disciplina)
+
+        atividade_letiva.ano = validated_data.get('ano', atividade_letiva.ano)
+
+        atividade_letiva.semestre = validated_data.get('semestre', atividade_letiva.semestre)
+
+        atividade_letiva.nivel = validated_data.get('nivel', atividade_letiva.nivel)
+
+        atividade_letiva.qtd_turmas = validated_data.get('qtd_turmas', atividade_letiva.qtd_turmas)
+
+        atividade_letiva.carga_horaria_disciplina = validated_data.get('carga_horaria_disciplina', atividade_letiva.carga_horaria_disciplina)
+        
+        atividade_letiva.docentes_envolvidos_e_cargas_horarias = validated_data.get('docentes_envolvidos_e_cargas_horarias', atividade_letiva.docentes_envolvidos_e_cargas_horarias)
+
+        atividade_letiva.carga_horaria_total = validated_data.get('carga_horaria_total', atividade_letiva.carga_horaria_total)
+        
+        
+        campus_nome = validated_data.get('campus_nome', None)
+        if campus_nome is not None:
+            try:
+                atividade_letiva.campus = Campus.objects.get(nome=campus_nome)
+            except Instituto.DoesNotExist:
+                raise ValueError("Não existe nenhum campus com o nome fornecido.")
+
+        atividade_letiva.campus.save()
+        atividade_letiva.save()
+        return atividade_letiva
+
+
 class DocenteSerializer(serializers.ModelSerializer):
     instituto = InstitutoSerializer(many=False, required=False, read_only=True)
     campus = CampusSerializer(many=False, required=False, read_only=True)
@@ -105,6 +165,7 @@ class DocenteSerializer(serializers.ModelSerializer):
             except Instituto.DoesNotExist:
                 raise ValueError("Não existe nenhum instituto com o nome fornecido.")
 
+        docente.instituto.save()
         docente.save()
         return docente
 
@@ -155,18 +216,6 @@ class UsuarioSerializer(serializers.ModelSerializer):
         usuario.docente.save()
         usuario.save()
         return usuario
-
-class CursoSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = Curso
-        fields = '__all__' 
-
-class AtividadeLetivaSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = AtividadeLetiva
-        fields = '__all__'
 
 class AtividadePedagogicaComplementarSerializer(serializers.ModelSerializer):
 
