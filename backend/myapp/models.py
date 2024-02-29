@@ -309,7 +309,7 @@ class OutrasInformacoes(models.Model):
     decricao = models.CharField(max_length=500)
 
 
-class Afasttamentos(models.Model):
+class Afastamentos(models.Model):
     cod_proex = models.CharField(max_length=50)
     motivo = models.CharField(max_length=500)
     portaria = models.CharField(max_length=50)
