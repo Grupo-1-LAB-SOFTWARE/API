@@ -323,11 +323,11 @@ class CursoView(APIView):
         
     def getById(self, request, curso_id):
         try:
-            instituto = Usuario.objects.get(pk=curso_id)
-            serializer = InstitutoSerializer(instituto)
+            curso = Curso.objects.get(pk=curso_id)
+            serializer = CursoSerializer(curso)
             return Util.response_ok_no_message(serializer.data)
-        except Usuario.DoesNotExist:
-            return Util.response_not_found('Não foi possível encontrar um instituto com o id fornecido')
+        except Curso.DoesNotExist:
+            return Util.response_not_found('Não foi possível encontrar um curso com o id fornecido')
         
     def getAll(self, request):
         curso = Curso.objects.all()
