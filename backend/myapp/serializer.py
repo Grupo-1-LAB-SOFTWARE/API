@@ -47,10 +47,8 @@ class InstitutoSerializer(serializers.ModelSerializer):
             raise ValidationError("Não existe nenhum campus com o nome fornecido.")
 
         instituto = Instituto.objects.create(
-            nome=validated_data['nome'],
-            sigla=validated_data['sigla'],
+            **validated_data,
             campus=campus_instance,
-            diretor=validated_data['diretor']
         )
         return instituto
     
@@ -58,7 +56,7 @@ class InstitutoSerializer(serializers.ModelSerializer):
         instituto.nome = validated_data.get('nome', instituto.nome)
         instituto.sigla = validated_data.get('sigla', instituto.sigla)
         instituto.diretor = validated_data.get('diretor', instituto.diretor)
-        
+
         campus_nome = validated_data.get('campus_nome', None)
         if campus_nome is not None:
             try:
@@ -87,10 +85,7 @@ class DocenteSerializer(serializers.ModelSerializer):
             raise ValidationError("Não existe nenhum instituto com o nome fornecido.")
 
         docente = Docente.objects.create(
-            classe=validated_data['classe'],
-            vinculo=validated_data['vinculo'],
-            regime_de_trabalho=validated_data['regime_de_trabalho'],
-            titulacao=validated_data['titulacao'],
+            **validated_data,
             instituto=instituto_instance,
             campus=instituto_instance.campus
         )
@@ -101,7 +96,7 @@ class DocenteSerializer(serializers.ModelSerializer):
         docente.vinculo = validated_data.get('vinculo', docente.vinculo)
         docente.regime_de_trabalho = validated_data.get('regime_de_trabalho', docente.regime_de_trabalho)
         docente.titulacao = validated_data.get('titulacao', docente.titulacao)
-        
+        docente.siape = validated_data.get('siape', docente.siape)
         
         instituto_nome = validated_data.get('instituto_nome', None)
         if instituto_nome is not None:
@@ -128,11 +123,8 @@ class UsuarioSerializer(serializers.ModelSerializer):
         if docente_serializer.is_valid():
             docente_instance = docente_serializer.save()
         usuario = Usuario.objects.create(
-            username=validated_data['username'],
-            nome_completo=validated_data['nome_completo'],
-            perfil=validated_data['perfil'],
-            date_joined=timezone.now(),
-            email=validated_data['email'],
+            **validated_data,
+            date_joined=timezone.now(),   
             is_active=False,
             password = make_password(validated_data['password']),
             docente = docente_instance
@@ -155,6 +147,7 @@ class UsuarioSerializer(serializers.ModelSerializer):
                 usuario.docente.classe = docente_data.get('classe', usuario.docente.classe)
                 usuario.docente.vinculo = docente_data.get('vinculo', usuario.docente.vinculo)
                 usuario.docente.regime_de_trabalho = docente_data.get('regime_de_trabalho', usuario.docente.regime_de_trabalho)
+                usuario.docente.siape = docente_data.get('siape', usuario.docente.siape)
                 usuario.docente.titulacao = docente_data.get('titulacao', usuario.docente.titulacao)
                 usuario.docente.campus = docente_data.get('campus', usuario.docente.campus)
                 usuario.docente.instituto = docente_data.get('instituto', usuario.docente.instituto)
