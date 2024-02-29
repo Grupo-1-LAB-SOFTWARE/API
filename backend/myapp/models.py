@@ -8,24 +8,6 @@ from networkx import to_directed
 
 # Create your models here.
 
-class Usuario(AbstractUser):
-    PERFIL = (
-        ('docente', 'Docente'),
-        ('admin', 'Administrador'),
-    )
-    id = models.AutoField(primary_key=True)
-    login = models.CharField(max_length=13)
-    nome_completo = models.CharField(max_length=500)
-    perfil = models.CharField(
-        max_length=10,
-        choices=PERFIL,
-        default='docente'
-    )
-    data_cadastro = models.DateField()
-    email = models.EmailField()
-    senha = models.CharField(max_length=8)
-    is_email_confirmado = models.BooleanField(default=False)
-
 class Campus(models.Model):
     CIDADE = (
         ('belem', 'Belém'),
@@ -37,30 +19,14 @@ class Campus(models.Model):
         choices=CIDADE,
         default='belem'
     )
-    diretor = models.CharField(max_length=150),
+    diretor = models.CharField(max_length=150)
 
 class Instituto(models.Model):
     nome = models.CharField(max_length=150)
     sigla = models.CharField(max_length=3)
     campus = models.ForeignKey(Campus, on_delete=models.DO_NOTHING)
-    diretor = models.CharField(max_length=150),
-
-class Curso(models.Model):
-    NIVEL = (
-        ('bacharelado', 'Bacharelado'),
-        ('licenciatura', 'Licenciatura'),
-        ('tecnologo', 'Tecnólogo'),
-    )
-    nome = models.CharField(max_length=150),
-    sigla = models.CharField(max_length=3),
-    campus = models.ForeignKey(Campus, on_delete=models.DO_NOTHING)
-    instituto = models.ForeignKey(Instituto, on_delete=models.DO_NOTHING)
-    nivel = models.CharField(
-        max_length=30,
-        choices=NIVEL,
-        default='bacharelado'
-    )
-
+    campus_nome = models.CharField(max_length = 150)
+    diretor = models.CharField(max_length=150)
 
 class Docente(models.Model):
     CLASSE = (
@@ -85,10 +51,10 @@ class Docente(models.Model):
         ('mestre', 'Mestre'),
         ('doutor', 'Doutor'),
     )
-    usuario = models.ForeignKey(Usuario, on_delete=models.CASCADE)
     id = models.AutoField(primary_key=True)
     nome_completo = models.CharField(max_length=500)
     siape = models.CharField(max_length=500) #tava faltando
+
     classe = models.CharField(
         max_length=30,
         choices=CLASSE,
@@ -103,13 +69,42 @@ class Docente(models.Model):
         choices=REGIME,
         default='exclusivo'
     )
-    titulacao = models.CharField(
-        max_length=50,
-        choices=TITULACAO,
-        )
-    ano = models.DateField()
-    campus = models.ForeignKey(Campus, on_delete=models.CASCADE)
-    instituto = models.ForeignKey(Instituto, on_delete=models.CASCADE)
+    titulacao = models.CharField(max_length=100)
+    campus = models.ForeignKey(Campus, related_name="campus", on_delete=models.DO_NOTHING)
+    instituto = models.ForeignKey(Instituto, related_name="instituto", on_delete=models.DO_NOTHING)
+    instituto_nome = models.CharField(max_length = 150)
+
+class Usuario(AbstractUser):
+    PERFIL = (
+        ('docente', 'Docente'),
+        ('admin', 'Administrador'),
+    )
+    id = models.AutoField(primary_key=True)
+    nome_completo = models.CharField(max_length=500)
+    perfil = models.CharField(
+        max_length=10,
+        choices=PERFIL,
+        default='docente'
+    )
+    email = models.EmailField(unique=True)
+    docente = models.ForeignKey(Docente, related_name="docente", on_delete=models.CASCADE)
+
+class Curso(models.Model):
+    NIVEL = (
+        ('bacharelado', 'Bacharelado'),
+        ('licenciatura', 'Licenciatura'),
+        ('tecnologo', 'Tecnólogo'),
+    )
+    nome = models.CharField(max_length=150),
+    sigla = models.CharField(max_length=3),
+    campus = models.ForeignKey(Campus, on_delete=models.DO_NOTHING)
+    instituto = models.ForeignKey(Instituto, on_delete=models.DO_NOTHING)
+    nivel = models.CharField(
+        max_length=30,
+        choices=NIVEL,
+        default='bacharelado'
+    )
+
 
 class AtividadeLetiva(models.Model):
     codigo_disciplina = models.CharField(max_length=10)

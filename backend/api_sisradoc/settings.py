@@ -83,8 +83,11 @@ WSGI_APPLICATION = 'api_sisradoc.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'djongo',
+        'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'sisradoc',
+        'USER': 'postgres',
+        'PASSWORD': 'admin',
+        'HOST': 'localhost'
     }
 }
 
