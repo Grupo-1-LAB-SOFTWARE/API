@@ -194,14 +194,6 @@ class CampusView(APIView):
             return Util.response_ok_no_message(serializer.data)
         else:
             return Util.response_bad_request(serializer.errors) 
-          
-    def delete(self, request,  campus_id):
-        campus = CampusSerializer.objects.get(pk=campus_id)
-        delete = object.delete(campus)
-        if delete:
-            return Util.response_ok_no_message('Deletado')
-        else:
-            return Util.response_bad_request('Não deletado')
 
 class AtividadeLetivaView(APIView):
     def getAll(self, request):
@@ -229,14 +221,6 @@ class AtividadeLetivaView(APIView):
             return Util.response_ok_no_message(serializer.data)
         else:
             return Util.response_bad_request(serializer.errors)
-        
-    def delete(self, request,  atividade_letiva_id):
-        atividade_letiva = AtividadeLetiva.objects.get(pk=atividade_letiva_id)
-        delete = object.delete(atividade_letiva)
-        if delete:
-            return Util.response_ok_no_message('Deletado')
-        else:
-            return Util.response_bad_request('Não deletado')
         
 class InstitutoView(APIView):
     def get(self, request, instituto_id=None):
@@ -266,22 +250,13 @@ class InstitutoView(APIView):
                 return Util.response_bad_request('Não é possível atualizar o campo "id"')
             serializer = InstitutoSerializer(instituto, data=data, partial=True)
        
-      def post(self, request):
+    def post(self, request):
         serializer = InstitutoSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Util.response_ok_no_message(serializer.data)
         else:
-            return Util.response_bad_request(serializer.errors)
-          
-      def delete(self, request,  instituto_id):
-        campus = InstitutoSerializer.objects.get(pk=instituto_id)
-        delete = object.delete(campus)
-        if delete:
-            return Util.response_ok_no_message('Deletado')
-        else:
-            return Util.response_bad_request('Não deletado')
-          
+            return Util.response_bad_request(serializer.errors)         
  
 class AtividadePedagogicaComplementarView(APIView):
     def getAll(self, request):
@@ -309,16 +284,7 @@ class AtividadePedagogicaComplementarView(APIView):
             serializer.save()
             return Util.response_ok_no_message(serializer.data)
         else:
-            return Util.response_bad_request(serializer.errors)
-        
-    def delete(self, request,  atividade_pedagogicacomp_id):
-        atividade_pedagogicacomp = AtividadePedagogicaComplementar.objects.get(pk=atividade_pedagogicacomp_id)
-        delete = object.delete(atividade_pedagogicacomp)
-        if delete:
-            return Util.response_ok_no_message('Deletado')
-        else:
-            return Util.response_bad_request('Não deletado')
-        
+            return Util.response_bad_request(serializer.errors)      
 
 class AtividadeOrientaçaoView(APIView):
     def getAll(self, request):
@@ -346,14 +312,6 @@ class AtividadeOrientaçaoView(APIView):
             return Util.response_ok_no_message(serializer.data)
         else:
             return Util.response_bad_request(serializer.errors)
-        
-    def delete(self, request,  atividade_orientacao_id):
-        atividade_orientacao = AtividadeOrientacao.objects.get(pk=atividade_orientacao_id)
-        delete = atividade_orientacao.objects.delete() #formato diferente para teste
-        if delete:
-            return Util.response_ok_no_message('Deletado')
-        else:
-            return Util.response_bad_request('Não deletado')
         
   
 class CursoView(APIView):
@@ -384,7 +342,7 @@ class CursoView(APIView):
                 return Util.response_bad_request('Não é possível atualizar o campo "id"')
             serializer = CursoSerializer(curso, data=data, partial=True)
             
-      def post(self, request):
+    def post(self, request):
         serializer = CursoSerializer(data=request.data)
 
         if serializer.is_valid():
@@ -392,14 +350,6 @@ class CursoView(APIView):
             return Util.response_ok_no_message(serializer.data)
         else:
             return Util.response_bad_request(serializer.errors)
-          
-      def delete(self, request,  curso_id):
-        curso = CampusSerializer.objects.get(pk=curso_id)
-        delete = object.delete(curso)
-        if delete:
-            return Util.response_ok_no_message('Deletado')
-        else:
-            return Util.response_bad_request('Não deletado')
 
         
 class BancaExaminacaoView(APIView):
@@ -428,15 +378,6 @@ class BancaExaminacaoView(APIView):
             return Util.response_ok_no_message(serializer.data)
         else:
             return Util.response_bad_request(serializer.errors)
-
-    def delete(self, request,  banca_examinacao_id):
-        banca_examinacao = BancaExaminacao.objects.get(pk=banca_examinacao_id)
-        delete = object.delete(banca_examinacao)
-        if delete:
-            return Util.response_ok_no_message('Deletado')
-        else:
-            return Util.response_bad_request('Não deletado')
-        
         
  
 class EndpointsView(APIView):

@@ -17,10 +17,9 @@ urlpatterns = [
     path('campus/', CampusView.as_view(), name='campus'),
     path('campus/<int:campus_id>/', CampusView.as_view(), name='campus_get_by_id'),
     path('curso/', CursoView.as_view(), name='curso'),
-    path('curso/<int:curso_id>', CursoView.as_view(), name='curso_get_by_id')
+    path('curso/<int:curso_id>', CursoView.as_view(), name='curso_get_by_id'),
     path('atividadeletiva/', AtividadeLetivaView.as_view(), name='atividadeletiva'),
     path('atividadepedagogicacomplementar/', AtividadePedagogicaComplementarView.as_view(), name='atividadepedagogicacomplementar'),
     path('atividadeorientacao/', AtividadeOrientaçaoView.as_view(), name='atividadeorientacao'),
     path('bancaexaminacao/', BancaExaminacaoView.as_view(), name='bancaexaminacao')
-
 ]
