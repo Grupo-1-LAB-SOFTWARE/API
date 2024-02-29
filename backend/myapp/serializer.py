@@ -193,7 +193,7 @@ class OrientandoSerializer(serializers.ModelSerializer):
         model = Orientando
         fields = '__all__'
 
-class BancaExaminacaoSerialixer(serializers.ModelSerializer):
+class BancaExaminacaoSerializer(serializers.ModelSerializer):
     
     class Meta: 
         models = BancaExaminacao
