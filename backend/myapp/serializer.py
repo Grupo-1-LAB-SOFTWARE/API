@@ -251,12 +251,6 @@ class UsuarioSerializer(serializers.ModelSerializer):
         usuario.save()
         return usuario
 
-class AtividadePedagogicaComplementarSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = AtividadePedagogicaComplementar
-        fields = '__all__'
-
 class AtividadeOrientacaoSerializer(serializers.ModelSerializer):
 
     class Meta:
@@ -264,9 +258,60 @@ class AtividadeOrientacaoSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class OrientandoSerializer(serializers.ModelSerializer):
+    curso = CursoSerializer(many=False, required=False, read_only=True)
+    atividade_orientacao = AtividadeOrientacaoSerializer(many=False, required=False, read_only=True)
+    curso_nome = serializers.CharField(required=True, write_only = True)
+    atividade_orientacao_pk = serializers.IntegerField(required=True, write_only=True)
     
     class Meta:
         model = Orientando
+        fields = '__all__'
+
+    def create(self, validated_data):
+        curso_instance = None
+        atividade_orientacao_instance = None
+
+        try:
+            curso_instance = Curso.objects.get(nome=validated_data['curso_nome'])
+        except Curso.DoesNotExist:
+            raise ValidationError("Não existe nenhum curso com o nome fornecido.")
+
+        try:
+            atividade_orientacao_instance = AtividadeOrientacao.objects.get(pk=validated_data['atividade_orientacao_pk'])
+        except AtividadeOrientacao.DoesNotExist:
+            raise ValidationError("Não existe nenhuma atividade de orientação com o id fornecido.")
+        
+        orientando = Orientando.objects.create(
+            **validated_data,
+            atividade_orientacao = atividade_orientacao_instance,
+            curso=curso_instance
+        )
+        return orientando
+
+    def update(self, orientando, validated_data):
+        orientando.ch_semanal_1 = validated_data.get('ch_semanal_1', orientando.ch_semanal_1)
+        orientando.ch_semanal_2 = validated_data.get('ch_semanal_2', orientando.ch_semanal_2)
+        orientando.semestre = validated_data.get('semestre', orientando.semestre)
+        orientando.nome = validated_data.get('nome', orientando.nome)
+        orientando.matricula = validated_data.get('matricula', orientando.matricula)
+        orientando.tipo = validated_data.get('tipo', orientando.tipo)
+        orientando.nivel = validated_data.get('nivel', orientando.nivel)
+
+        atividade_orientacao_pk = validated_data.get('atividade_orientacao_pk', None)
+        if atividade_orientacao_pk is not None:
+            try:
+                orientando.atividade_orientacao = AtividadeOrientacao.objects.get(pk=atividade_orientacao_pk)
+            except AtividadeOrientacao.DoesNotExist:
+                raise ValueError("Não existe nenhum instituto com o nome fornecido.")
+
+        orientando.atividade_orientacao.save()
+        orientando.save()
+        return orientando
+
+class AtividadePedagogicaComplementarSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = AtividadePedagogicaComplementar
         fields = '__all__'
 
 class BancaExaminacaoSerializer(serializers.ModelSerializer):
