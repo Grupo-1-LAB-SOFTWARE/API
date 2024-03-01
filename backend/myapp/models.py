@@ -52,7 +52,6 @@ class Docente(models.Model):
         ('doutor', 'Doutor'),
     )
     id = models.AutoField(primary_key=True)
-    nome_completo = models.CharField(max_length=500)
     siape = models.CharField(max_length=500)
 
     classe = models.CharField(
@@ -98,8 +97,8 @@ class Curso(models.Model):
         ('licenciatura', 'Licenciatura'),
         ('tecnologo', 'Tecnólogo'),
     )
-    nome = models.CharField(max_length=150, unique=True),
-    sigla = models.CharField(max_length=3, unique=True),
+    nome = models.CharField(max_length=150)
+    sigla = models.CharField(max_length=3)
     campus = models.ForeignKey(Campus, related_name="curso_campus", on_delete=models.DO_NOTHING)
     instituto = models.ForeignKey(Instituto, related_name="curso_instituto", on_delete=models.DO_NOTHING)
     instituto_nome = models.CharField(max_length=150)
