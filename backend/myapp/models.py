@@ -73,8 +73,6 @@ class Docente(models.Model):
     instituto = models.ForeignKey(Instituto, related_name="docente_instituto", on_delete=models.DO_NOTHING)
     instituto_nome = models.CharField(max_length = 150)
 
-
-
 class Usuario(AbstractUser):
     PERFIL = (
         ('docente', 'Docente'),
@@ -139,6 +137,7 @@ class AtividadePedagogicaComplementar(models.Model):
     ch_semanal_total = models.IntegerField()
 
 class AtividadeOrientacao(models.Model):
+    id = models.AutoField(primary_key=True)
     semestre = models.IntegerField()
     ch_semanal_orientacao = models.IntegerField()
     ch_semanal_coorientacao = models.IntegerField()
@@ -153,9 +152,11 @@ class Orientando(models.Model):
     semestre = models.IntegerField()
     nome = models.CharField(max_length=100)
     matricula = models.CharField(max_length=30)
-    curso = models.CharField(max_length=60)
+    curso_nome = models.CharField(max_length=150)
+    curso = models.ForeignKey(Curso, related_name="orientando_curso", on_delete=models.DO_NOTHING)
     tipo = models.CharField(max_length=50)
     nivel = models.CharField(max_length=50)
+    atividade_orientacao_pk = models.BigIntegerField()
     atividade_orientacao = models.ForeignKey(AtividadeOrientacao, related_name="orientando_atividade_orientacao", on_delete=models.DO_NOTHING)
 
 
