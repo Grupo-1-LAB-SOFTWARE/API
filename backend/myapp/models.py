@@ -27,8 +27,8 @@ class Instituto(models.Model):
     campus = models.ForeignKey(Campus, on_delete=models.DO_NOTHING)
     campus_nome = models.CharField(max_length = 150)
     diretor = models.CharField(max_length=150)
-
-class Docente(models.Model):
+    
+class Usuario(AbstractUser):
     CLASSE = (
         ('a', 'A'),
         ('b', 'B'),
@@ -51,9 +51,19 @@ class Docente(models.Model):
         ('mestre', 'Mestre'),
         ('doutor', 'Doutor'),
     )
+    PERFIL = (
+        ('docente', 'Docente'),
+        ('admin', 'Administrador'),
+    )
     id = models.AutoField(primary_key=True)
+    nome_completo = models.CharField(max_length=500)
+    perfil = models.CharField(
+        max_length=10,
+        choices=PERFIL,
+        default='docente'
+    )
+    email = models.EmailField(unique=True)
     siape = models.CharField(max_length=500)
-
     classe = models.CharField(
         max_length=30,
         choices=CLASSE,
@@ -69,26 +79,9 @@ class Docente(models.Model):
         default='exclusivo'
     )
     titulacao = models.CharField(max_length=100)
-    campus = models.ForeignKey(Campus, related_name="docente_campus", on_delete=models.DO_NOTHING)
-    instituto = models.ForeignKey(Instituto, related_name="docente_instituto", on_delete=models.DO_NOTHING)
-    instituto_nome = models.CharField(max_length = 150)
-
-class Usuario(AbstractUser):
-    PERFIL = (
-        ('docente', 'Docente'),
-        ('admin', 'Administrador'),
-    )
-    id = models.AutoField(primary_key=True)
-    nome_completo = models.CharField(max_length=500)
-    perfil = models.CharField(
-        max_length=10,
-        choices=PERFIL,
-        default='docente'
-    )
-    email = models.EmailField(unique=True)
-    docente = models.ForeignKey(Docente, related_name="usuario_docente", on_delete=models.CASCADE)
-
-
+    campus = models.CharField(max_length=150)
+    instituto = models.CharField(max_length=150)
+    
 class Curso(models.Model):
     NIVEL = (
         ('bacharelado', 'Bacharelado'),
