@@ -61,7 +61,6 @@ class Usuario(AbstractUser):
     titulacao = models.CharField(max_length=100)
     campus = models.CharField(max_length=150)
     instituto = models.CharField(max_length=150)
-    
 
 class AtividadeLetiva(models.Model):
     codigo_disciplina = models.CharField(max_length=10)
@@ -82,7 +81,7 @@ class AtividadeLetiva(models.Model):
         if self.carga_horaria_total > 60:
             raise ValidationError({'total': 'O valor máximo para a carga horária total é 60.'})
 
-
+###################################################################
 class CHSemanalAulas(models.Model):
     semestre = models.IntegerField()
     ch_semanal_grad = models.IntegerField()
