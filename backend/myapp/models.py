@@ -7,26 +7,6 @@ from django.contrib.auth.models import AbstractUser
 from django.core.exceptions import ValidationError
 
 # Create your models here.
-
-class Campus(models.Model):
-    CIDADE = (
-        ('belem', 'Belém'),
-        ('capitao_poco', 'Capitão Poço'),
-    )
-    nome = models.CharField(max_length=150)
-    cidade = models.CharField(
-        max_length=30,
-        choices=CIDADE,
-        default='belem'
-    )
-    diretor = models.CharField(max_length=150)
-    
-class Instituto(models.Model):
-    nome = models.CharField(max_length=150)
-    sigla = models.CharField(max_length=3)
-    campus = models.ForeignKey(Campus, on_delete=models.DO_NOTHING)
-    campus_nome = models.CharField(max_length = 150)
-    diretor = models.CharField(max_length=150)
     
 class Usuario(AbstractUser):
     CLASSE = (
@@ -82,40 +62,26 @@ class Usuario(AbstractUser):
     campus = models.CharField(max_length=150)
     instituto = models.CharField(max_length=150)
     
-class Curso(models.Model):
-    NIVEL = (
-        ('bacharelado', 'Bacharelado'),
-        ('licenciatura', 'Licenciatura'),
-        ('tecnologo', 'Tecnólogo'),
-    )
-    nome = models.CharField(max_length=150)
-    sigla = models.CharField(max_length=3)
-    campus = models.ForeignKey(Campus, related_name="curso_campus", on_delete=models.DO_NOTHING)
-    instituto = models.ForeignKey(Instituto, related_name="curso_instituto", on_delete=models.DO_NOTHING)
-    instituto_nome = models.CharField(max_length=150)
-    nivel = models.CharField(
-        max_length=30,
-        choices=NIVEL,
-        default='bacharelado'
-    )
 
 class AtividadeLetiva(models.Model):
     codigo_disciplina = models.CharField(max_length=10)
     nome_disciplina = models.CharField(max_length=70)
     ano = models.CharField(max_length=4)
     semestre = models.IntegerField()
-    curso_nome = models.CharField(max_length=150),
-    curso = models.ForeignKey(Curso, related_name="atividade_letiva_curso", on_delete=models.CASCADE)
-    nivel = models.IntegerField() 
-    qtd_turmas = models.IntegerField()
-    carga_horaria_disciplina = models.IntegerField() 
+    curso = models.CharField(max_length=300)
+    nivel = models.CharField(max_length=250)
+    numero_turmas_teorico = models.IntegerField()
+    numero_turmas_pratico = models.IntegerField()
+    carga_horaria_turmas_teorico = models.IntegerField()
+    carga_horaria_turmas_pratico = models.IntegerField() 
     docentes_envolvidos_e_cargas_horarias = models.JSONField()
-    carga_horaria_total = models.IntegerField()
+    carga_horaria_total = models.IntegerField(default=0)
 
     def clean(self):
         super().clean()
         if self.carga_horaria_total > 60:
             raise ValidationError({'total': 'O valor máximo para a carga horária total é 60.'})
+
 
 class CHSemanalAulas(models.Model):
     semestre = models.IntegerField()
