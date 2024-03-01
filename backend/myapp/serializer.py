@@ -196,7 +196,7 @@ class DocenteSerializer(serializers.ModelSerializer):
                 docente.instituto = Instituto.objects.get(nome=instituto_nome)
             except Instituto.DoesNotExist:
                 raise ValueError("Não existe nenhum instituto com o nome fornecido.")
-                
+
         docente.save()
         return docente
 
@@ -215,7 +215,10 @@ class UsuarioSerializer(serializers.ModelSerializer):
         if docente_serializer.is_valid():
             docente_instance = docente_serializer.save()
         usuario = Usuario.objects.create(
-            **validated_data,
+            username = validated_data['username'],
+            nome_completo = validated_data['nome_completo'],
+            perfil = validated_data['perfil'],
+            email = validated_data['email'],
             date_joined=timezone.now(),   
             is_active=False,
             password = make_password(validated_data['password']),
