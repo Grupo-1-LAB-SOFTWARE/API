@@ -74,7 +74,6 @@ class UsuarioView(APIView):
     def post(self, request):
             username = request.data.get('username')
             email = request.data.get('email')
-            docente_recebido = request.data.get('docente')
             
             if self.is_username_disponivel(username) == False:
                 return Util.response_bad_request('Já existe um usuário cadastrado com esse username.')
