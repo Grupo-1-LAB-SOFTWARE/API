@@ -168,10 +168,10 @@ class CampusView(APIView):
         
     def getById(self, request, campus_id):
         try:
-            campus = Usuario.objects.get(pk=campus_id)
+            campus = Campus.objects.get(pk=campus_id)
             serializer = CampusSerializer(campus)
             return Util.response_ok_no_message(serializer.data)
-        except Usuario.DoesNotExist:
+        except Campus.DoesNotExist:
             return Util.response_not_found('Não foi possível encontrar um campus com o id fornecido')
 
     def getAll(self, request):
@@ -231,11 +231,11 @@ class InstitutoView(APIView):
         
     def getById(self, request, instituto_id):
         try:
-            instituto = Usuario.objects.get(pk=instituto_id)
+            instituto = Instituto.objects.get(pk=instituto_id)
             serializer = InstitutoSerializer(instituto)
             return Util.response_ok_no_message(serializer.data)
-        except Usuario.DoesNotExist:
-            return Util.response_not_found('Não foi possível encontrar um instituto com o id fornecido')
+        except Instituto.DoesNotExist:
+            return Util.response_not_found('Não foi possível encontrar um instituto com o id fornecido.')
         
     def getAll(self, request):
         instituto = Instituto.objects.all()
