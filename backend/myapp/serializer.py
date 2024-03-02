@@ -4,111 +4,36 @@ from django.contrib.auth.hashers import make_password
 from rest_framework.exceptions import ValidationError
 from .utils import Util
 from django.forms.models import model_to_dict
-from myapp.models import ( BancaExaminacao, 
-                          Orientando, 
-                          ProjetoDePesquisa, 
-                          Publicacao, 
+from myapp.models import ( 
                           Usuario,
-                          AtividadeLetiva, 
-                          AtividadePedagogicaComplementar, 
-                          AtividadeOrientacao,
-                          QualificacaoDocente, 
-                          AtividadeExtensao, 
-                          ProjetoExtensao, 
-                          EstagioExtensao, 
-                          EnsinoNaoFormal, 
-                          OutrasAtividadesExtensao, 
-                          AtividadeGestaoRepresentacao, 
                           RelatorioDocente,
-                          CHSemanalAulas,
+                          AtividadeLetiva, 
+                          CalculoCHSemanalAulas,
+                          AtividadePedagogicaComplementar,
+                          AtividadeOrientacaoSupervisaoPreceptoriaTutoria,
                           DescricaoOrientacaoCoorientacaoAcademica,
                           SupervisaoAcademica,
                           PreceptoriaTutoriaResidencia,
                           BancasExaminadoras,
                           CHSemanalAtividadeEnsino,
                           AvaliacaoDiscente,
-                          ProjetoPesquisaProducao,
-                          TrabalhosCompletosPeriodicosBoletins,
-                          LivrosCapitulosVerbetes,
-                          TrabalhosCompletosResumos,
-                          OutrasAtividadesPesquisaProducao,
+                          ProjetoPesquisaProducaoIntelectual,
+                          TrabalhosCompletosPeriodicosBoletinsTecnicos,
+                          LivrosCapitulosVerbetesPublicados,
+                          TrabalhosCompletosResumosPublicadosApresentadosCongressos,
+                          OutrasAtividadesPesquisaProducaoIntelectual,
                           CHSemanalAtividadesPesquisa,
+                          ProjetoExtensao, 
+                          EstagioExtensao,
+                          AtividadeEnsinoNaoFormal,
+                          OutrasAtividasExtensao,
+                          CHSemanalAtividadesExtensao,
+                          DistribuicaoCHSemanal,
+                          Afastamentos,
+                          AtividadesGestaoRepresentacao,
+                          QualificacaoDocenteAcademicaProfissional,
+                          OutrasInformacoes
                           )
-
-
-class AtividadeLetivaSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = AtividadeLetiva
-        fields = '__all__'
-
-class SupervisaoAcademicaSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = SupervisaoAcademica
-        fields = '__all__'
-
-class PreceptoriaTutoriaResidenciaSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = PreceptoriaTutoriaResidencia
-        fields = '__all__'
-
-class BancasExaminadorasSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = BancasExaminadoras
-        fields = '__all__'
-
-class CHSemanalAtividadeEnsinoSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = CHSemanalAtividadeEnsino
-        fields = '__all__'
-
-class AvaliacaoDiscenteSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = AvaliacaoDiscente
-        fields = '__all__'
-
-class ProjetoPesquisaProducaoSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = ProjetoPesquisaProducao
-        fields = '__all__'
-
-class TrabalhosCompletosPeriodicosBoletinsSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = TrabalhosCompletosPeriodicosBoletins
-        fields = '__all__'
-
-class LivrosCapitulosVerbetesSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = LivrosCapitulosVerbetes
-        fields = '__all__'
-
-class TrabalhosCompletosResumosSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = TrabalhosCompletosResumos
-        fields = '__all__'
-
-class OutrasAtividadesPesquisaProducaoSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = OutrasAtividadesPesquisaProducao
-        fields = '__all__'
-
-class CHSemanalAtividadesPesquisaSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = CHSemanalAtividadesPesquisa
-        fields = '__all__'
-
-
 
 
 class UsuarioSerializer(serializers.ModelSerializer):
@@ -152,29 +77,24 @@ class UsuarioSerializer(serializers.ModelSerializer):
         usuario.save()
         return usuario
 
-class DescricaoOrientacaoCoorientacaoAcademicaSerializer(serializers.ModelSerializer):
+
+class RelatorioDocenteSerializer(serializers.ModelSerializer):
 
     class Meta:
-        models = DescricaoOrientacaoCoorientacaoAcademica
-        fields = '__all__'
-
-class CHSemanalAulasSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        models = CHSemanalAulas
+        model = RelatorioDocente
         fields = '__all__'
 
 
-class AtividadeOrientacaoSerializer(serializers.ModelSerializer):
+class AtividadeLetivaSerializer(serializers.ModelSerializer):
 
     class Meta:
-        model = AtividadeOrientacao
+        model = AtividadeLetiva
         fields = '__all__'
 
-class OrientandoSerializer(serializers.ModelSerializer):
-    
+class CalculoCHSemanalAulasSerializer(serializers.ModelSerializer):
+
     class Meta:
-        model = Orientando
+        models = CalculoCHSemanalAulas
         fields = '__all__'
 
 class AtividadePedagogicaComplementarSerializer(serializers.ModelSerializer):
@@ -183,68 +103,143 @@ class AtividadePedagogicaComplementarSerializer(serializers.ModelSerializer):
         model = AtividadePedagogicaComplementar
         fields = '__all__'
 
-class BancaExaminacaoSerializer(serializers.ModelSerializer):
-    
-    class Meta: 
-        models = BancaExaminacao
-        fields = '__all__'
-
-class ProjetoDePesquisaSerializer(serializers.ModelSerializer):
-    
-    class Meta:
-        models = ProjetoDePesquisa
-        fields = '__all__'
-
-class PublicacaoSerializer(serializers.ModelSerializer):
+class AtividadeOrientacaoSupervisaoPreceptoriaTutoriaSerializer(serializers.ModelSerializer):
 
     class Meta:
-        models = Publicacao
+        model = AtividadeOrientacaoSupervisaoPreceptoriaTutoria
         fields = '__all__'
 
-class QualificacaoDocenteSerializer(serializers.ModelSerializer):
+class DescricaoOrientacaoCoorientacaoAcademicaSerializer(serializers.ModelSerializer):
 
     class Meta:
-        models = QualificacaoDocente
+        models = DescricaoOrientacaoCoorientacaoAcademica
         fields = '__all__'
 
-class AtividadeExtensaoSerializer(serializers.ModelSerializer):
+class SupervisaoAcademicaSerializer(serializers.ModelSerializer):
 
     class Meta:
-        models = AtividadeExtensao
+        model = SupervisaoAcademica
+        fields = '__all__'
+
+class PreceptoriaTutoriaResidenciaSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = PreceptoriaTutoriaResidencia
+        fields = '__all__'
+
+class BancasExaminadorasSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = BancasExaminadoras
+        fields = '__all__'
+
+class CHSemanalAtividadeEnsinoSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = CHSemanalAtividadeEnsino
+        fields = '__all__'
+
+class AvaliacaoDiscenteSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = AvaliacaoDiscente
+        fields = '__all__'
+
+class ProjetoPesquisaProducaoIntelectualSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = ProjetoPesquisaProducaoIntelectual
+        fields = '__all__'
+
+class TrabalhosCompletosPeriodicosBoletinsTecnicosSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = TrabalhosCompletosPeriodicosBoletinsTecnicos
+        fields = '__all__'
+
+class LivrosCapitulosVerbetesPublicadosSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = LivrosCapitulosVerbetesPublicados
+        fields = '__all__'
+
+class TrabalhosCompletosResumosPublicadosApresentadosCongressosSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = TrabalhosCompletosResumosPublicadosApresentadosCongressos
+        fields = '__all__'
+
+class OutrasAtividadesPesquisaProducaoIntelectualSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = OutrasAtividadesPesquisaProducaoIntelectual
+        fields = '__all__'
+
+class CHSemanalAtividadesPesquisaSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = CHSemanalAtividadesPesquisa
         fields = '__all__'
 
 class ProjetoExtensaoSerializer(serializers.ModelSerializer):
 
     class Meta:
-        models = ProjetoExtensao
+        model = ProjetoExtensao
         fields = '__all__'
+
 
 class EstagioExtensaoSerializer(serializers.ModelSerializer):
 
     class Meta:
-        models = EstagioExtensao
+        model = EstagioExtensao
         fields = '__all__'
 
-class EnsinoNaoFormalSerializer(serializers.ModelSerializer):
+class AtividadeEnsinoNaoFormalSerializer(serializers.ModelSerializer):
 
     class Meta:
-        models = EnsinoNaoFormal
+        model = AtividadeEnsinoNaoFormal
         fields = '__all__'
 
-class OutrasAtividadesExtensaoSerializer(serializers.ModelSerializer):
+
+class OutrasAtividasExtensaoSerializer(serializers.ModelSerializer):
 
     class Meta:
-        models = OutrasAtividadesExtensao
+        model = OutrasAtividasExtensao
         fields = '__all__'
 
-class AtividadeGestaoRepresentacaoSerializer(serializers.ModelSerializer):
+class CHSemanalAtividadesExtensaoSerializer(serializers.ModelSerializer):
 
     class Meta:
-        models = AtividadeGestaoRepresentacao
+        model = CHSemanalAtividadesExtensao
         fields = '__all__'
 
-class RelatorioDocenteSerializer(serializers.ModelSerializer):
+class DistribuicaoCHSemanalSerializer(serializers.ModelSerializer):
 
     class Meta:
-        models = RelatorioDocente
+        model = DistribuicaoCHSemanal
+        fields = '__all__'
+
+class AfastamentosSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Afastamentos
+        fields = '__all__'
+
+
+class AtividadesGestaoRepresentacaoSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = AtividadesGestaoRepresentacao
+        fields = '__all__'
+
+class QualificacaoDocenteAcademicaProfissionalSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = QualificacaoDocenteAcademicaProfissional
+        fields = '__all__'
+
+class OutrasInformacoesSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = QualificacaoDocenteAcademicaProfissional
         fields = '__all__'
