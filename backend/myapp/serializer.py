@@ -4,82 +4,36 @@ from django.contrib.auth.hashers import make_password
 from rest_framework.exceptions import ValidationError
 from .utils import Util
 from django.forms.models import model_to_dict
-from myapp.models import ( BancaExaminacao, 
-                          Orientando, 
-                          ProjetoDePesquisa, 
-                          Publicacao, 
+from myapp.models import ( 
                           Usuario,
+                          RelatorioDocente,
                           AtividadeLetiva, 
-                          AtividadePedagogicaComplementar, 
-                          AtividadeOrientacao,
-                          QualificacaoDocente, 
-                          AtividadeExtensao, 
+                          CalculoCHSemanalAulas,
+                          AtividadePedagogicaComplementar,
+                          AtividadeOrientacaoSupervisaoPreceptoriaTutoria,
+                          DescricaoOrientacaoCoorientacaoAcademica,
+                          SupervisaoAcademica,
+                          PreceptoriaTutoriaResidencia,
+                          BancasExaminadoras,
+                          CHSemanalAtividadeEnsino,
+                          AvaliacaoDiscente,
+                          ProjetoPesquisaProducaoIntelectual,
+                          TrabalhosCompletosPeriodicosBoletinsTecnicos,
+                          LivrosCapitulosVerbetesPublicados,
+                          TrabalhosCompletosResumosPublicadosApresentadosCongressos,
+                          OutrasAtividadesPesquisaProducaoIntelectual,
+                          CHSemanalAtividadesPesquisa,
                           ProjetoExtensao, 
-                          EstagioExtensao, 
-                          EnsinoNaoFormal, 
-                          OutrasAtividadesExtensao, 
-                          AtividadeGestaoRepresentacao, 
-                          RelatorioDocente )
-
-
-class AtividadeLetivaSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = AtividadeLetiva
-        fields = '__all__'
-
-    def create(self, validated_data):
-        carga_horaria_total = int(validated_data['numero_turmas_teorico']) * int(validated_data['carga_horaria_turmas_teorico']) + int(validated_data['numero_turmas_pratico ']) * int(validated_data['carga_horaria_turmas_pratico'])
-
-        atividade_letiva = AtividadeLetiva.objects.create(
-            codigo_disciplina = validated_data['codigo_disciplina'],
-            nome_disciplina = validated_data['nome_disciplina'],
-            ano = validated_data['ano'],
-            semestre = validated_data['semestre'],
-            curso = validated_data['curso'],
-            nivel = validated_data['nivel'],
-            numero_turmas_teorico = validated_data['numero_turmas_teorico'],
-            numero_turmas_pratico = validated_data['numero_turmas_pratico'],
-            carga_horaria_turmas_teorico = validated_data['carga_horaria_turmas_teorico'],
-            carga_horaria_turmas_pratico = validated_data['carga_horaria_turmas_pratico'],
-            docentes_envolvidos_e_cargas_horarias = validated_data['docentes_envolvidos_e_cargas_horarias'],
-            carga_horaria_total = carga_horaria_total
-        )
-        return atividade_letiva
-    
-    def update(self, atividade_letiva, validated_data):
-        atividade_letiva.codigo_disciplina = validated_data.get('codigo_disciplina', atividade_letiva.codigo_disciplina)
-
-        atividade_letiva.nome_disciplina = validated_data.get('nome_disciplina', atividade_letiva.nome_disciplina)
-
-        atividade_letiva.ano = validated_data.get('ano', atividade_letiva.ano)
-
-        atividade_letiva.semestre = validated_data.get('semestre', atividade_letiva.semestre)
-
-        atividade_letiva.curso = validated_data.get('curso', atividade_letiva.curso)
-
-        atividade_letiva.nivel = validated_data.get('nivel', atividade_letiva.nivel)
-
-        atividade_letiva.numero_turmas_teorico = validated_data.get('numero_turmas_teorico', atividade_letiva.numero_turmas_teorico)
-
-        atividade_letiva.numero_turmas_pratico = validated_data.get('numero_turmas_pratico', atividade_letiva.numero_turmas_pratico)
-
-        atividade_letiva.carga_horaria_turmas_teorico = validated_data.get('carga_horaria_turmas_teorico', atividade_letiva.carga_horaria_turmas_teorico)
-
-        atividade_letiva.carga_horaria_turmas_pratico = validated_data.get('carga_horaria_turmas_pratico', atividade_letiva.carga_horaria_turmas_pratico)
-
-        atividade_letiva.docentes_envolvidos_e_cargas_horarias = validated_data.get('docentes_envolvidos_e_cargas_horarias', atividade_letiva.docentes_envolvidos_e_cargas_horarias)
-
-
-        numero_turmas_teorico = int(atividade_letiva.numero_turmas_teorico)
-        numero_turmas_pratico = int(atividade_letiva.numero_turmas_pratico)
-        carga_horaria_turmas_teorico = int(atividade_letiva.carga_horaria_turmas_teorico)
-        carga_horaria_turmas_pratico = int(atividade_letiva.carga_horaria_turmas_pratico)
-
-        atividade_letiva.carga_horaria_total = (numero_turmas_teorico * carga_horaria_turmas_teorico) + (numero_turmas_pratico * carga_horaria_turmas_pratico)
-
-        atividade_letiva.save()
-        return atividade_letiva
+                          EstagioExtensao,
+                          AtividadeEnsinoNaoFormal,
+                          OutrasAtividasExtensao,
+                          CHSemanalAtividadesExtensao,
+                          DistribuicaoCHSemanal,
+                          Afastamentos,
+                          AtividadesGestaoRepresentacao,
+                          QualificacaoDocenteAcademicaProfissional,
+                          OutrasInformacoes
+                          )
 
 
 class UsuarioSerializer(serializers.ModelSerializer):
@@ -124,62 +78,24 @@ class UsuarioSerializer(serializers.ModelSerializer):
         return usuario
 
 
-class AtividadeOrientacaoSerializer(serializers.ModelSerializer):
+class RelatorioDocenteSerializer(serializers.ModelSerializer):
 
     class Meta:
-        model = AtividadeOrientacao
+        model = RelatorioDocente
         fields = '__all__'
 
-class OrientandoSerializer(serializers.ModelSerializer):
-    curso = CursoSerializer(many=False, required=False, read_only=True)
-    atividade_orientacao = AtividadeOrientacaoSerializer(many=False, required=False, read_only=True)
-    curso_nome = serializers.CharField(required=True, write_only = True)
-    atividade_orientacao_pk = serializers.IntegerField(required=True, write_only=True)
-    
+
+class AtividadeLetivaSerializer(serializers.ModelSerializer):
+
     class Meta:
-        model = Orientando
+        model = AtividadeLetiva
         fields = '__all__'
 
-    def create(self, validated_data):
-        curso_instance = None
-        atividade_orientacao_instance = None
+class CalculoCHSemanalAulasSerializer(serializers.ModelSerializer):
 
-        try:
-            curso_instance = Curso.objects.get(nome=validated_data['curso_nome'])
-        except Curso.DoesNotExist:
-            raise ValidationError("Não existe nenhum curso com o nome fornecido.")
-
-        try:
-            atividade_orientacao_instance = AtividadeOrientacao.objects.get(pk=validated_data['atividade_orientacao_pk'])
-        except AtividadeOrientacao.DoesNotExist:
-            raise ValidationError("Não existe nenhuma atividade de orientação com o id fornecido.")
-        
-        orientando = Orientando.objects.create(
-            **validated_data,
-            atividade_orientacao = atividade_orientacao_instance,
-            curso=curso_instance
-        )
-        return orientando
-
-    def update(self, orientando, validated_data):
-        orientando.ch_semanal_1 = validated_data.get('ch_semanal_1', orientando.ch_semanal_1)
-        orientando.ch_semanal_2 = validated_data.get('ch_semanal_2', orientando.ch_semanal_2)
-        orientando.semestre = validated_data.get('semestre', orientando.semestre)
-        orientando.nome = validated_data.get('nome', orientando.nome)
-        orientando.matricula = validated_data.get('matricula', orientando.matricula)
-        orientando.tipo = validated_data.get('tipo', orientando.tipo)
-        orientando.nivel = validated_data.get('nivel', orientando.nivel)
-
-        atividade_orientacao_pk = validated_data.get('atividade_orientacao_pk', None)
-        if atividade_orientacao_pk is not None:
-            try:
-                orientando.atividade_orientacao = AtividadeOrientacao.objects.get(pk=atividade_orientacao_pk)
-            except AtividadeOrientacao.DoesNotExist:
-                raise ValueError("Não existe nenhum instituto com o nome fornecido.")
-
-        orientando.atividade_orientacao.save()
-        orientando.save()
-        return orientando
+    class Meta:
+        models = CalculoCHSemanalAulas
+        fields = '__all__'
 
 class AtividadePedagogicaComplementarSerializer(serializers.ModelSerializer):
 
@@ -187,61 +103,143 @@ class AtividadePedagogicaComplementarSerializer(serializers.ModelSerializer):
         model = AtividadePedagogicaComplementar
         fields = '__all__'
 
-class BancaExaminacaoSerializer(serializers.ModelSerializer):
-    
-    class Meta: 
-        models = BancaExaminacao
-        fields = '__all__'
-
-class ProjetoDePesquisaSerializer(serializers.ModelSerializer):
-    
-    class Meta:
-        models = ProjetoDePesquisa
-        fields = '__all__'
-
-class PublicacaoSerializer(serializers.ModelSerializer):
+class AtividadeOrientacaoSupervisaoPreceptoriaTutoriaSerializer(serializers.ModelSerializer):
 
     class Meta:
-        models = Publicacao
+        model = AtividadeOrientacaoSupervisaoPreceptoriaTutoria
         fields = '__all__'
 
-class QualificacaoDocenteSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        models = QualificacaoDocente
-        fields = '__all__'
-class AtividadeExtensaoSerializer(serializers.ModelSerializer):
+class DescricaoOrientacaoCoorientacaoAcademicaSerializer(serializers.ModelSerializer):
 
     class Meta:
-        models = AtividadeExtensao
+        models = DescricaoOrientacaoCoorientacaoAcademica
         fields = '__all__'
+
+class SupervisaoAcademicaSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = SupervisaoAcademica
+        fields = '__all__'
+
+class PreceptoriaTutoriaResidenciaSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = PreceptoriaTutoriaResidencia
+        fields = '__all__'
+
+class BancasExaminadorasSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = BancasExaminadoras
+        fields = '__all__'
+
+class CHSemanalAtividadeEnsinoSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = CHSemanalAtividadeEnsino
+        fields = '__all__'
+
+class AvaliacaoDiscenteSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = AvaliacaoDiscente
+        fields = '__all__'
+
+class ProjetoPesquisaProducaoIntelectualSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = ProjetoPesquisaProducaoIntelectual
+        fields = '__all__'
+
+class TrabalhosCompletosPeriodicosBoletinsTecnicosSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = TrabalhosCompletosPeriodicosBoletinsTecnicos
+        fields = '__all__'
+
+class LivrosCapitulosVerbetesPublicadosSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = LivrosCapitulosVerbetesPublicados
+        fields = '__all__'
+
+class TrabalhosCompletosResumosPublicadosApresentadosCongressosSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = TrabalhosCompletosResumosPublicadosApresentadosCongressos
+        fields = '__all__'
+
+class OutrasAtividadesPesquisaProducaoIntelectualSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = OutrasAtividadesPesquisaProducaoIntelectual
+        fields = '__all__'
+
+class CHSemanalAtividadesPesquisaSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = CHSemanalAtividadesPesquisa
+        fields = '__all__'
+
 class ProjetoExtensaoSerializer(serializers.ModelSerializer):
 
     class Meta:
-        models = ProjetoExtensao
+        model = ProjetoExtensao
         fields = '__all__'
+
+
 class EstagioExtensaoSerializer(serializers.ModelSerializer):
 
     class Meta:
-        models = EstagioExtensao
+        model = EstagioExtensao
         fields = '__all__'
-class EnsinoNaoFormalSerializer(serializers.ModelSerializer):
+
+class AtividadeEnsinoNaoFormalSerializer(serializers.ModelSerializer):
 
     class Meta:
-        models = EnsinoNaoFormal
+        model = AtividadeEnsinoNaoFormal
         fields = '__all__'
-class OutrasAtividadesExtensaoSerializer(serializers.ModelSerializer):
+
+
+class OutrasAtividasExtensaoSerializer(serializers.ModelSerializer):
 
     class Meta:
-        models = OutrasAtividadesExtensao
+        model = OutrasAtividasExtensao
         fields = '__all__'
-class AtividadeGestaoRepresentacaoSerializer(serializers.ModelSerializer):
+
+class CHSemanalAtividadesExtensaoSerializer(serializers.ModelSerializer):
 
     class Meta:
-        models = AtividadeGestaoRepresentacao
+        model = CHSemanalAtividadesExtensao
         fields = '__all__'
-class RelatorioDocenteSerializer(serializers.ModelSerializer):
+
+class DistribuicaoCHSemanalSerializer(serializers.ModelSerializer):
 
     class Meta:
-        models = RelatorioDocente
+        model = DistribuicaoCHSemanal
+        fields = '__all__'
+
+class AfastamentosSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Afastamentos
+        fields = '__all__'
+
+
+class AtividadesGestaoRepresentacaoSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = AtividadesGestaoRepresentacao
+        fields = '__all__'
+
+class QualificacaoDocenteAcademicaProfissionalSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = QualificacaoDocenteAcademicaProfissional
+        fields = '__all__'
+
+class OutrasInformacoesSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = QualificacaoDocenteAcademicaProfissional
         fields = '__all__'

@@ -62,217 +62,340 @@ class Usuario(AbstractUser):
     campus = models.CharField(max_length=150)
     instituto = models.CharField(max_length=150)
 
+class RelatorioDocente(models.Model):
+    data_criacao = models.DateField()
+    ano_relatorio = models.IntegerField()
+    atividades_letivas = models.JSONField()
+    calculos_ch_semanal_aulas = models.JSONField()
+    atividades_pedagogicas_complementares = models.JSONField()
+    atividades_orientacao_supervisao_preceptoria_tutoria = models.JSONField()
+    descricoes_orientacao_coorientacao_academica = models.JSONField()
+    supervisoes_academicas = models.JSONField()
+    preceptorias_tutorias_residencia = models.JSONField()
+    bancas_examinadoras = models.JSONField()
+    ch_semanal_atividade_ensino = models.JSONField()
+    avaliacoes_discentes = models.JSONField()
+    projetos_pesquisa_producao_intelectual = models.JSONField()
+    trabalhos_completos_publicados_periodicos_boletins_tecnicos = models.JSONField()
+    livros_capitulos_verbetes_publicados = models.JSONField()
+    trabalhos_completos_resumos_publicados_apresentados_congressos = models.JSONField()
+    outras_atividades_pesquisa_producao_intelectual = models.JSONField()
+    ch_semanal_atividades_pesquisa = models.JSONField()
+    projetos_extensao = models.JSONField()
+    estagios_extensao = models.JSONField()
+    atividades_ensino_nao_formal = models.JSONField()
+    outras_atividades_extensao = models.JSONField()
+    ch_semanal_atividades_extensao = models.JSONField()
+    atividades_gestao_representacao = models.JSONField()
+    qualificacoes_docente_academica_profissional = models.JSONField()
+    distribuicao_ch_semanal = models.JSONField()
+    outras_informacoes = models.JSONField()
+    afastamentos = models.JSONField()
+
+
 class AtividadeLetiva(models.Model):
-    codigo_disciplina = models.CharField(max_length=10)
-    nome_disciplina = models.CharField(max_length=70)
-    ano = models.CharField(max_length=4)
     semestre = models.IntegerField()
+    codigo_disciplina = models.CharField(max_length=20)
+    nome_disciplina = models.CharField(max_length=70)
+    ano_e_semestre = models.CharField(max_length=6)
     curso = models.CharField(max_length=300)
     nivel = models.CharField(max_length=250)
     numero_turmas_teorico = models.IntegerField()
     numero_turmas_pratico = models.IntegerField()
-    carga_horaria_turmas_teorico = models.IntegerField()
-    carga_horaria_turmas_pratico = models.IntegerField() 
+    ch_turmas_teorico = models.DecimalField(max_digits=5, decimal_places=2)
+    ch_turmas_pratico = models.DecimalField(max_digits=5, decimal_places=2)
     docentes_envolvidos_e_cargas_horarias = models.JSONField()
-    carga_horaria_total = models.IntegerField(default=0)
+    ch_total = models.DecimalField(max_digits=5, decimal_places=2)
 
     def clean(self):
         super().clean()
-        if self.carga_horaria_total > 60:
+        if self.ch_total > 60:
             raise ValidationError({'total': 'O valor máximo para a carga horária total é 60.'})
+        if self.semestre < 0 or self.semestre > 2:
+            raise ValidationError({'semestre': 'O semestre pode ser apenas 1 ou 2.'})
 
-###################################################################
-class CHSemanalAulas(models.Model):
+    class Meta:
+        managed = False
+
+
+class CalculoCHSemanalAulas(models.Model):
     semestre = models.IntegerField()
-    ch_semanal_grad = models.IntegerField()
-    ch_semanal_pos_grad = models.IntegerField()
-    ch_semanal_total = models.IntegerField()
+    ch_semanal_graduacao = models.DecimalField(max_digits=5, decimal_places=2)
+    ch_semanal_pos_graduacao = models.DecimalField(max_digits=5, decimal_places=2)
+    ch_semanal_total = models.DecimalField(max_digits=5, decimal_places=2)
+
+    def clean(self):
+        super().clean()
+        if self.semestre < 1 or self.semestre > 2:
+            raise ValidationError({'semestre': 'O semestre pode ser apenas 1 ou 2.'})
+
+    class Meta:
+        managed = False
+
 
 class AtividadePedagogicaComplementar(models.Model):
     semestre = models.IntegerField()
-    ch_semanal_grad = models.IntegerField()
-    ch_semanal_pos_grad = models.IntegerField()
-    ch_semanal_total = models.IntegerField()
-
-class AtividadeOrientacao(models.Model):
-    id = models.AutoField(primary_key=True)
-    semestre = models.IntegerField()
-    ch_semanal_orientacao = models.IntegerField()
-    ch_semanal_coorientacao = models.IntegerField()
-    ch_semanal_supervisao = models.IntegerField()
-    ch_semanal_precep_tutoria = models.IntegerField()
-    ch_semanal_total = models.IntegerField()
-
-
-class Orientando(models.Model):
-    ch_semanal_1 = models.IntegerField()
-    ch_semanal_2 = models.IntegerField()
-    semestre = models.IntegerField()
-    nome = models.CharField(max_length=100)
-    matricula = models.CharField(max_length=30)
-    curso_nome = models.CharField(max_length=150)
-    curso = models.ForeignKey(Curso, related_name="orientando_curso", on_delete=models.DO_NOTHING)
-    tipo = models.CharField(max_length=50)
-    nivel = models.CharField(max_length=50)
-    atividade_orientacao_pk = models.BigIntegerField()
-    atividade_orientacao = models.ForeignKey(AtividadeOrientacao, related_name="orientando_atividade_orientacao", on_delete=models.DO_NOTHING)
-
-
-class SupervisaoAcademica(models.Model):
-    ch_semanal_1 = models.IntegerField()
-    ch_semanal_2 = models.IntegerField()
-    semestre = models.IntegerField()
-    nome = models.CharField(max_length=100)
-    matricula = models.CharField(max_length=30)
-    curso = models.CharField(max_length=60)
-    tipo = models.CharField(max_length=50)
-    nivel = models.CharField(max_length=50)
-    atividade_pedagogica_complementar = models.ForeignKey(AtividadePedagogicaComplementar, related_name="supervisao_atividade_pedagogica_complementar", on_delete=models.DO_NOTHING)
-
-
-class PreceptoriaTutoria(models.Model):
-    ch_semanal_1 = models.IntegerField()
-    ch_semanal_2 = models.IntegerField()
-    nome = models.CharField(max_length=100)
-    matricula = models.CharField(max_length=30)
-    tipo = models.CharField(max_length=50)
-    atividade_orientacao = models.ForeignKey(AtividadeOrientacao, related_name="preceptoria_atividade_orientacao", on_delete=models.DO_NOTHING)
-
-
-class BancaExaminacao(models.Model):
-    nome_candidato = models.CharField(max_length=100)
-    titulo_trabalho = models.CharField(max_length=100)
-    ies = models.CharField(max_length=100)
-    tipo = models.CharField(max_length=50)
-    ch_semanal_1 = models.IntegerField()
-    ch_semanal_2 = models.IntegerField()
-
-
-
-class CHSemanalEnsino(models.Model):
-    semestre = models.IntegerField()
-    item1 = models.ForeignKey(CHSemanalAulas, related_name="ch_semanal_aulas", on_delete=models.DO_NOTHING)
-    item2 = models.ForeignKey(AtividadePedagogicaComplementar, related_name="ch_atividade_pedagogica_complementar", on_delete=models.DO_NOTHING)
-    item3 = models.ForeignKey(AtividadeOrientacao, related_name="ch_atividade_orientacao", on_delete=models.DO_NOTHING)
-    item4 = models.ForeignKey(BancaExaminacao, related_name="ch_banca_examinacao", on_delete=models.DO_NOTHING)
-    total = models.IntegerField()
+    ch_semanal_graduacao = models.DecimalField(max_digits=5, decimal_places=2)
+    ch_semanal_pos_graduacao = models.DecimalField(max_digits=5, decimal_places=2)
+    ch_semanal_total = models.DecimalField(max_digits=5, decimal_places=2)
 
     def clean(self):
         super().clean()
-        if self.total > 40:
-            raise ValidationError({'total': 'O valor máximo para a ch semanal total é 40.'})
+        if self.semestre < 1 or self.semestre > 2:
+            raise ValidationError({'semestre': 'O semestre pode ser apenas 1 ou 2.'})
 
+    class Meta:
+        managed = False
+
+
+class AtividadeOrientacaoSupervisaoPreceptoriaTutoria(models.Model):
+    semestre = models.IntegerField()
+    ch_semanal_orientacao = models.DecimalField(max_digits=5, decimal_places=2)
+    ch_semanal_coorientacao = models.DecimalField(max_digits=5, decimal_places=2)
+    ch_semanal_supervisao = models.DecimalField(max_digits=5, decimal_places=2)
+    ch_semanal_preceptoria_e_ou_tutoria = models.DecimalField(max_digits=5, decimal_places=2)
+    ch_semanal_total = models.DecimalField(max_digits=5, decimal_places=2)
+
+    class Meta:
+        managed = False
+
+class DescricaoOrientacaoCoorientacaoAcademica(models.Model):
+    numero_doc = models.IntegerField()
+    nome_e_ou_matricula_discente = models.CharField(max_length=300)
+    curso = models.CharField(max_length=100)
+    tipo = models.CharField(max_length=50)
+    nivel = models.CharField(max_length=50)
+    ch_semanal_primeiro_semestre = models.DecimalField(max_digits=5, decimal_places=2)
+    ch_semanal_segundo_semestre = models.DecimalField(max_digits=5, decimal_places=2)
+
+    class Meta:
+        managed = False
+
+class SupervisaoAcademica(models.Model):
+    numero_doc = models.IntegerField()
+    nome_e_ou_matricula_discente = models.CharField(max_length=300)
+    curso = models.CharField(max_length=100)
+    tipo = models.CharField(max_length=50)
+    nivel = models.CharField(max_length=50)
+    ch_semanal_primeiro_semestre = models.DecimalField(max_digits=5, decimal_places=2)
+    ch_semanal_segundo_semestre = models.DecimalField(max_digits=5, decimal_places=2)
+
+    class Meta:
+        managed = False
+
+class PreceptoriaTutoriaResidencia(models.Model):
+    numero_doc = models.IntegerField()
+    nome_e_ou_matricula_discente = models.CharField(max_length=300)
+    tipo = models.CharField(max_length=50)
+    ch_semanal_primeiro_semestre = models.DecimalField(max_digits=5, decimal_places=2)
+    ch_semanal_segundo_semestre = models.DecimalField(max_digits=5, decimal_places=2)
+
+    class Meta:
+        managed = False
+
+class BancasExaminadoras(models.Model):
+    numero_doc = models.IntegerField()
+    descricao = models.CharField(max_length=500)
+    tipo = models.CharField(max_length=50)
+    ch_semanal_primeiro_semestre = models.DecimalField(max_digits=5, decimal_places=2)
+    ch_semanal_segundo_semestre = models.DecimalField(max_digits=5, decimal_places=2)
+
+    class Meta:
+        managed = False
+
+class CHSemanalAtividadeEnsino(models.Model):
+    ch_semanal_primeiro_semestre = models.DecimalField(max_digits=5, decimal_places=2)
+    ch_semanal_segundo_semestre = models.DecimalField(max_digits=5, decimal_places=2)
+
+    class Meta:
+        managed = False
 
 class AvaliacaoDiscente(models.Model):
-    semestre = models.IntegerField()
-    numero_documento = models.IntegerField()
+    numero_doc_primeiro_semestre = models.IntegerField()
+    nota_primeiro_semestre = models.DecimalField(max_digits=5, decimal_places=2)
+    codigo_turma_primeiro_semestre = models.CharField(max_length=50)
+    numero_doc_segundo_semestre = models.IntegerField()
+    nota_segundo_semestre = models.DecimalField(max_digits=5, decimal_places=2)
+    codigo_turma_segundo_semestre = models.CharField(max_length=50)
 
+    class Meta:
+        managed = False
 
-class ProjetoDePesquisa(models.Model):
-    codigo_proped = models.CharField(max_length=10)
-    titulo = models.CharField(max_length=100)
-    situacao = models.CharField(max_length=100)
-    tipo_de_colaboracao = models.CharField(max_length=50)
-    ano = models.DateField()
+class ProjetoPesquisaProducaoIntelectual(models.Model):
+    FUNCAO = (
+        ('coordenador', 'Coordenador'),
+        ('colaborador', 'Colaborador'),
+    )
+    SITUACAO_ATUAL = (
+        ('concluida', 'CONCLUÍDA'),
+        ('em_andamento', 'EM ANDAMENTO'),
+        ('em_pausa', 'EM PAUSA'),
+    )
 
-class Publicacao(models.Model):
-    titulo = models.CharField(max_length=100)
-    ano = models.IntegerField()
-    veiculo_de_publicacao = models.CharField(max_length=100)
-    tipo = models.CharField(max_length=100)
+    numero_doc = models.IntegerField()
+    titulo = models.CharField(max_length=600)
+    funcao = models.CharField(
+        max_length=20,
+        choices=FUNCAO,
+        default='coordenador'
+    )
+    cadastro_proped = models.CharField(max_length=100)
+    situacao_atual = models.CharField(
+        max_length=30,
+        choices=SITUACAO_ATUAL,
+        default='concluida'
+    )
 
-class CHSemanalPesquisa(models.Model):
-    semestre = models.IntegerField()
+    class Meta:
+        managed = False
 
-class AtividadeExtensao(models.Model):
-    cod_proex = models.CharField(max_length=50)
-    titulo = models.CharField(max_length=100)
-    tipo_de_colaboracao = models.CharField(max_length=100)
-    situacao = models.CharField(max_length=100)
-    inicio_projeto = models.DateField()
-    fim_projeto = models.DateField()
-    ano = models.CharField(max_length=4)
+class TrabalhosCompletosPeriodicosBoletinsTecnicos(models.Model):
+    numero_doc = models.IntegerField()
+    descricao = models.CharField(max_length = 1500)
 
-    @property
-    def periodo(self):
-        return f"{self.inicio_projeto} - {self.fim_projeto}"
-    
-class ProjetoExtensao(AtividadeExtensao):
-    def __str__(self):
-        return self.titulo
-    
-class EstagioExtensao(AtividadeExtensao):
-    ch_semanal = models.IntegerField()
-    def __str__(self):
-        return self.titulo
+    class Meta:
+        managed = False
 
-class EnsinoNaoFormal(AtividadeExtensao):
-    ch_semanal_1 = models.IntegerField()
-    ch_semanal_2 = models.IntegerField()
-    def __str__(self):
-        return self.titulo
-    
-class OutrasAtividadesExtensao(AtividadeExtensao):
-    ch_semanal_1 = models.IntegerField()
-    ch_semanal_2 = models.IntegerField()
-    def __str__(self):
-        return self.titulo
-    
+class LivrosCapitulosVerbetesPublicados(models.Model):
+    numero_doc = models.IntegerField()
+    descricao = models.CharField(max_length = 1500)
 
-class CHSemanalExtensao(models.Model):
-    semestre = models.IntegerField()
+    class Meta:
+        managed = False
 
+class TrabalhosCompletosResumosPublicadosApresentadosCongressos(models.Model):
+    numero_doc = models.IntegerField()
+    descricao = models.CharField(max_length = 1500)
 
-class AtividadeGestaoRepresentacao(models.Model):
-    cargo = models.CharField(max_length=50)
-    carga_horaria_semanal = models.IntegerField()
-    ato_designacao = models.CharField(max_length=100)
-    inicio_projeto = models.DateField()
-    fim_projeto = models.DateField()
-    ano = models.DateField()
+    class Meta:
+        managed = False
 
-    @property
-    def periodo(self):
-        return f"{self.inicio_projeto} - {self.fim_projeto}"
+class OutrasAtividadesPesquisaProducaoIntelectual(models.Model):
+    numero_doc = models.IntegerField()
+    descricao = models.CharField(max_length = 1500)
 
+    class Meta:
+        managed = False
 
-class QualificacaoDocente(models.Model):
-   cod_proex = models.CharField(max_length=50)
-   atividades = models.CharField(max_length=500)
-   portaria_data_realizacao = models.CharField(max_length=100)
-   
+class CHSemanalAtividadesPesquisa(models.Model):
+    ch_semanal_primeiro_semestre = models.DecimalField(max_digits=5, decimal_places=2)
+    ch_semanal_segundo_semestre = models.DecimalField(max_digits=5, decimal_places=2)
+
+    class Meta:
+        managed = False
+
+class ProjetoExtensao(models.Model):
+    FUNCAO = (
+        ('coordenador', 'Coordenador'),
+        ('colaborador', 'Colaborador'),
+    )
+    SITUACAO_ATUAL = (
+        ('concluida', 'CONCLUÍDA'),
+        ('em_andamento', 'EM ANDAMENTO'),
+        ('em_pausa', 'EM PAUSA'),
+    )
+
+    numero_doc = models.IntegerField()
+    titulo = models.CharField(max_length=600)
+    funcao = models.CharField(
+        max_length=20,
+        choices=FUNCAO,
+        default='coordenador'
+    )
+    cadastro_proex = models.CharField(max_length=100)
+    situacao_atual = models.CharField(
+        max_length=30,
+        choices=SITUACAO_ATUAL,
+        default='concluida'
+    )
+
+    class Meta:
+        managed = False
+
+class EstagioExtensao(models.Model):
+    numero_doc = models.IntegerField()
+    area_conhecimento = models.CharField(max_length=400)
+    insituicao_ou_local = models.CharField(max_length=400)
+    periodo = models.CharField(max_length=100)
+    ch_semanal = models.DecimalField(max_digits=5, decimal_places=2)
+
+    class Meta:
+        managed = False
+
+class AtividadeEnsinoNaoFormal(models.Model):
+    numero_doc = models.IntegerField()
+    atividade = models.CharField(max_length=1500)
+    ch_total_primeiro_semestre = models.DecimalField(max_digits=5, decimal_places=2)
+    ch_semanal_primeiro_semestre = models.DecimalField(max_digits=5, decimal_places=2)
+    ch_total_segundo_semestre = models.DecimalField(max_digits=5, decimal_places=2)
+    ch_semanal_segundo_semestre = models.DecimalField(max_digits=5, decimal_places=2)
+
+    class Meta:
+        managed = False
+
+class OutrasAtividasExtensao(models.Model):
+    numero_doc = models.IntegerField()
+    atividade = models.CharField(max_length=1500)
+    ch_total_primeiro_semestre = models.DecimalField(max_digits=5, decimal_places=2)
+    ch_semanal_primeiro_semestre = models.DecimalField(max_digits=5, decimal_places=2)
+    ch_total_segundo_semestre = models.DecimalField(max_digits=5, decimal_places=2)
+    ch_semanal_segundo_semestre = models.DecimalField(max_digits=5, decimal_places=2)
+
+    class Meta:
+        managed = False
+
+class CHSemanalAtividadesExtensao(models.Model):
+    ch_semanal_primeiro_semestre = models.DecimalField(max_digits=5, decimal_places=2)
+    ch_semanal_segundo_semestre = models.DecimalField(max_digits=5, decimal_places=2)
+
+    class Meta:
+        managed = False
 
 class DistribuicaoCHSemanal(models.Model):
     semestre = models.IntegerField()
-    atividade_didatica = models.IntegerField()
-    administracao = models.IntegerField()
-    pesquisa = models.IntegerField()
-    extensao = models.IntegerField()
-    total = models.IntegerField()
+    ch_semanal_atividade_didatica = models.DecimalField(max_digits=5, decimal_places=2)
+    ch_semanal_administracao = models.DecimalField(max_digits=5, decimal_places=2)
+    ch_semanal_pesquisa = models.DecimalField(max_digits=5, decimal_places=2)
+    ch_semanal_extensao = models.DecimalField(max_digits=5, decimal_places=2)
+    ch_semanal_total = models.DecimalField(max_digits=5, decimal_places=2)
 
+    def clean(self):
+        super().clean()
+        if self.ch_semanal_total > 40:
+            raise ValidationError({'ch_semanal_total': 'A carga horária semanal total pode ter no máximo 40 horas'})
 
-class ProgressaoPromocao(models.Model):
-    OPCOES = (
-        ('sim', 'Sim'),
-        ('nao', "Não")
-    )
-    progressao_promocao = models.CharField(
-        max_length=3,
-        choices=OPCOES
-    )
-
-
-class OutrasInformacoes(models.Model):
-    cod_proex = models.CharField(max_length=50)
-    decricao = models.CharField(max_length=500)
-
+    class Meta:
+        managed = False
 
 class Afastamentos(models.Model):
-    cod_proex = models.CharField(max_length=50)
-    motivo = models.CharField(max_length=500)
-    portaria = models.CharField(max_length=50)
+    numero_doc = models.IntegerField()
+    motivo = models.CharField(max_length = 1500)
+    portaria = models.CharField(max_length= 150)
 
+    class Meta:
+        managed = False
 
-class RelatorioDocente(models.Model):
-    data_criacao = models.DateField()
-    ano_relatorio = models.IntegerField()
+class AtividadesGestaoRepresentacao(models.Model):
+    cargo_e_ou_funcao = models.CharField(max_length=100)
+    semestre = models.IntegerField()
+    ch_semanal = models.DecimalField(max_digits=5, decimal_places=2)
+    ato_de_designacao = models.CharField(max_length=150)
+    periodo = models.CharField(max_length=100)
+
+    class Meta:
+        managed = False
+
+class QualificacaoDocenteAcademicaProfissional(models.Model):
+    numero_doc = models.IntegerField()
+    atividades = models.CharField(max_length=1500)
+    portaria_e_ou_data_de_realizacao = models.CharField(max_length=100)
+
+    class Meta:
+        managed = False
+
+class OutrasInformacoes(models.Model):
+    numero_doc = models.IntegerField()
+    atividades = models.CharField(max_length=1500)
+
+    class Meta:
+        managed = False
