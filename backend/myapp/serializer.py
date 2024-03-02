@@ -187,6 +187,7 @@ class ProjetoExtensaoSerializer(serializers.ModelSerializer):
         model = ProjetoExtensao
         fields = '__all__'
 
+
 class EstagioExtensaoSerializer(serializers.ModelSerializer):
 
     class Meta:
