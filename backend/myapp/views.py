@@ -151,7 +151,18 @@ class ActivateEmail(APIView):
         return Util.response_ok('Ativação do usuário bem-sucedida')
 
 class RelatorioDocenteView(APIView):
-    pass
+
+    def post(self, request):
+        serializer = RelatorioDocenteSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Util.response_created('Relatorio docente criado')
+        return Util.response_bad_request(serializer.errors)
+
+    def get(self, request):
+        radoc = RelatorioDocente.objects.all()
+        serializer = RelatorioDocenteSerializer(radoc, many=True)
+        return Util.response_ok_no_message(serializer.data)
  
 class EndpointsView(APIView):
     def get(self, request):
