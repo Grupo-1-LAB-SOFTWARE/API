@@ -52,7 +52,7 @@ class Usuario(AbstractUser):
     vinculo = models.CharField(
         max_length=100,
         choices=VINCULO
-        )
+    )
     regime_de_trabalho = models.CharField(
         max_length=50,
         choices=REGIME,
@@ -81,14 +81,14 @@ class AtividadeLetiva(models.Model):
 
 class RelatorioDocente(models.Model):
     data_criacao = models.DateField()
-    ano_relatorio = models.IntegerField()
-    atividades_letivas = models.JSONField()
-    calculos_ch_semanal_aulas = models.JSONField()
-    atividades_pedagogicas_complementares = models.JSONField()
-    atividades_orientacao_supervisao_preceptoria_tutoria = models.JSONField()
-    #descricoes_orientacao_coorientacao_academica = models.JSONField()
-    #supervisoes_academicas = models.JSONField()
-    #preceptorias_tutorias_residencia = models.JSONField()
+    ano_relatorio = models.CharField(max_length=4)
+    atividades_letivas = models.JSONField(null=True)
+    calculos_ch_semanal_aulas = models.JSONField(null=True)
+    atividades_pedagogicas_complementares = models.JSONField(null=True)
+    atividades_orientacao_supervisao_preceptoria_tutoria = models.JSONField(null=True)
+    descricoes_orientacao_coorientacao_academica = models.JSONField(null=True)
+    supervisoes_academicas = models.JSONField(null=True)
+    preceptorias_tutorias_residencia = models.JSONField(null=True)
     #bancas_examinadoras = models.JSONField()
     #ch_semanal_atividade_ensino = models.JSONField()
     #avaliacoes_discentes = models.JSONField()
