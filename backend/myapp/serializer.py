@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from django.utils import timezone
+from pudb import set_trace
 from django.contrib.auth.hashers import make_password
 from rest_framework.exceptions import ValidationError
 from .utils import Util
@@ -295,7 +296,13 @@ class RelatorioDocenteSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = RelatorioDocente
-        fields = ('ano_relatorio', 'atividades_letivas', 'calculos_ch_semanal_aulas', 'atividades_pedagogicas_complementares', 'atividades_orientacao_supervisao_preceptoria_tutoria', 'descricoes_orientacao_coorientacao_academica', 'supervisoes_academicas')
+        fields = (
+            'ano_relatorio', 'atividades_letivas', 'calculos_ch_semanal_aulas',
+            'atividades_pedagogicas_complementares',
+            'atividades_orientacao_supervisao_preceptoria_tutoria',
+            'descricoes_orientacao_coorientacao_academica', 'supervisoes_academicas',
+            'preceptorias_tutorias_residencia',
+                )
 
     def create(self, validated_data):
         #atividades_letivas
