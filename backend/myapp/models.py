@@ -89,7 +89,7 @@ class RelatorioDocente(models.Model):
     descricoes_orientacao_coorientacao_academica = models.JSONField(null=True)
     supervisoes_academicas = models.JSONField(null=True)
     preceptorias_tutorias_residencia = models.JSONField(null=True)
-    #bancas_examinadoras = models.JSONField()
+    bancas_examinadoras = models.JSONField(null=True)
     #ch_semanal_atividade_ensino = models.JSONField()
     #avaliacoes_discentes = models.JSONField()
     #projetos_pesquisa_producao_intelectual = models.JSONField()
@@ -177,7 +177,9 @@ class PreceptoriaTutoriaResidencia(models.Model):
 
 class BancasExaminadoras(models.Model):
     numero_doc = models.IntegerField()
-    descricao = models.CharField(max_length=500)
+    nome_candidato = models.CharField(max_length=400)
+    titulo_trabalho = models.CharField(max_length=500)
+    ies = models.CharField(max_length=50)
     tipo = models.CharField(max_length=50)
     ch_semanal_primeiro_semestre = models.DecimalField(max_digits=5, decimal_places=2)
     ch_semanal_segundo_semestre = models.DecimalField(max_digits=5, decimal_places=2)
