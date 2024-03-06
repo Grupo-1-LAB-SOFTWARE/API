@@ -3,6 +3,11 @@ from pyexpat import model
 from random import choices
 from unittest.util import _MAX_LENGTH
 from django.db import models
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+from django.core.serializers.json import DjangoJSONEncoder
+import json
+
 from django.contrib.auth.models import AbstractUser
 from django.core.exceptions import ValidationError
 
@@ -55,31 +60,19 @@ class Usuario(AbstractUser):
     )
     regime_de_trabalho = models.CharField(
         max_length=50,
-        choices=REGIME,
-        default='exclusivo'
+        choices=REGIME
     )
-    titulacao = models.CharField(max_length=100)
+    titulacao = models.CharField(
+        max_length=100,
+        choices=TITULACAO
+    )
     campus = models.CharField(max_length=150)
     instituto = models.CharField(max_length=150)
-
-class AtividadeLetiva(models.Model):
-    semestre = models.IntegerField()
-    codigo_disciplina = models.CharField(max_length=20)
-    nome_disciplina = models.CharField(max_length=70)
-    ano_e_semestre = models.CharField(max_length=6)
-    curso = models.CharField(max_length=300)
-    nivel = models.CharField(max_length=250)
-    numero_turmas_teorico = models.IntegerField()
-    numero_turmas_pratico = models.IntegerField()
-    ch_turmas_teorico = models.FloatField()
-    ch_turmas_pratico = models.FloatField()
-    docentes_envolvidos_e_cargas_horarias = models.JSONField()
-    ch_total = models.DecimalField(max_digits=5, decimal_places=2, default= None)
-
-    class Meta:
-        managed = False
+    confirmar_email = models.EmailField(null=True)
+    confirmar_senha = models.CharField(max_length=128, null=True)
 
 class RelatorioDocente(models.Model):
+    id = models.AutoField(primary_key=True)
     data_criacao = models.DateField()
     ano_relatorio = models.CharField(max_length=4)
     atividades_letivas = models.JSONField(null=True)
@@ -90,7 +83,7 @@ class RelatorioDocente(models.Model):
     supervisoes_academicas = models.JSONField(null=True)
     preceptorias_tutorias_residencia = models.JSONField(null=True)
     bancas_examinadoras = models.JSONField(null=True)
-    #ch_semanal_atividade_ensino = models.JSONField()
+    ch_semanal_atividade_ensino = models.JSONField(null=True)
     #avaliacoes_discentes = models.JSONField()
     #projetos_pesquisa_producao_intelectual = models.JSONField()
     #trabalhos_completos_publicados_periodicos_boletins_tecnicos = models.JSONField()
@@ -109,6 +102,41 @@ class RelatorioDocente(models.Model):
     #outras_informacoes = models.JSONField()
     #afastamentos = models.JSONField()
 
+    def atualizar_atividades_letivas(self):
+        atividades = list(self.atividadeletiva_set.all().values())
+        self.atividades_letivas = atividades
+        self.save()
+
+class AtividadeLetiva(models.Model):
+    relatorio = models.ForeignKey(RelatorioDocente, on_delete=models.CASCADE)
+    semestre = models.IntegerField()
+    codigo_disciplina = models.CharField(max_length=20)
+    nome_disciplina = models.CharField(max_length=70)
+    ano_e_semestre = models.CharField(max_length=6)
+    curso = models.CharField(max_length=300)
+    nivel = models.CharField(max_length=250)
+    numero_turmas_teorico = models.IntegerField()
+    numero_turmas_pratico = models.IntegerField()
+    ch_turmas_teorico = models.FloatField()
+    ch_turmas_pratico = models.FloatField()
+    docentes_envolvidos_e_cargas_horarias = models.JSONField()
+    ch_total = models.FloatField(null=True)
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        self.relatorio.atualizar_atividades_letivas()
+
+    def delete(self, *args, **kwargs):
+        super().delete(*args, **kwargs)
+        self.relatorio.atualizar_atividades_letivas()
+
+    def update(self, *args, **kwargs):
+        super().update(*args, **kwargs)
+        self.relatorio.atualizar_atividades_letivas()
+
+@receiver(post_save, sender=AtividadeLetiva)
+def atualizar_atividades_letivas_relatorio(sender, instance, **kwargs):
+    instance.relatorio.atualizar_atividades_letivas()
 
 class CalculoCHSemanalAulas(models.Model):
     semestre = models.IntegerField()
