@@ -83,7 +83,7 @@ class UsuarioView(APIView):
                 if (user_login, user_email) is not None:
                     Util.send_verification_email(user_login, user_email, request)
                     return Response({'message': 'Email de verificação enviado'}, status=status.HTTP_201_CREATED)
-            return Util.response_bad_request(serializer.errors)
+            return Response({'validations errors': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
     def is_username_disponivel(self, username):
         try:
