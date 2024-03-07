@@ -31,8 +31,7 @@ from myapp.models import (
                           DistribuicaoCHSemanal,
                           Afastamentos,
                           AtividadesGestaoRepresentacao,
-                          QualificacaoDocenteAcademicaProfissional,
-                          OutrasInformacoes
+                          QualificacaoDocenteAcademicaProfissional
                           )
 
 
@@ -55,7 +54,7 @@ class UsuarioSerializer(serializers.ModelSerializer):
         confirmar_senha = validated_data.pop('confirmar_senha', None)
         if confirmar_senha:
             if not validated_data['password'] == confirmar_senha:
-                raise ValidationError({'bad_request': ['confirmar_senha: O campo "senha" deve ser igual ao campo "confirmar_senha".']})
+                raise ValidationError({'bad_request': ['confirmar_senha: O campo "password" deve ser igual ao campo "confirmar_senha".']})
             
         usuario = Usuario.objects.create(
             confirmar_email = confirmar_email,
@@ -87,12 +86,22 @@ class UsuarioSerializer(serializers.ModelSerializer):
         usuario.titulacao = validated_data.get('titulacao', usuario.titulacao)
         usuario.campus = validated_data.get('campus', usuario.campus)
         usuario.instituto = validated_data.get('instituto', usuario.instituto)
-        usuario.password = make_password(validated_data.get('password', usuario.password))
 
+        senha_recebida = validated_data.get('password', None)
+        confirmar_senha_recebida = validated_data.get('confirmar_senha', None)
+        if senha_recebida:
+            if confirmar_senha_recebida:
+                if not senha_recebida == confirmar_senha_recebida:
+                    raise ValidationError({'bad_request': ['confirmar_senha: O campo "password" deve ser igual ao campo "confirmar_senha".']})
+
+                usuario.confirmar_senha = make_password(confirmar_senha_recebida)
+            usuario.password = make_password(senha_recebida)
+    
         usuario.save()
         return usuario
 
 class AtividadeLetivaSerializer(serializers.ModelSerializer):
+    ch_total = serializers.FloatField(required=False)
 
     class Meta:
         model = AtividadeLetiva
@@ -105,49 +114,111 @@ class AtividadeLetivaSerializer(serializers.ModelSerializer):
         ch_turmas_pratico = validated_data['ch_turmas_pratico']
         ch_total = (numero_turmas_teorico * ch_turmas_teorico) + (numero_turmas_pratico * ch_turmas_pratico)
 
+        semestre = int(validated_data['semestre'])
+        if semestre > 2 or semestre < 1:
+            raise ValidationError({'semestre': ['ERRO: O semestre pode ser apenas 1 ou 2']})
+
         atividade_letiva = AtividadeLetiva.objects.create(
             **validated_data,
             ch_total = ch_total
         )
         return atividade_letiva
 
+    def update(self, instance, validated_data):
+        semestre = validated_data.get('semestre', None)
+        if semestre:
+            if semestre > 2 or semestre < 1:
+                raise ValidationError({'semestre': ['ERRO: O semestre pode ser apenas 1 ou 2']})
+            instance.semestre = semestre
+
+        instance.numero_turmas_teorico = validated_data.get('numero_turmas_teorico', instance.numero_turmar_teorico)
+        instance.numero_turmas_pratico = validated_data.get('numero_turmas_pratico', instance.numero_turmas_pratico)
+        instance.ch_turmas_teorico = validated_data.get('ch_turmas_teorico', instance.ch_turmas_teorico)
+        instance.ch_turmas_pratico = validated_data.get('ch_turmas_pratico', instance.ch_turmas_pratico)
+
+        instance.ch_total = (instance.numero_turmas_teorico * instance.ch_turmas_teorico) + (instance.numero_turmas_pratico * instance.ch_turmas_pratico)
+    
+        instance.save()
+        return instance
+
 
 class CalculoCHSemanalAulasSerializer(serializers.ModelSerializer):
+    ch_semanal_total = serializers.FloatField(required=False)
 
     class Meta:
         model = CalculoCHSemanalAulas
         fields = '__all__'
 
-    def calcular_ch_semanal_total(self, data):
-        ch_semanal_graduacao = data['ch_semanal_graduacao']
-        ch_semanal_pos_graduacao = data['ch_semanal_pos_graduacao']
-        return ch_semanal_graduacao + ch_semanal_pos_graduacao
+    def create(self, validated_data):
+        ch_semanal_graduacao = validated_data['ch_semanal_graduacao']
+        ch_semanal_pos_graduacao = validated_data['ch_semanal_pos_graduacao']
 
-    def validate(self, data):
-        if data['semestre'] > 2 or data['semestre'] < 1:
+        ch_semanal_total = ch_semanal_graduacao + ch_semanal_pos_graduacao
+
+        semestre = int(validated_data['semestre'])
+        if semestre > 2 or semestre < 1:
             raise ValidationError({'semestre': ['ERRO: O semestre pode ser apenas 1 ou 2']})
-        return data
 
-    ch_semanal_total = serializers.SerializerMethodField(method_name='calcular_ch_semanal_total')
+        calculo_ch_semanal_aulas = CalculoCHSemanalAulas.objects.create(
+            **validated_data,
+            ch_semanal_total = ch_semanal_total
+        )
+        return calculo_ch_semanal_aulas
+
+    def update(self, instance, validated_data):
+        semestre = validated_data.get('semestre', None)
+        if semestre:
+            if semestre > 2 or semestre < 1:
+                raise ValidationError({'semestre': ['ERRO: O semestre pode ser apenas 1 ou 2']})
+            instance.semestre = semestre
+
+        instance.ch_semanal_graduacao = validated_data.get('ch_semanal_graduacao', instance.ch_semanal_graducao)
+        instance.ch_semanal_pos_graduacao = validated_data.get('ch_semanal_pos_graduacao', instance.ch_semanal_pos_graduacao)
+
+        instance.ch_semanal_total = instance.ch_semanal_graduacao + instance.ch_semanal_pos_graduacao
+    
+        instance.save()
+        return instance
 
 
 class AtividadePedagogicaComplementarSerializer(serializers.ModelSerializer):
+    ch_semanal_total = serializers.FloatField(required=False)
 
     class Meta:
         model = AtividadePedagogicaComplementar
         fields = '__all__'
 
-    def calcular_ch_semanal_total(self, data):
-        ch_semanal_graduacao = data['ch_semanal_graduacao']
-        ch_semanal_pos_graduacao = data['ch_semanal_pos_graduacao']
-        return ch_semanal_graduacao + ch_semanal_pos_graduacao
+    def create(self, validated_data):
+        ch_semanal_graduacao = validated_data['ch_semanal_graduacao']
+        ch_semanal_pos_graduacao = validated_data['ch_semanal_pos_graduacao']
 
-    def validate(self, data):
-        if data['semestre'] > 2 or data['semestre'] < 1:
+        ch_semanal_total = ch_semanal_graduacao + ch_semanal_pos_graduacao
+
+        semestre = int(validated_data['semestre'])
+        if semestre > 2 or semestre < 1:
             raise ValidationError({'semestre': ['ERRO: O semestre pode ser apenas 1 ou 2']})
-        return data
 
-    ch_semanal_total = serializers.SerializerMethodField(method_name='calcular_ch_semanal_total')
+        atividade_pedagogica_complementar = AtividadePedagogicaComplementar.objects.create(
+            **validated_data,
+            ch_semanal_total = ch_semanal_total
+        )
+        return atividade_pedagogica_complementar
+
+    def update(self, instance, validated_data):
+        semestre = validated_data.get('semestre', None)
+        if semestre:
+            if semestre > 2 or semestre < 1:
+                raise ValidationError({'semestre': ['ERRO: O semestre pode ser apenas 1 ou 2']})
+            instance.semestre = semestre
+
+        instance.ch_semanal_graduacao = validated_data.get('ch_semanal_graduacao', instance.ch_semanal_graducao)
+        instance.ch_semanal_pos_graduacao = validated_data.get('ch_semanal_pos_graduacao', instance.ch_semanal_pos_graduacao)
+
+        instance.ch_semanal_total = instance.ch_semanal_graduacao + instance.ch_semanal_pos_graduacao
+    
+        instance.save()
+        return instance
+
 
 class AtividadeOrientacaoSupervisaoPreceptoriaTutoriaSerializer(serializers.ModelSerializer):
 
@@ -309,33 +380,9 @@ class RelatorioDocenteSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = RelatorioDocente
-        fields = ('id', 'atividades_letivas', 'ano_relatorio', 'calculos_ch_semanal_aulas', 'atividades_pedagogicas_complementares', 'atividades_orientacao_supervisao_preceptoria_tutoria', 'descricoes_orientacao_coorientacao_academica', 'supervisoes_academicas', 'preceptorias_tutorias_residencia', 'bancas_examinadoras', 'ch_semanal_atividade_ensino',)
+        fields = ('id', 'usuario_id', 'atividades_letivas', 'ano_relatorio', 'calculos_ch_semanal_aulas', 'atividades_pedagogicas_complementares', 'atividades_orientacao_supervisao_preceptoria_tutoria', 'descricoes_orientacao_coorientacao_academica', 'supervisoes_academicas', 'preceptorias_tutorias_residencia', 'bancas_examinadoras', 'ch_semanal_atividade_ensino',)
 
     def create(self, validated_data):
-
-        #calculos_ch_semanal_aulas
-        calculos_ch_semanal_aulas_data = validated_data.pop('calculos_ch_semanal_aulas', None)
-
-        if calculos_ch_semanal_aulas_data:
-
-            calculos_ch_semanal_aulas_serializer = CalculoCHSemanalAulasSerializer(many=True, data=calculos_ch_semanal_aulas_data)
-            
-            if not calculos_ch_semanal_aulas_serializer.is_valid():
-                raise ValidationError(f'ERRO: calculos_ch_semanal_aulas - {calculos_ch_semanal_aulas_serializer.errors}')
-
-            calculos_ch_semanal_aulas_data = calculos_ch_semanal_aulas_serializer.data
-
-        #atividades_pedagogicas_complementares
-        atividades_pedagogicas_complementares_data = validated_data.pop('atividades_pedagogicas_complementares', None)
-
-        if atividades_pedagogicas_complementares_data:
-
-            atividades_pedagogicas_complementares_serializer = AtividadePedagogicaComplementarSerializer(many=True, data=atividades_pedagogicas_complementares_data)
-            
-            if not atividades_pedagogicas_complementares_serializer.is_valid():
-                raise ValidationError(f'ERRO: atividades_pedagogicas_complementares - {atividades_pedagogicas_complementares_serializer.errors}')
-
-            atividades_pedagogicas_complementares_data = atividades_pedagogicas_complementares_serializer.data
 
         #atividades_orientacao_supervisao_preceptoria_tutoria
         atividades_orientacao_supervisao_preceptoria_tutoria_data = validated_data.pop('atividades_orientacao_supervisao_preceptoria_tutoria', None)
@@ -413,11 +460,9 @@ class RelatorioDocenteSerializer(serializers.ModelSerializer):
         relatorio_docente = RelatorioDocente.objects.create(
             data_criacao = timezone.now(),
 
+            usuario_id = validated_data['usuario_id'],
+
             ano_relatorio = validated_data['ano_relatorio'],
-
-            calculos_ch_semanal_aulas = calculos_ch_semanal_aulas_data,
-
-            atividades_pedagogicas_complementares = atividades_pedagogicas_complementares_data,
 
             atividades_orientacao_supervisao_preceptoria_tutoria = atividades_orientacao_supervisao_preceptoria_tutoria_data,
 

@@ -1,8 +1,8 @@
 from django.utils import timezone
 from django.urls import get_resolver
 from django.forms.models import model_to_dict
-from myapp.serializer import (UsuarioSerializer, RelatorioDocenteSerializer, AtividadeLetivaSerializer)
-from .models import (Usuario, RelatorioDocente, AtividadeLetiva)
+from myapp.serializer import (UsuarioSerializer, RelatorioDocenteSerializer, AtividadeLetivaSerializer, CalculoCHSemanalAulasSerializer, AtividadePedagogicaComplementarSerializer)
+from .models import (Usuario, RelatorioDocente, AtividadeLetiva, CalculoCHSemanalAulas, AtividadePedagogicaComplementar)
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -82,8 +82,8 @@ class UsuarioView(APIView):
                 user_email = user_dict.get('email', None)
                 if (user_login, user_email) is not None:
                     Util.send_verification_email(user_login, user_email, request)
-                    return Response({'message': 'Email de verificação enviado'}, status=status.HTTP_201_CREATED)
-            return Response({'validations errors': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+                    return Response({'id': f'{user.pk}'}, status=status.HTTP_201_CREATED)
+            return Util.response_bad_request(serializer.errors)
 
     def is_username_disponivel(self, username):
         try:
@@ -154,26 +154,160 @@ class ActivateEmail(APIView):
 
 class AtividadeLetivaView(APIView):
 
+    def get(self, request, id=None):
+        if id:
+            return self.getById(request, id)
+        else:
+            return self.getAll(request)
+
     def post(self, request):
         serializer = AtividadeLetivaSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save()
-            return Util.response_created('Atividade Letiva criada.')
+            atividade_letiva = serializer.save()
+            return Util.response_created(f'id: {atividade_letiva.pk}')
         return Util.response_bad_request(serializer.errors)
 
-    def get(self, request):
+    def put(self, request, id=None):
+        if id is not None:
+            try:
+                atividade_letiva = AtividadeLetiva.objects.get(pk=id)
+                data = request.data.copy()
+                if 'id' in data:
+                    return Util.response_unauthorized('Não é permitido atualizar o campo "id"')
+
+                serializer = AtividadeLetivaSerializer(atividade_letiva, data=data, partial=True)
+                if serializer.is_valid():
+                    serializer.save()
+                    return Util.response_ok_no_message(serializer.data)
+                else:
+                    return Util.response_bad_request(serializer.errors)
+
+            except AtividadeLetiva.DoesNotExist:
+                return Util.response_not_found('Não foi possível encontrar uma ativiade letiva com o id fornecido.')
+
+        return Util.response_bad_request('É necessário fornecer o id da atividade letiva que você deseja atualizar em atividade_letiva/{id}')
+
+
+    def getAll(self, request):
         atividades_letivas = AtividadeLetiva.objects.all()
         serializer = AtividadeLetivaSerializer(atividades_letivas, many=True)
         return Util.response_ok_no_message(serializer.data)
 
+    def getById(self, request, id):
+        try:
+            atividade_letiva = AtividadeLetiva.objects.get(pk=id)
+            serializer = AtividadeLetivaSerializer(atividade_letiva)
+            return Util.response_ok_no_message(serializer.data)
+        except Usuario.DoesNotExist:
+            return Util.response_not_found('Não foi possível encontrar uma atividade letiva com o id fornecido')
+
+
+class CalculoCHSemanalAulasView(APIView):
+
+    def get(self, request, id=None):
+        if id:
+            return self.getById(request, id)
+        else:
+            return self.getAll(request)
+
+    def post(self, request):
+        serializer = CalculoCHSemanalAulasSerializer(data=request.data)
+        if serializer.is_valid():
+            calculo_ch_semanal_aulas = serializer.save()
+            return Util.response_created(f'id: {calculo_ch_semanal_aulas.pk}')
+        return Util.response_bad_request(serializer.errors)
+
+    def put(self, request, id=None):
+        if id is not None:
+            try:
+                calculo_ch_semanal_aulas = CalculoCHSemanalAulas.objects.get(pk=id)
+                data = request.data.copy()
+                if 'id' in data:
+                    return Util.response_unauthorized('Não é permitido atualizar o campo "id"')
+
+                serializer = CalculoCHSemanalAulasSerializer(calculo_ch_semanal_aulas, data=data, partial=True)
+                if serializer.is_valid():
+                    serializer.save()
+                    return Util.response_ok_no_message(serializer.data)
+                else:
+                    return Util.response_bad_request(serializer.errors)
+
+            except CalculoCHSemanalAulas.DoesNotExist:
+                return Util.response_not_found('Não foi possível encontrar uma calculo_ch_semanal_aulas com o id fornecido.')
+
+        return Util.response_bad_request('É necessário fornecer o id da calculo_ch_semanal_aulas que você deseja atualizar em calculo_ch_semanal_aulas/{id}')
+
+
+    def getAll(self, request):
+        calculos_ch_semanal_aulas = CalculoCHSemanalAulas.objects.all()
+        serializer = CalculoCHSemanalAulasSerializer(calculos_ch_semanal_aulas, many=True)
+        return Util.response_ok_no_message(serializer.data)
+
+    def getById(self, request, id):
+        try:
+            calculo_ch_semanal_aulas = CalculoCHSemanalAulas.objects.get(pk=id)
+            serializer = CalculoCHSemanalAulasSerializer(calculo_ch_semanal_aulas)
+            return Util.response_ok_no_message(serializer.data)
+        except Usuario.DoesNotExist:
+            return Util.response_not_found('Não foi possível encontrar uma calculo_ch_semanal_aulas com o id fornecido')
+
+
+class AtividadePedagogicaComplementarView(APIView):
+
+    def get(self, request, id=None):
+        if id:
+            return self.getById(request, id)
+        else:
+            return self.getAll(request)
+
+    def post(self, request):
+        serializer = AtividadePedagogicaComplementarSerializer(data=request.data)
+        if serializer.is_valid():
+            atividade_pedagogica_complementar = serializer.save() 
+            return Util.response_created(f'id: {atividade_pedagogica_complementar.pk}')
+        return Util.response_bad_request(serializer.errors)
+
+    def put(self, request, id=None):
+        if id is not None:
+            try:
+                ativiade_pedagogica_complementar = AtividadePedagogicaComplementar.objects.get(pk=id)
+                data = request.data.copy()
+                if 'id' in data:
+                    return Util.response_unauthorized('Não é permitido atualizar o campo "id"')
+
+                serializer = AtividadePedagogicaComplementarSerializer(ativiade_pedagogica_complementar, data=data, partial=True)
+                if serializer.is_valid():
+                    serializer.save()
+                    return Util.response_ok_no_message(serializer.data)
+                else:
+                    return Util.response_bad_request(serializer.errors)
+
+            except AtividadePedagogicaComplementar.DoesNotExist:
+                return Util.response_not_found('Não foi possível encontrar uma atividade_pedagogica_complementar com o id fornecido.')
+
+        return Util.response_bad_request('É necessário fornecer o id da atividade_pedagogica_complementar que você deseja atualizar em atividade_pedagogica_complementar/{id}')
+
+
+    def getAll(self, request):
+        atividade_pedagogica_complementar = AtividadePedagogicaComplementar.objects.all()
+        serializer = AtividadePedagogicaComplementarSerializer(atividade_pedagogica_complementar, many=True)
+        return Util.response_ok_no_message(serializer.data)
+
+    def getById(self, request, id):
+        try:
+            atividade_pedagogica_complementar = AtividadePedagogicaComplementar.objects.get(pk=id)
+            serializer = AtividadePedagogicaComplementarSerializer(atividade_pedagogica_complementar)
+            return Util.response_ok_no_message(serializer.data)
+        except Usuario.DoesNotExist:
+            return Util.response_not_found('Não foi possível encontrar uma atividade_pedagogica_complementar com o id fornecido')
 
 class RelatorioDocenteView(APIView):
 
     def post(self, request):
         serializer = RelatorioDocenteSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save()
-            return Util.response_created('Relatorio docente criado')
+            relatorio_docente = serializer.save()
+            return Util.response_created({'id': f'{relatorio_docente.pk}'})
         return Util.response_bad_request(serializer.errors)
 
     def get(self, request):

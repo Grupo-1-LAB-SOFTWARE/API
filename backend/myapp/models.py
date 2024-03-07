@@ -5,9 +5,6 @@ from unittest.util import _MAX_LENGTH
 from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
-from django.core.serializers.json import DjangoJSONEncoder
-import json
-
 from django.contrib.auth.models import AbstractUser
 from django.core.exceptions import ValidationError
 
@@ -73,6 +70,7 @@ class Usuario(AbstractUser):
 
 class RelatorioDocente(models.Model):
     id = models.AutoField(primary_key=True)
+    usuario_id = models.ForeignKey(Usuario, related_name="usuario_id", on_delete=models.CASCADE)
     data_criacao = models.DateField()
     ano_relatorio = models.CharField(max_length=4)
     atividades_letivas = models.JSONField(null=True)
@@ -103,12 +101,23 @@ class RelatorioDocente(models.Model):
     #afastamentos = models.JSONField()
 
     def atualizar_atividades_letivas(self):
-        atividades = list(self.atividadeletiva_set.all().values())
-        self.atividades_letivas = atividades
+        atividades_letivas = list(self.atividadeletiva_set.all().values())
+        self.atividades_letivas = atividades_letivas
         self.save()
 
+    def atualizar_calculos_ch_semanal_aulas(self):
+        calculos_ch_semanal_aulas = list(self.calculochsemanalaulas_set.all().values())
+        self.calculos_ch_semanal_aulas = calculos_ch_semanal_aulas
+        self.save()
+
+    def atualizar_atividades_pedagogicas_complementares(self):
+        atividades_pedagogicas_complementares = list(self.atividadepedagogicacomplementar_set.all().values())
+        self.atividades_pedagogicas_complementares = atividades_pedagogicas_complementares
+        self.save()
+
+
 class AtividadeLetiva(models.Model):
-    relatorio = models.ForeignKey(RelatorioDocente, on_delete=models.CASCADE)
+    relatorio_id = models.ForeignKey(RelatorioDocente, on_delete=models.CASCADE)
     semestre = models.IntegerField()
     codigo_disciplina = models.CharField(max_length=20)
     nome_disciplina = models.CharField(max_length=70)
@@ -124,38 +133,54 @@ class AtividadeLetiva(models.Model):
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
-        self.relatorio.atualizar_atividades_letivas()
+        self.relatorio_id.atualizar_atividades_letivas()
 
     def delete(self, *args, **kwargs):
         super().delete(*args, **kwargs)
-        self.relatorio.atualizar_atividades_letivas()
+        self.relatorio_id.atualizar_atividades_letivas()
 
     def update(self, *args, **kwargs):
         super().update(*args, **kwargs)
-        self.relatorio.atualizar_atividades_letivas()
-
-@receiver(post_save, sender=AtividadeLetiva)
-def atualizar_atividades_letivas_relatorio(sender, instance, **kwargs):
-    instance.relatorio.atualizar_atividades_letivas()
+        self.relatorio_id.atualizar_atividades_letivas()
 
 class CalculoCHSemanalAulas(models.Model):
+    relatorio_id = models.ForeignKey(RelatorioDocente, on_delete=models.CASCADE)
     semestre = models.IntegerField()
     ch_semanal_graduacao = models.FloatField()
     ch_semanal_pos_graduacao = models.FloatField()
-    ch_semanal_total = models.DecimalField(max_digits=5, decimal_places=2, default=None)
+    ch_semanal_total = models.FloatField(null=True)
         
-    class Meta:
-        managed = False
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        self.relatorio_id.atualizar_calculos_ch_semanal_aulas()
+
+    def delete(self, *args, **kwargs):
+        super().delete(*args, **kwargs)
+        self.relatorio_id.atualizar_calculos_ch_semanal_aulas()
+
+    def update(self, *args, **kwargs):
+        super().update(*args, **kwargs)
+        self.relatorio_id.atualizar_calculos_ch_semanal_aulas()
 
 
 class AtividadePedagogicaComplementar(models.Model):
+    relatorio_id = models.ForeignKey(RelatorioDocente, on_delete=models.CASCADE)
     semestre = models.IntegerField()
     ch_semanal_graduacao = models.FloatField()
     ch_semanal_pos_graduacao = models.FloatField()
-    ch_semanal_total = models.DecimalField(max_digits=5, decimal_places=2, default=None)
+    ch_semanal_total = models.FloatField(null=True)
         
-    class Meta:
-        managed = False
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        self.relatorio_id.atualizar_atividades_pedagogicas_complementares()
+
+    def delete(self, *args, **kwargs):
+        super().delete(*args, **kwargs)
+        self.relatorio_id.atualizar_atividades_pedagogicas_complementares()
+
+    def update(self, *args, **kwargs):
+        super().update(*args, **kwargs)
+        self.relatorio_id.atualizar_atividades_pedagogicas_complementares()
 
 
 class AtividadeOrientacaoSupervisaoPreceptoriaTutoria(models.Model):
@@ -164,7 +189,7 @@ class AtividadeOrientacaoSupervisaoPreceptoriaTutoria(models.Model):
     ch_semanal_coorientacao = models.FloatField()
     ch_semanal_supervisao = models.FloatField()
     ch_semanal_preceptoria_e_ou_tutoria = models.FloatField()
-    ch_semanal_total = models.DecimalField(max_digits=5, decimal_places=2, default= None)
+    ch_semanal_total = models.FloatField(null=True)
 
     class Meta:
         managed = False
@@ -175,8 +200,8 @@ class DescricaoOrientacaoCoorientacaoAcademica(models.Model):
     curso = models.CharField(max_length=100)
     tipo = models.CharField(max_length=50)
     nivel = models.CharField(max_length=50)
-    ch_semanal_primeiro_semestre = models.DecimalField(max_digits=5, decimal_places=2)
-    ch_semanal_segundo_semestre = models.DecimalField(max_digits=5, decimal_places=2)
+    ch_semanal_primeiro_semestre = models.FloatField()
+    ch_semanal_segundo_semestre = models.FloatField()
 
     class Meta:
         managed = False
@@ -187,8 +212,8 @@ class SupervisaoAcademica(models.Model):
     curso = models.CharField(max_length=100)
     tipo = models.CharField(max_length=50)
     nivel = models.CharField(max_length=50)
-    ch_semanal_primeiro_semestre = models.DecimalField(max_digits=5, decimal_places=2)
-    ch_semanal_segundo_semestre = models.DecimalField(max_digits=5, decimal_places=2)
+    ch_semanal_primeiro_semestre = models.FloatField()
+    ch_semanal_segundo_semestre = models.FloatField()
 
     class Meta:
         managed = False
@@ -197,8 +222,8 @@ class PreceptoriaTutoriaResidencia(models.Model):
     numero_doc = models.IntegerField()
     nome_e_ou_matricula_discente = models.CharField(max_length=300)
     tipo = models.CharField(max_length=50)
-    ch_semanal_primeiro_semestre = models.DecimalField(max_digits=5, decimal_places=2)
-    ch_semanal_segundo_semestre = models.DecimalField(max_digits=5, decimal_places=2)
+    ch_semanal_primeiro_semestre = models.FloatField()
+    ch_semanal_segundo_semestre = models.FloatField()
 
     class Meta:
         managed = False
@@ -209,25 +234,25 @@ class BancasExaminadoras(models.Model):
     titulo_trabalho = models.CharField(max_length=500)
     ies = models.CharField(max_length=50)
     tipo = models.CharField(max_length=50)
-    ch_semanal_primeiro_semestre = models.DecimalField(max_digits=5, decimal_places=2)
-    ch_semanal_segundo_semestre = models.DecimalField(max_digits=5, decimal_places=2)
+    ch_semanal_primeiro_semestre = models.FloatField()
+    ch_semanal_segundo_semestre = models.FloatField()
 
     class Meta:
         managed = False
 
 class CHSemanalAtividadeEnsino(models.Model):
-    ch_semanal_primeiro_semestre = models.DecimalField(max_digits=5, decimal_places=2)
-    ch_semanal_segundo_semestre = models.DecimalField(max_digits=5, decimal_places=2)
+    ch_semanal_primeiro_semestre = models.FloatField()
+    ch_semanal_segundo_semestre = models.FloatField()
 
     class Meta:
         managed = False
 
 class AvaliacaoDiscente(models.Model):
     numero_doc_primeiro_semestre = models.IntegerField()
-    nota_primeiro_semestre = models.DecimalField(max_digits=5, decimal_places=2)
+    nota_primeiro_semestre = models.FloatField()
     codigo_turma_primeiro_semestre = models.CharField(max_length=50)
     numero_doc_segundo_semestre = models.IntegerField()
-    nota_segundo_semestre = models.DecimalField(max_digits=5, decimal_places=2)
+    nota_segundo_semestre = models.FloatField()
     codigo_turma_segundo_semestre = models.CharField(max_length=50)
 
     class Meta:
@@ -290,8 +315,8 @@ class OutrasAtividadesPesquisaProducaoIntelectual(models.Model):
         managed = False
 
 class CHSemanalAtividadesPesquisa(models.Model):
-    ch_semanal_primeiro_semestre = models.DecimalField(max_digits=5, decimal_places=2)
-    ch_semanal_segundo_semestre = models.DecimalField(max_digits=5, decimal_places=2)
+    ch_semanal_primeiro_semestre = models.FloatField()
+    ch_semanal_segundo_semestre = models.FloatField()
 
     class Meta:
         managed = False
@@ -329,7 +354,7 @@ class EstagioExtensao(models.Model):
     area_conhecimento = models.CharField(max_length=400)
     insituicao_ou_local = models.CharField(max_length=400)
     periodo = models.CharField(max_length=100)
-    ch_semanal = models.DecimalField(max_digits=5, decimal_places=2)
+    ch_semanal = models.FloatField()
 
     class Meta:
         managed = False
@@ -337,10 +362,10 @@ class EstagioExtensao(models.Model):
 class AtividadeEnsinoNaoFormal(models.Model):
     numero_doc = models.IntegerField()
     atividade = models.CharField(max_length=1500)
-    ch_total_primeiro_semestre = models.DecimalField(max_digits=5, decimal_places=2)
-    ch_semanal_primeiro_semestre = models.DecimalField(max_digits=5, decimal_places=2, default = None)
-    ch_total_segundo_semestre = models.DecimalField(max_digits=5, decimal_places=2)
-    ch_semanal_segundo_semestre = models.DecimalField(max_digits=5, decimal_places=2, default = None)
+    ch_total_primeiro_semestre = models.FloatField()
+    ch_semanal_primeiro_semestre = models.FloatField(null=True)
+    ch_total_segundo_semestre = models.FloatField()
+    ch_semanal_segundo_semestre = models.FloatField(null=True)
 
     def save(self):
         self.ch_semanal_primeiro_semestre = float(self.ch_total_primeiro_semestre) / 23
@@ -353,10 +378,10 @@ class AtividadeEnsinoNaoFormal(models.Model):
 class OutrasAtividasExtensao(models.Model):
     numero_doc = models.IntegerField()
     atividade = models.CharField(max_length=1500)
-    ch_total_primeiro_semestre = models.DecimalField(max_digits=5, decimal_places=2)
-    ch_semanal_primeiro_semestre = models.DecimalField(max_digits=5, decimal_places=2, default=None)
-    ch_total_segundo_semestre = models.DecimalField(max_digits=5, decimal_places=2)
-    ch_semanal_segundo_semestre = models.DecimalField(max_digits=5, decimal_places=2, default=None)
+    ch_total_primeiro_semestre = models.FloatField()
+    ch_semanal_primeiro_semestre = models.FloatField(null=True)
+    ch_total_segundo_semestre = models.FloatField()
+    ch_semanal_segundo_semestre = models.FloatField(null=True)
 
     def save(self):
         self.ch_semanal_primeiro_semestre = float(self.ch_total_primeiro_semestre) / 23
@@ -367,19 +392,19 @@ class OutrasAtividasExtensao(models.Model):
         managed = False
 
 class CHSemanalAtividadesExtensao(models.Model):
-    ch_semanal_primeiro_semestre = models.DecimalField(max_digits=5, decimal_places=2)
-    ch_semanal_segundo_semestre = models.DecimalField(max_digits=5, decimal_places=2)
+    ch_semanal_primeiro_semestre = models.FloatField()
+    ch_semanal_segundo_semestre = models.FloatField()
 
     class Meta:
         managed = False
 
 class DistribuicaoCHSemanal(models.Model):
     semestre = models.IntegerField()
-    ch_semanal_atividade_didatica = models.DecimalField(max_digits=5, decimal_places=2)
-    ch_semanal_administracao = models.DecimalField(max_digits=5, decimal_places=2)
-    ch_semanal_pesquisa = models.DecimalField(max_digits=5, decimal_places=2)
-    ch_semanal_extensao = models.DecimalField(max_digits=5, decimal_places=2)
-    ch_semanal_total = models.DecimalField(max_digits=5, decimal_places=2)
+    ch_semanal_atividade_didatica = models.FloatField()
+    ch_semanal_administracao = models.FloatField()
+    ch_semanal_pesquisa = models.FloatField()
+    ch_semanal_extensao = models.FloatField()
+    ch_semanal_total = models.FloatField(null=True)
 
     def save(self):
         self.ch_semanal_total = float(self.ch_semanal_atividade_didatica) + float(self.ch_semanal_administracao) + float(self.ch_semanal_pesquisa) + float(self.ch_semanal_extensao)
@@ -404,7 +429,7 @@ class Afastamentos(models.Model):
 class AtividadesGestaoRepresentacao(models.Model):
     cargo_e_ou_funcao = models.CharField(max_length=100)
     semestre = models.IntegerField()
-    ch_semanal = models.DecimalField(max_digits=5, decimal_places=2)
+    ch_semanal = models.FloatField()
     ato_de_designacao = models.CharField(max_length=150)
     periodo = models.CharField(max_length=100)
 
@@ -425,3 +450,16 @@ class OutrasInformacoes(models.Model):
 
     class Meta:
         managed = False
+
+
+@receiver(post_save, sender=AtividadeLetiva)
+def atualizar_atividades_letivas(sender, instance, **kwargs):
+    instance.relatorio_id.atualizar_atividades_letivas()
+
+@receiver(post_save, sender=CalculoCHSemanalAulas)
+def atualizar_calculos_ch_semanal_aulas(sender, instance, **kwargs):
+    instance.relatorio_id.atualizar_calculos_ch_semanal_aulas()
+
+@receiver(post_save, sender=AtividadePedagogicaComplementar)
+def atualizar_atividades_pedagogicas_complementares(sender, instance, **kwargs):
+    instance.relatorio_id.atualizar_atividades_pedagogicas_complementares()
