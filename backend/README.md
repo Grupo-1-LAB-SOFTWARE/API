@@ -1,8 +1,8 @@
-# Instalar MongoDB
-- [Download Compass](https://www.mongodb.com/products/tools/compass)
-- [Download MongoDB](https://www.mongodb.com/try/download/community)
-- [Tutorial de Instalação no Windows](https://www.youtube.com/watch?v=rtAPwlvoNoI)
-## Iniciar o servidor do MongoDB e realizar as migrações após a configuração do ambiente.
+# Configuração do Banco de Dados
+- Instalar PostgreSQL
+- Instalar PGAdmin
+- Criar servidor "localhost" através do PGAdmin e criar um database de nome "sisradoc".
+- Realizar as migrações após a configuração do ambiente.
 
 # Configuração do Ambiente
 

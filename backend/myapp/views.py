@@ -1,8 +1,8 @@
 from django.utils import timezone
 from django.urls import get_resolver
 from django.forms.models import model_to_dict
-from myapp.serializer import (UsuarioSerializer, RelatorioDocenteSerializer)
-from .models import (Usuario, RelatorioDocente)
+from myapp.serializer import (UsuarioSerializer, RelatorioDocenteSerializer, AtividadeLetivaSerializer)
+from .models import (Usuario, RelatorioDocente, AtividadeLetiva)
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -151,6 +151,22 @@ class ActivateEmail(APIView):
 
         return Util.response_ok('Ativação do usuário bem-sucedida')
 
+
+class AtividadeLetivaView(APIView):
+
+    def post(self, request):
+        serializer = AtividadeLetivaSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Util.response_created('Atividade Letiva criada.')
+        return Util.response_bad_request(serializer.errors)
+
+    def get(self, request):
+        atividades_letivas = AtividadeLetiva.objects.all()
+        serializer = AtividadeLetivaSerializer(atividades_letivas, many=True)
+        return Util.response_ok_no_message(serializer.data)
+
+
 class RelatorioDocenteView(APIView):
 
     def post(self, request):
@@ -161,8 +177,8 @@ class RelatorioDocenteView(APIView):
         return Util.response_bad_request(serializer.errors)
 
     def get(self, request):
-        radoc = RelatorioDocente.objects.all()
-        serializer = RelatorioDocenteSerializer(radoc, many=True)
+        radocs = RelatorioDocente.objects.all()
+        serializer = RelatorioDocenteSerializer(radocs, many=True)
         return Util.response_ok_no_message(serializer.data)
     
 class ExtrairDadosAtividadesLetivasPDFAPIView(APIView):
