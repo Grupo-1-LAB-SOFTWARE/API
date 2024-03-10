@@ -45,7 +45,6 @@ class UsuarioSerializer(serializers.ModelSerializer):
         fields = '__all__'
     
     def create(self, validated_data):
-
         confirmar_email = validated_data.pop('confirmar_email', None)
         if confirmar_email:
             if not validated_data['email'] == confirmar_email:
@@ -101,7 +100,6 @@ class UsuarioSerializer(serializers.ModelSerializer):
         return usuario
 
 class AtividadeLetivaSerializer(serializers.ModelSerializer):
-    ch_total = serializers.FloatField(required=False)
     ch_total = serializers.FloatField(required=False)
 
     class Meta:
