@@ -99,7 +99,7 @@ class RelatorioDocente(models.Model):
     qualificacoes_docente_academica_profissional = models.JSONField(null=True)
     distribuicao_ch_semanal = models.JSONField(null=True)
     outras_informacoes = models.JSONField(null=True)
-    afastamentos = models.JSONField(null=True)
+    afastamentos_json = models.JSONField(null=True)
 
     def atualizar_atividades_letivas(self):
         atividades_letivas_letivas = list(self.atividadeletiva_set.all().values())
@@ -227,8 +227,8 @@ class RelatorioDocente(models.Model):
         self.save()
 
     def atualizar_afastamentos(self):
-        afastamentos = list(self.afastamentos_set.all().values())
-        self.afastamentos = afastamentos
+        afastamentos_json = list(self.afastamentosjson_set.all().values())
+        self.afastamentos_json = afastamentos_json
         self.save()
 
 class AtividadeLetiva(models.Model):
