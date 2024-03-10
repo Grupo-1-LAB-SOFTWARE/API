@@ -430,18 +430,6 @@ class RelatorioDocenteSerializer(serializers.ModelSerializer):
         fields = ('id', 'usuario_id', 'usuario_id', 'atividades_letivas', 'ano_relatorio', 'calculos_ch_semanal_aulas', 'atividades_pedagogicas_complementares', 'atividades_orientacao_supervisao_preceptoria_tutoria', 'descricoes_orientacao_coorientacao_academica', 'supervisoes_academicas', 'preceptorias_tutorias_residencia', 'bancas_examinadoras', 'ch_semanal_atividade_ensino',)
 
     def create(self, validated_data):
-        #bancas_examinadoras
-        bancas_examinadoras_data = validated_data.pop('bancas_examinadoras', None)
-
-        if bancas_examinadoras_data:
-
-            bancas_examinadoras_serializer = BancasExaminadorasSerializer(many=True, data=bancas_examinadoras_data)
-            
-            if not bancas_examinadoras_serializer.is_valid():
-                raise ValidationError(f'ERRO: bancas_examinadoras - {bancas_examinadoras_serializer.errors}')
-
-            bancas_examinadoras_data = bancas_examinadoras_serializer.data
-
         #ch_semanal_atividade_ensino
         ch_semanal_atividade_ensino_data = validated_data.pop('ch_semanal_atividade_ensino', None)
 

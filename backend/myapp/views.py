@@ -1,8 +1,8 @@
 from django.utils import timezone
 from django.urls import get_resolver
 from django.forms.models import model_to_dict
-from myapp.serializer import (UsuarioSerializer, RelatorioDocenteSerializer, AtividadeLetivaSerializer, CalculoCHSemanalAulasSerializer, AtividadePedagogicaComplementarSerializer, AtividadeOrientacaoSupervisaoPreceptoriaTutoriaSerializer, DescricaoOrientacaoCoorientacaoAcademicaSerializer, SupervisaoAcademicaSerializer, PreceptoriaTutoriaResidenciaSerializer)
-from .models import (Usuario, RelatorioDocente, AtividadeLetiva, CalculoCHSemanalAulas, AtividadePedagogicaComplementar, AtividadeOrientacaoSupervisaoPreceptoriaTutoria, DescricaoOrientacaoCoorientacaoAcademica, SupervisaoAcademica, PreceptoriaTutoriaResidencia)
+from myapp.serializer import (UsuarioSerializer, RelatorioDocenteSerializer, AtividadeLetivaSerializer, CalculoCHSemanalAulasSerializer, AtividadePedagogicaComplementarSerializer, AtividadeOrientacaoSupervisaoPreceptoriaTutoriaSerializer, DescricaoOrientacaoCoorientacaoAcademicaSerializer, SupervisaoAcademicaSerializer, PreceptoriaTutoriaResidenciaSerializer, BancasExaminadorasSerializer)
+from .models import (Usuario, RelatorioDocente, AtividadeLetiva, CalculoCHSemanalAulas, AtividadePedagogicaComplementar, AtividadeOrientacaoSupervisaoPreceptoriaTutoria, DescricaoOrientacaoCoorientacaoAcademica, SupervisaoAcademica, PreceptoriaTutoriaResidencia, BancasExaminadoras)
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -480,7 +480,7 @@ class PreceptoriaTutoriaResidenciaView(APIView):
                 return Util.response_not_found('Não foi possível encontrar uma preceptoria_tutoria_residencia com o id fornecido.')
 
         return Util.response_bad_request('É necessário fornecer o id do objeto que você deseja atualizar em preceptoria_tutoria_residencia/{id}')
-        
+
 
     def getAll(self, request):
         instances = PreceptoriaTutoriaResidencia.objects.all()
@@ -494,6 +494,53 @@ class PreceptoriaTutoriaResidenciaView(APIView):
             return Util.response_ok_no_message(serializer.data)
         except PreceptoriaTutoriaResidencia.DoesNotExist:
             return Util.response_not_found('Não foi possível encontrar uma preceptoria_tutoria_residencia com o id fornecido')
+
+class BancasExaminadorasView(APIView):
+    def get(self, request, id=None):
+        if id:
+            return self.getById(request, id)
+        else:
+            return self.getAll(request)
+
+    def post(self, request):
+        serializer = BancasExaminadorasSerializer(data=request.data)
+        if serializer.is_valid():
+            instance = serializer.save() 
+            return Util.response_created(f'id: {instance.pk}')
+        return Util.response_bad_request(serializer.errors)
+
+    def put(self, request, id=None):
+        if id is not None:
+            try:
+                instance = BancasExaminadoras.objects.get(pk=id)
+                data = request.data.copy()
+                if 'id' in data:
+                    return Util.response_unauthorized('Não é permitido atualizar nenhum id')
+
+                serializer = BancasExaminadorasSerializer(instance, data=data, partial=True)
+                if serializer.is_valid():
+                    serializer.save()
+                    return Util.response_ok_no_message(serializer.data)
+                else:
+                    return Util.response_bad_request(serializer.errors)
+
+            except BancasExaminadoras.DoesNotExist:
+                return Util.response_not_found('Não foi possível encontrar uma banca_examinadora com o id fornecido.')
+
+        return Util.response_bad_request('É necessário fornecer o id do objeto que você deseja atualizar em banca_examinadora/{id}')
+
+    def getAll(self, request):
+        instances = BancasExaminadoras.objects.all()
+        serializer = BancasExaminadorasSerializer(instances, many=True)
+        return Util.response_ok_no_message(serializer.data)
+
+    def getById(self, request, id):
+        try:
+            instance = BancasExaminadoras.objects.get(pk=id)
+            serializer = BancasExaminadorasSerializer(instance)
+            return Util.response_ok_no_message(serializer.data)
+        except BancasExaminadoras.DoesNotExist:
+            return Util.response_not_found('Não foi possível encontrar uma banca_examinadora com o id fornecido')
 
 
 class RelatorioDocenteView(APIView):
