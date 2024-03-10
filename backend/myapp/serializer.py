@@ -430,30 +430,6 @@ class RelatorioDocenteSerializer(serializers.ModelSerializer):
         fields = ('id', 'usuario_id', 'usuario_id', 'atividades_letivas', 'ano_relatorio', 'calculos_ch_semanal_aulas', 'atividades_pedagogicas_complementares', 'atividades_orientacao_supervisao_preceptoria_tutoria', 'descricoes_orientacao_coorientacao_academica', 'supervisoes_academicas', 'preceptorias_tutorias_residencia', 'bancas_examinadoras', 'ch_semanal_atividade_ensino',)
 
     def create(self, validated_data):
-        #supervisoes_academicas
-        supervisoes_academicas_data = validated_data.pop('supervisoes_academicas', None)
-
-        if supervisoes_academicas_data:
-
-            supervisoes_academicas_serializer = SupervisaoAcademicaSerializer(many=True, data=supervisoes_academicas_data)
-            
-            if not supervisoes_academicas_serializer.is_valid():
-                raise ValidationError(f'ERRO: supervisoes_academicas - {supervisoes_academicas_serializer.errors}')
-
-            supervisoes_academicas_data = supervisoes_academicas_serializer.data
-
-        #preceptorias_tutorias_residencia
-        preceptorias_tutorias_residencia_data = validated_data.pop('preceptorias_tutorias_residencia', None)
-
-        if preceptorias_tutorias_residencia_data:
-
-            preceptorias_tutorias_residencia_serializer = PreceptoriaTutoriaResidenciaSerializer(many=True, data=preceptorias_tutorias_residencia_data)
-            
-            if not preceptorias_tutorias_residencia_serializer.is_valid():
-                raise ValidationError(f'ERRO: preceptorias_tutorias_residencia - {preceptorias_tutorias_residencia_serializer.errors}')
-
-            preceptorias_tutorias_residencia_data = preceptorias_tutorias_residencia_serializer.data
-
         #bancas_examinadoras
         bancas_examinadoras_data = validated_data.pop('bancas_examinadoras', None)
 
@@ -485,10 +461,6 @@ class RelatorioDocenteSerializer(serializers.ModelSerializer):
             usuario_id = validated_data['usuario_id'],
 
             ano_relatorio = validated_data['ano_relatorio'],
-
-            supervisoes_academicas = supervisoes_academicas_data,
-
-            preceptorias_tutorias_residencia = preceptorias_tutorias_residencia_data,
 
             bancas_examinadoras = bancas_examinadoras_data,
 
