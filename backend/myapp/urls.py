@@ -1,7 +1,7 @@
 from django.urls import path
 
 from .views import (UsuarioView, ActivateEmail, LoginView, EndpointsView,
-                    RelatorioDocenteView, AtividadeLetivaView, CalculoCHSemanalAulasView, AtividadePedagogicaComplementarView, AtividadeOrientacaoSupervisaoPreceptoriaTutoriaView, DescricaoOrientacaoCoorientacaoAcademicaView, SupervisaoAcademicaView, PreceptoriaTutoriaResidenciaView)
+                    RelatorioDocenteView, AtividadeLetivaView, CalculoCHSemanalAulasView, AtividadePedagogicaComplementarView, AtividadeOrientacaoSupervisaoPreceptoriaTutoriaView, DescricaoOrientacaoCoorientacaoAcademicaView, SupervisaoAcademicaView, PreceptoriaTutoriaResidenciaView, ExtrairDadosAtividadesLetivasPDFAPIView)
 
 
 urlpatterns = [
@@ -70,4 +70,5 @@ urlpatterns = [
     path('preceptoria_tutoria_residencia/', PreceptoriaTutoriaResidenciaView.as_view(), name='preceptoria_tutoria_residencia/'),
 
     path('preceptoria_tutoria_residencia/<int:id>/', PreceptoriaTutoriaResidenciaView.as_view(), name='preceptoria_tutoria_residencia/id'),
+    path('extrair_dados_atividades_letivas', ExtrairDadosAtividadesLetivasPDFAPIView.as_view(), name='extrair_dados_atividades_letivas'),
 ]
