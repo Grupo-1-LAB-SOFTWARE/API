@@ -71,7 +71,6 @@ class Usuario(AbstractUser):
 class RelatorioDocente(models.Model):
     id = models.AutoField(primary_key=True)
     usuario_id = models.ForeignKey(Usuario, related_name="usuario_id", on_delete=models.CASCADE)
-    usuario_id = models.ForeignKey(Usuario, related_name="usuario_id", on_delete=models.CASCADE)
     data_criacao = models.DateField()
     ano_relatorio = models.CharField(max_length=4)
     atividades_letivas = models.JSONField(null=True)
