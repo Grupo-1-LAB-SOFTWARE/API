@@ -1,8 +1,8 @@
 from django.utils import timezone
 from django.urls import get_resolver
 from django.forms.models import model_to_dict
-from myapp.serializer import (UsuarioSerializer, RelatorioDocenteSerializer, AtividadeLetivaSerializer, CalculoCHSemanalAulasSerializer, AtividadePedagogicaComplementarSerializer)
-from .models import (Usuario, RelatorioDocente, AtividadeLetiva, CalculoCHSemanalAulas, AtividadePedagogicaComplementar)
+from myapp.serializer import (UsuarioSerializer, RelatorioDocenteSerializer, AtividadeLetivaSerializer, CalculoCHSemanalAulasSerializer, AtividadePedagogicaComplementarSerializer, AtividadeOrientacaoSupervisaoPreceptoriaTutoriaSerializer)
+from .models import (Usuario, RelatorioDocente, AtividadeLetiva, CalculoCHSemanalAulas, AtividadePedagogicaComplementar, AtividadeOrientacaoSupervisaoPreceptoriaTutoria)
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -23,7 +23,7 @@ class UsuarioView(APIView):
                 user = Usuario.objects.get(pk=user_id)
                 data = request.data.copy()
                 if 'id' in data:
-                    return Util.response_unauthorized('Não é permitido atualizar o campo "id"')
+                    return Util.response_unauthorized('Não é permitido atualizar nenhum id')
                 if 'is_active' in data:
                     return Util.response_unauthorized('Não é permitido atualizar o campo "is_active"')
                 if 'date_joined' in data:
@@ -172,7 +172,7 @@ class AtividadeLetivaView(APIView):
                 atividade_letiva = AtividadeLetiva.objects.get(pk=id)
                 data = request.data.copy()
                 if 'id' in data:
-                    return Util.response_unauthorized('Não é permitido atualizar o campo "id"')
+                    return Util.response_unauthorized('Não é permitido atualizar nenhum id')
 
                 serializer = AtividadeLetivaSerializer(atividade_letiva, data=data, partial=True)
                 if serializer.is_valid():
@@ -222,7 +222,7 @@ class CalculoCHSemanalAulasView(APIView):
                 calculo_ch_semanal_aulas = CalculoCHSemanalAulas.objects.get(pk=id)
                 data = request.data.copy()
                 if 'id' in data:
-                    return Util.response_unauthorized('Não é permitido atualizar o campo "id"')
+                    return Util.response_unauthorized('Não é permitido atualizar nenhum id')
 
                 serializer = CalculoCHSemanalAulasSerializer(calculo_ch_semanal_aulas, data=data, partial=True)
                 if serializer.is_valid():
@@ -247,7 +247,7 @@ class CalculoCHSemanalAulasView(APIView):
             calculo_ch_semanal_aulas = CalculoCHSemanalAulas.objects.get(pk=id)
             serializer = CalculoCHSemanalAulasSerializer(calculo_ch_semanal_aulas)
             return Util.response_ok_no_message(serializer.data)
-        except Usuario.DoesNotExist:
+        except CalculoCHSemanalAulas.DoesNotExist:
             return Util.response_not_found('Não foi possível encontrar uma calculo_ch_semanal_aulas com o id fornecido')
 
 
@@ -272,7 +272,7 @@ class AtividadePedagogicaComplementarView(APIView):
                 ativiade_pedagogica_complementar = AtividadePedagogicaComplementar.objects.get(pk=id)
                 data = request.data.copy()
                 if 'id' in data:
-                    return Util.response_unauthorized('Não é permitido atualizar o campo "id"')
+                    return Util.response_unauthorized('Não é permitido atualizar nenhum id')
 
                 serializer = AtividadePedagogicaComplementarSerializer(ativiade_pedagogica_complementar, data=data, partial=True)
                 if serializer.is_valid():
@@ -286,7 +286,6 @@ class AtividadePedagogicaComplementarView(APIView):
 
         return Util.response_bad_request('É necessário fornecer o id da atividade_pedagogica_complementar que você deseja atualizar em atividade_pedagogica_complementar/{id}')
 
-
     def getAll(self, request):
         atividade_pedagogica_complementar = AtividadePedagogicaComplementar.objects.all()
         serializer = AtividadePedagogicaComplementarSerializer(atividade_pedagogica_complementar, many=True)
@@ -297,8 +296,56 @@ class AtividadePedagogicaComplementarView(APIView):
             atividade_pedagogica_complementar = AtividadePedagogicaComplementar.objects.get(pk=id)
             serializer = AtividadePedagogicaComplementarSerializer(atividade_pedagogica_complementar)
             return Util.response_ok_no_message(serializer.data)
-        except Usuario.DoesNotExist:
+        except AtividadePedagogicaComplementar.DoesNotExist:
             return Util.response_not_found('Não foi possível encontrar uma atividade_pedagogica_complementar com o id fornecido')
+
+
+class AtividadeOrientacaoSupervisaoPreceptoriaTutoriaView(APIView):
+    def get(self, request, id=None):
+        if id:
+            return self.getById(request, id)
+        else:
+            return self.getAll(request)
+
+    def post(self, request):
+        serializer = AtividadeOrientacaoSupervisaoPreceptoriaTutoriaSerializer(data=request.data)
+        if serializer.is_valid():
+            instance = serializer.save() 
+            return Util.response_created(f'id: {instance.pk}')
+        return Util.response_bad_request(serializer.errors)
+
+    def put(self, request, id=None):
+        if id is not None:
+            try:
+                instance = AtividadeOrientacaoSupervisaoPreceptoriaTutoria.objects.get(pk=id)
+                data = request.data.copy()
+                if 'id' in data:
+                    return Util.response_unauthorized('Não é permitido atualizar nenhum id')
+
+                serializer = AtividadeOrientacaoSupervisaoPreceptoriaTutoriaSerializer(instance, data=data, partial=True)
+                if serializer.is_valid():
+                    serializer.save()
+                    return Util.response_ok_no_message(serializer.data)
+                else:
+                    return Util.response_bad_request(serializer.errors)
+
+            except AtividadeOrientacaoSupervisaoPreceptoriaTutoria.DoesNotExist:
+                return Util.response_not_found('Não foi possível encontrar uma atividade_orientacao_supervisao_preceptoria_tutoria com o id fornecido.')
+
+        return Util.response_bad_request('É necessário fornecer o id do objeto que você deseja atualizar em atividade_orientacao_supervisao_preceptoria_tutoria/{id}')
+
+    def getAll(self, request):
+        instances = AtividadeOrientacaoSupervisaoPreceptoriaTutoria.objects.all()
+        serializer = AtividadeOrientacaoSupervisaoPreceptoriaTutoriaSerializer(instances, many=True)
+        return Util.response_ok_no_message(serializer.data)
+
+    def getById(self, request, id):
+        try:
+            instance = AtividadeOrientacaoSupervisaoPreceptoriaTutoria.objects.get(pk=id)
+            serializer = AtividadeOrientacaoSupervisaoPreceptoriaTutoriaSerializer(instance)
+            return Util.response_ok_no_message(serializer.data)
+        except AtividadeOrientacaoSupervisaoPreceptoriaTutoria.DoesNotExist:
+            return Util.response_not_found('Não foi possível encontrar uma atividade_orientacao_supervisao_preceptoria_tutoria com o id fornecido')
 
 class RelatorioDocenteView(APIView):
 

@@ -221,24 +221,50 @@ class AtividadePedagogicaComplementarSerializer(serializers.ModelSerializer):
 
 
 class AtividadeOrientacaoSupervisaoPreceptoriaTutoriaSerializer(serializers.ModelSerializer):
+    ch_semanal_total = serializers.FloatField(required=False)
 
     class Meta:
         model = AtividadeOrientacaoSupervisaoPreceptoriaTutoria
         fields = '__all__'
 
-    def calcular_ch_semanal_total(self, data):
-        ch_semanal_orientacao = data['ch_semanal_orientacao']
-        ch_semanal_coorientacao = data['ch_semanal_coorientacao']
-        ch_semanal_supervisao = data['ch_semanal_supervisao']
-        ch_semanal_preceptoria_e_ou_tutoria = data['ch_semanal_preceptoria_e_ou_tutoria']
-        return ch_semanal_orientacao + ch_semanal_coorientacao + ch_semanal_supervisao + ch_semanal_preceptoria_e_ou_tutoria
+    def create(self, validated_data):
+        ch_semanal_orientacao = validated_data['ch_semanal_orientacao']
+        ch_semanal_coorientacao = validated_data['ch_semanal_coorientacao']
+        ch_semanal_supervisao = validated_data['ch_semanal_supervisao']
+        ch_semanal_preceptoria_e_ou_tutoria = validated_data['ch_semanal_preceptoria_e_ou_tutoria']
 
-    def validate(self, data):
-        if data['semestre'] > 2 or data['semestre'] < 1:
+        ch_semanal_total = ch_semanal_orientacao + ch_semanal_coorientacao + ch_semanal_supervisao + ch_semanal_preceptoria_e_ou_tutoria
+
+        semestre = int(validated_data['semestre'])
+        if semestre > 2 or semestre < 1:
             raise ValidationError({'semestre': ['ERRO: O semestre pode ser apenas 1 ou 2']})
-        return data
 
-    ch_semanal_total = serializers.SerializerMethodField(method_name='calcular_ch_semanal_total')
+        atividades_orientacao_supervisao_preceptoria_tutoria = AtividadeOrientacaoSupervisaoPreceptoriaTutoria.objects.create(
+            **validated_data,
+            ch_semanal_total = ch_semanal_total
+        )
+        return atividades_orientacao_supervisao_preceptoria_tutoria
+
+    def update(self, instance, validated_data):
+        semestre = validated_data.get('semestre', None)
+        if semestre:
+            if semestre > 2 or semestre < 1:
+                raise ValidationError({'semestre': ['ERRO: O semestre pode ser apenas 1 ou 2']})
+            instance.semestre = semestre
+
+        instance.ch_semanal_orientacao = validated_data.get('ch_semanal_orientacao', instance.ch_semanal_orientacao)
+
+        instance.ch_semanal_coorientacao = validated_data.get('ch_semanal_coorientacao', instance.ch_semanal_coorientacao)
+
+        instance.ch_semanal_supervisao = validated_data.get('ch_semanal_supervisao', instance.ch_semanal_supervisao)
+
+        instance.ch_semanal_preceptoria_e_ou_tutoria = validated_data.get('ch_semanal_preceptoria_e_ou_tutoria', instance.ch_semanal_preceptoria_e_ou_tutoria)
+
+        instance.ch_semanal_total = instance.ch_semanal_orientacao + instance.ch_semanal_coorientacao + instance.ch_semanal_supervisao + instance.ch_semanal_preceptoria_e_ou_tutoria
+    
+        instance.save()
+        return instance
+ 
 
 class DescricaoOrientacaoCoorientacaoAcademicaSerializer(serializers.ModelSerializer):
 

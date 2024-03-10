@@ -115,6 +115,16 @@ class RelatorioDocente(models.Model):
         self.atividades_pedagogicas_complementares = atividades_pedagogicas_complementares
         self.save()
 
+    def atualizar_atividades_orientacao_supervisao_preceptoria_tutoria(self):
+        atividades_orientacao_supervisao_preceptoria_tutoria = list(self.atividadeorientacaosupervisaopreceptoriatutoria_set.all().values())
+        self.atividades_orientacao_supervisao_preceptoria_tutoria = atividades_orientacao_supervisao_preceptoria_tutoria
+        self.save()
+
+    def atualizar_descricoes_orientacao_coorientacao_academica(self):
+        descricoes_orientacao_coorientacao_academica = list(self.descricaoorientacaocoorientacaoacademica_set.all().values())
+        self.descricoes_orientacao_coorientacao_academica = descricoes_orientacao_coorientacao_academica
+        self.save()
+
 
 class AtividadeLetiva(models.Model):
     relatorio_id = models.ForeignKey(RelatorioDocente, on_delete=models.CASCADE)
@@ -184,6 +194,7 @@ class AtividadePedagogicaComplementar(models.Model):
 
 
 class AtividadeOrientacaoSupervisaoPreceptoriaTutoria(models.Model):
+    relatorio_id = models.ForeignKey(RelatorioDocente, on_delete=models.CASCADE)
     semestre = models.IntegerField()
     ch_semanal_orientacao = models.FloatField()
     ch_semanal_coorientacao = models.FloatField()
@@ -191,10 +202,21 @@ class AtividadeOrientacaoSupervisaoPreceptoriaTutoria(models.Model):
     ch_semanal_preceptoria_e_ou_tutoria = models.FloatField()
     ch_semanal_total = models.FloatField(null=True)
 
-    class Meta:
-        managed = False
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        self.relatorio_id.atualizar_atividades_orientacao_supervisao_preceptoria_tutoria()
+
+    def delete(self, *args, **kwargs):
+        super().delete(*args, **kwargs)
+        self.relatorio_id.atualizar_atividades_orientacao_supervisao_preceptoria_tutoria()
+
+    def update(self, *args, **kwargs):
+        super().update(*args, **kwargs)
+        self.relatorio_id.atualizar_atividades_orientacao_supervisao_preceptoria_tutoria()
+
 
 class DescricaoOrientacaoCoorientacaoAcademica(models.Model):
+    relatorio_id = models.ForeignKey(RelatorioDocente, on_delete=models.CASCADE)
     numero_doc = models.IntegerField()
     nome_e_ou_matricula_discente = models.CharField(max_length=300)
     curso = models.CharField(max_length=100)
@@ -203,8 +225,18 @@ class DescricaoOrientacaoCoorientacaoAcademica(models.Model):
     ch_semanal_primeiro_semestre = models.FloatField()
     ch_semanal_segundo_semestre = models.FloatField()
 
-    class Meta:
-        managed = False
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        self.relatorio_id.atualizar_descricoes_orientacao_coorientacao_academica()
+
+    def delete(self, *args, **kwargs):
+        super().delete(*args, **kwargs)
+        self.relatorio_id.atualizar_descricoes_orientacao_coorientacao_academica()
+
+    def update(self, *args, **kwargs):
+        super().update(*args, **kwargs)
+        self.relatorio_id.atualizar_descricoes_orientacao_coorientacao_academica()
+
 
 class SupervisaoAcademica(models.Model):
     numero_doc = models.IntegerField()
@@ -463,3 +495,11 @@ def atualizar_calculos_ch_semanal_aulas(sender, instance, **kwargs):
 @receiver(post_save, sender=AtividadePedagogicaComplementar)
 def atualizar_atividades_pedagogicas_complementares(sender, instance, **kwargs):
     instance.relatorio_id.atualizar_atividades_pedagogicas_complementares()
+
+@receiver(post_save, sender=AtividadeOrientacaoSupervisaoPreceptoriaTutoria)
+def atualizar_atividades_orientacao_supervisao_preceptoria_tutoria(sender, instance, **kwargs):
+    instance.relatorio_id.atualizar_atividades_orientacao_supervisao_preceptoria_tutoria()
+
+@receiver(post_save, sender=DescricaoOrientacaoCoorientacaoAcademica)
+def atualizar_descricoes_orientacao_coorientacao_academica(sender, instance, **kwargs):
+    instance.relatorio_id.atualizar_descricoes_orientacao_coorientacao_academica()
