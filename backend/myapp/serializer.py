@@ -204,7 +204,6 @@ class CalculoCHSemanalAulasSerializer(serializers.ModelSerializer):
 
 class AtividadePedagogicaComplementarSerializer(serializers.ModelSerializer):
     ch_semanal_total = serializers.FloatField(required=False)
-    ch_semanal_total = serializers.FloatField(required=False)
 
     class Meta:
         model = AtividadePedagogicaComplementar
@@ -431,31 +430,6 @@ class RelatorioDocenteSerializer(serializers.ModelSerializer):
         fields = ('id', 'usuario_id', 'usuario_id', 'atividades_letivas', 'ano_relatorio', 'calculos_ch_semanal_aulas', 'atividades_pedagogicas_complementares', 'atividades_orientacao_supervisao_preceptoria_tutoria', 'descricoes_orientacao_coorientacao_academica', 'supervisoes_academicas', 'preceptorias_tutorias_residencia', 'bancas_examinadoras', 'ch_semanal_atividade_ensino',)
 
     def create(self, validated_data):
-
-        #atividades_orientacao_supervisao_preceptoria_tutoria
-        atividades_orientacao_supervisao_preceptoria_tutoria_data = validated_data.pop('atividades_orientacao_supervisao_preceptoria_tutoria', None)
-
-        if atividades_orientacao_supervisao_preceptoria_tutoria_data:
-
-            atividades_orientacao_supervisao_preceptoria_tutoria_serializer = AtividadeOrientacaoSupervisaoPreceptoriaTutoriaSerializer(many=True, data=atividades_orientacao_supervisao_preceptoria_tutoria_data)
-            
-            if not atividades_orientacao_supervisao_preceptoria_tutoria_serializer.is_valid():
-                raise ValidationError(f'ERRO: atividades_orientacao_supervisao_preceptoria_tutoria - {atividades_orientacao_supervisao_preceptoria_tutoria_serializer.errors}')
-
-            atividades_orientacao_supervisao_preceptoria_tutoria_data = atividades_orientacao_supervisao_preceptoria_tutoria_serializer.data
-
-        #descricoes_orientacao_coorientacao_academica
-        descricoes_orientacao_coorientacao_academica_data = validated_data.pop('descricoes_orientacao_coorientacao_academica', None)
-
-        if descricoes_orientacao_coorientacao_academica_data:
-
-            descricoes_orientacao_coorientacao_academica_serializer = DescricaoOrientacaoCoorientacaoAcademicaSerializer(many=True, data=descricoes_orientacao_coorientacao_academica_data)
-            
-            if not descricoes_orientacao_coorientacao_academica_serializer.is_valid():
-                raise ValidationError(f'ERRO: descricoes_orientacao_coorientacao_academica - {descricoes_orientacao_coorientacao_academica_serializer.errors}')
-
-            descricoes_orientacao_coorientacao_academica_data = descricoes_orientacao_coorientacao_academica_serializer.data
-
         #supervisoes_academicas
         supervisoes_academicas_data = validated_data.pop('supervisoes_academicas', None)
 
@@ -510,13 +484,7 @@ class RelatorioDocenteSerializer(serializers.ModelSerializer):
 
             usuario_id = validated_data['usuario_id'],
 
-            usuario_id = validated_data['usuario_id'],
-
             ano_relatorio = validated_data['ano_relatorio'],
-
-            atividades_orientacao_supervisao_preceptoria_tutoria = atividades_orientacao_supervisao_preceptoria_tutoria_data,
-
-            descricoes_orientacao_coorientacao_academica = descricoes_orientacao_coorientacao_academica_data,
 
             supervisoes_academicas = supervisoes_academicas_data,
 

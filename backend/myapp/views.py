@@ -1,8 +1,8 @@
 from django.utils import timezone
 from django.urls import get_resolver
 from django.forms.models import model_to_dict
-from myapp.serializer import (UsuarioSerializer, RelatorioDocenteSerializer, AtividadeLetivaSerializer, CalculoCHSemanalAulasSerializer, AtividadePedagogicaComplementarSerializer, AtividadeOrientacaoSupervisaoPreceptoriaTutoriaSerializer)
-from .models import (Usuario, RelatorioDocente, AtividadeLetiva, CalculoCHSemanalAulas, AtividadePedagogicaComplementar, AtividadeOrientacaoSupervisaoPreceptoriaTutoria)
+from myapp.serializer import (UsuarioSerializer, RelatorioDocenteSerializer, AtividadeLetivaSerializer, CalculoCHSemanalAulasSerializer, AtividadePedagogicaComplementarSerializer, AtividadeOrientacaoSupervisaoPreceptoriaTutoriaSerializer, DescricaoOrientacaoCoorientacaoAcademicaSerializer)
+from .models import (Usuario, RelatorioDocente, AtividadeLetiva, CalculoCHSemanalAulas, AtividadePedagogicaComplementar, AtividadeOrientacaoSupervisaoPreceptoriaTutoria, DescricaoOrientacaoCoorientacaoAcademica)
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -353,6 +353,54 @@ class AtividadeOrientacaoSupervisaoPreceptoriaTutoriaView(APIView):
         except AtividadeOrientacaoSupervisaoPreceptoriaTutoria.DoesNotExist:
             return Util.response_not_found('Não foi possível encontrar uma atividade_orientacao_supervisao_preceptoria_tutoria com o id fornecido')
 
+class DescricaoOrientacaoCoorientacaoAcademicaView(APIView):
+    def get(self, request, id=None):
+        if id:
+            return self.getById(request, id)
+        else:
+            return self.getAll(request)
+
+    def post(self, request):
+        serializer = DescricaoOrientacaoCoorientacaoAcademicaSerializer(data=request.data)
+        if serializer.is_valid():
+            instance = serializer.save() 
+            return Util.response_created(f'id: {instance.pk}')
+        return Util.response_bad_request(serializer.errors)
+
+    def put(self, request, id=None):
+        if id is not None:
+            try:
+                instance = DescricaoOrientacaoCoorientacaoAcademica.objects.get(pk=id)
+                data = request.data.copy()
+                if 'id' in data:
+                    return Util.response_unauthorized('Não é permitido atualizar nenhum id')
+
+                serializer = DescricaoOrientacaoCoorientacaoAcademicaSerializer(instance, data=data, partial=True)
+                if serializer.is_valid():
+                    serializer.save()
+                    return Util.response_ok_no_message(serializer.data)
+                else:
+                    return Util.response_bad_request(serializer.errors)
+
+            except DescricaoOrientacaoCoorientacaoAcademica.DoesNotExist:
+                return Util.response_not_found('Não foi possível encontrar uma descricao_orientacao_coorientacao_academica com o id fornecido.')
+
+        return Util.response_bad_request('É necessário fornecer o id do objeto que você deseja atualizar em descricao_orientacao_coorientacao_academica/{id}')
+
+    def getAll(self, request):
+        instances = DescricaoOrientacaoCoorientacaoAcademica.objects.all()
+        serializer = DescricaoOrientacaoCoorientacaoAcademicaSerializer(instances, many=True)
+        return Util.response_ok_no_message(serializer.data)
+
+    def getById(self, request, id):
+        try:
+            instance = DescricaoOrientacaoCoorientacaoAcademica.objects.get(pk=id)
+            serializer = DescricaoOrientacaoCoorientacaoAcademicaSerializer(instance)
+            return Util.response_ok_no_message(serializer.data)
+        except DescricaoOrientacaoCoorientacaoAcademica.DoesNotExist:
+            return Util.response_not_found('Não foi possível encontrar uma descricao_orientacao_coorientacao_academica com o id fornecido')
+    
+
 class RelatorioDocenteView(APIView):
 
     def post(self, request):
@@ -366,7 +414,8 @@ class RelatorioDocenteView(APIView):
         radocs = RelatorioDocente.objects.all()
         serializer = RelatorioDocenteSerializer(radocs, many=True)
         return Util.response_ok_no_message(serializer.data)
- 
+
+
 class EndpointsView(APIView):
     def get(self, request):
         host = request.get_host()
