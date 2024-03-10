@@ -159,6 +159,12 @@ class AtividadeLetivaView(APIView):
         else:
             return self.getAll(request)
 
+    def get(self, request, id=None):
+        if id:
+            return self.getById(request, id)
+        else:
+            return self.getAll(request)
+
     def post(self, request):
         serializer = AtividadeLetivaSerializer(data=request.data)
         if serializer.is_valid():
@@ -187,7 +193,13 @@ class AtividadeLetivaView(APIView):
         return Util.response_bad_request('É necessário fornecer o id da atividade letiva que você deseja atualizar em atividade_letiva/{id}')
 
 
-    def getAll(self, request):
+            except AtividadeLetiva.DoesNotExist:
+                return Util.response_not_found('Não foi possível encontrar uma ativiade letiva com o id fornecido.')
+
+        return Util.response_bad_request('É necessário fornecer o id da atividade letiva que você deseja atualizar em atividade_letiva/{id}')
+
+
+    def getAllAll(self, request):
         atividades_letivas = AtividadeLetiva.objects.all()
         serializer = AtividadeLetivaSerializer(atividades_letivas, many=True)
         return Util.response_ok_no_message(serializer.data)

@@ -20,10 +20,13 @@ urlpatterns = [
     path('login/', LoginView.as_view(), name='login/'),
 
     path('relatorio_docente', RelatorioDocenteView.as_view(), name='relatorio_docente'),
+    path('relatorio_docente/', RelatorioDocenteView.as_view(), name='relatorio_docente/'),
+    path('atividade_letiva/', AtividadeLetivaView.as_view(), name='atividade_letiva'),
 
     path('relatorio_docente/', RelatorioDocenteView.as_view(), name='relatorio_docente/'),
 
-    path('atividade_letiva/', AtividadeLetivaView.as_view(), name='atividade_letiva'),
+    path('atividade_letiva//', AtividadeLetivaView.as_view(), name='atividade_letiva/'),
+    path('atividade_letiva/<int:id>/', AtividadeLetivaView.as_view(), name='atividade_letiva_get_by_id'),
 
     path('atividade_letiva/', AtividadeLetivaView.as_view(), name='atividade_letiva/'),
 

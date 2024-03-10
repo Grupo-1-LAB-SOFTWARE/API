@@ -102,6 +102,7 @@ class UsuarioSerializer(serializers.ModelSerializer):
 
 class AtividadeLetivaSerializer(serializers.ModelSerializer):
     ch_total = serializers.FloatField(required=False)
+    ch_total = serializers.FloatField(required=False)
 
     class Meta:
         model = AtividadeLetiva
@@ -113,6 +114,10 @@ class AtividadeLetivaSerializer(serializers.ModelSerializer):
         ch_turmas_teorico = validated_data['ch_turmas_teorico']
         ch_turmas_pratico = validated_data['ch_turmas_pratico']
         ch_total = (numero_turmas_teorico * ch_turmas_teorico) + (numero_turmas_pratico * ch_turmas_pratico)
+
+        semestre = int(validated_data['semestre'])
+        if semestre > 2 or semestre < 1:
+            raise ValidationError({'semestre': ['ERRO: O semestre pode ser apenas 1 ou 2']})
 
         semestre = int(validated_data['semestre'])
         if semestre > 2 or semestre < 1:
@@ -141,8 +146,26 @@ class AtividadeLetivaSerializer(serializers.ModelSerializer):
         instance.save()
         return instance
 
+    def update(self, instance, validated_data):
+        semestre = validated_data.get('semestre', None)
+        if semestre:
+            if semestre > 2 or semestre < 1:
+                raise ValidationError({'semestre': ['ERRO: O semestre pode ser apenas 1 ou 2']})
+            instance.semestre = semestre
+
+        instance.numero_turmas_teorico = validated_data.get('numero_turmas_teorico', instance.numero_turmar_teorico)
+        instance.numero_turmas_pratico = validated_data.get('numero_turmas_pratico', instance.numero_turmas_pratico)
+        instance.ch_turmas_teorico = validated_data.get('ch_turmas_teorico', instance.ch_turmas_teorico)
+        instance.ch_turmas_pratico = validated_data.get('ch_turmas_pratico', instance.ch_turmas_pratico)
+
+        instance.ch_total = (instance.numero_turmas_teorico * instance.ch_turmas_teorico) + (instance.numero_turmas_pratico * instance.ch_turmas_pratico)
+    
+        instance.save()
+        return instance
+
 
 class CalculoCHSemanalAulasSerializer(serializers.ModelSerializer):
+    ch_semanal_total = serializers.FloatField(required=False)
     ch_semanal_total = serializers.FloatField(required=False)
 
     class Meta:
@@ -182,6 +205,7 @@ class CalculoCHSemanalAulasSerializer(serializers.ModelSerializer):
 
 
 class AtividadePedagogicaComplementarSerializer(serializers.ModelSerializer):
+    ch_semanal_total = serializers.FloatField(required=False)
     ch_semanal_total = serializers.FloatField(required=False)
 
     class Meta:
@@ -406,7 +430,7 @@ class RelatorioDocenteSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = RelatorioDocente
-        fields = ('id', 'usuario_id', 'atividades_letivas', 'ano_relatorio', 'calculos_ch_semanal_aulas', 'atividades_pedagogicas_complementares', 'atividades_orientacao_supervisao_preceptoria_tutoria', 'descricoes_orientacao_coorientacao_academica', 'supervisoes_academicas', 'preceptorias_tutorias_residencia', 'bancas_examinadoras', 'ch_semanal_atividade_ensino',)
+        fields = ('id', 'usuario_id', 'usuario_id', 'atividades_letivas', 'ano_relatorio', 'calculos_ch_semanal_aulas', 'atividades_pedagogicas_complementares', 'atividades_orientacao_supervisao_preceptoria_tutoria', 'descricoes_orientacao_coorientacao_academica', 'supervisoes_academicas', 'preceptorias_tutorias_residencia', 'bancas_examinadoras', 'ch_semanal_atividade_ensino',)
 
     def create(self, validated_data):
 
@@ -485,6 +509,8 @@ class RelatorioDocenteSerializer(serializers.ModelSerializer):
 
         relatorio_docente = RelatorioDocente.objects.create(
             data_criacao = timezone.now(),
+
+            usuario_id = validated_data['usuario_id'],
 
             usuario_id = validated_data['usuario_id'],
 

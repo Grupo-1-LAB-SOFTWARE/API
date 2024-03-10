@@ -71,6 +71,7 @@ class Usuario(AbstractUser):
 class RelatorioDocente(models.Model):
     id = models.AutoField(primary_key=True)
     usuario_id = models.ForeignKey(Usuario, related_name="usuario_id", on_delete=models.CASCADE)
+    usuario_id = models.ForeignKey(Usuario, related_name="usuario_id", on_delete=models.CASCADE)
     data_criacao = models.DateField()
     ano_relatorio = models.CharField(max_length=4)
     atividades_letivas = models.JSONField(null=True)
@@ -101,8 +102,8 @@ class RelatorioDocente(models.Model):
     #afastamentos = models.JSONField()
 
     def atualizar_atividades_letivas(self):
-        atividades_letivas = list(self.atividadeletiva_set.all().values())
-        self.atividades_letivas = atividades_letivas
+        atividades_letivas_letivas = list(self.atividadeletiva_set.all().values())
+        self.atividades_letivas = atividades_letivas_letivas
         self.save()
 
     def atualizar_calculos_ch_semanal_aulas(self):
@@ -127,7 +128,7 @@ class RelatorioDocente(models.Model):
 
 
 class AtividadeLetiva(models.Model):
-    relatorio_id = models.ForeignKey(RelatorioDocente, on_delete=models.CASCADE)
+    relatorio_id_id = models.ForeignKey(RelatorioDocente, on_delete=models.CASCADE)
     semestre = models.IntegerField()
     codigo_disciplina = models.CharField(max_length=20)
     nome_disciplina = models.CharField(max_length=70)
@@ -143,17 +144,18 @@ class AtividadeLetiva(models.Model):
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
-        self.relatorio_id.atualizar_atividades_letivas()
+        self.relatorio_id_id.atualizar_atividades_letivas()
 
     def delete(self, *args, **kwargs):
         super().delete(*args, **kwargs)
-        self.relatorio_id.atualizar_atividades_letivas()
+        self.relatorio_id_id.atualizar_atividades_letivas()
 
     def update(self, *args, **kwargs):
         super().update(*args, **kwargs)
         self.relatorio_id.atualizar_atividades_letivas()
 
 class CalculoCHSemanalAulas(models.Model):
+    relatorio_id = models.ForeignKey(RelatorioDocente, on_delete=models.CASCADE)
     relatorio_id = models.ForeignKey(RelatorioDocente, on_delete=models.CASCADE)
     semestre = models.IntegerField()
     ch_semanal_graduacao = models.FloatField()
@@ -174,6 +176,7 @@ class CalculoCHSemanalAulas(models.Model):
 
 
 class AtividadePedagogicaComplementar(models.Model):
+    relatorio_id = models.ForeignKey(RelatorioDocente, on_delete=models.CASCADE)
     relatorio_id = models.ForeignKey(RelatorioDocente, on_delete=models.CASCADE)
     semestre = models.IntegerField()
     ch_semanal_graduacao = models.FloatField()
