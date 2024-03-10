@@ -18,7 +18,7 @@ class Util:
         activate_url = 'http://'+domain+link
 
         subject = 'Ative sua conta'
-        message = f'Clique no link para verificar sua conta \n {activate_url}'
+        message = f'Clique no link para verificar sua conta: \n\n {activate_url}'
         from_email = from_email = config('EMAIL_HOST_USER')
         recipient_list = [user_email]
 

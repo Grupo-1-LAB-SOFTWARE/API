@@ -9,6 +9,7 @@ from rest_framework.views import APIView
 from .utils import Util
 from rest_framework.authtoken.models import Token
 from django.contrib.auth.hashers import check_password
+from .services import extrair_texto_do_pdf, extrair_dados_de_atividades_letivas
 
 class UsuarioView(APIView):
     def get(self, request, user_id=None):
@@ -556,8 +557,24 @@ class RelatorioDocenteView(APIView):
         radocs = RelatorioDocente.objects.all()
         serializer = RelatorioDocenteSerializer(radocs, many=True)
         return Util.response_ok_no_message(serializer.data)
+   
 
+class ExtrairDadosAtividadesLetivasPDFAPIView(APIView):
+    def post(self, request):
+        arquivo_pdf = request.FILES.get('pdf')
 
+        if arquivo_pdf:
+            try:
+                texto_extraido = extrair_texto_do_pdf(arquivo_pdf)
+                dados_extraidos = extrair_dados_de_atividades_letivas(texto_extraido)
+
+                # Retorna os dados processados como parte da resposta
+                return Response({'dados': dados_extraidos}, status=status.HTTP_200_OK)
+            except Exception as e:
+                return Response({'erro': str(e + "não foi possível extrair os dados")}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        else:
+            return Response({'erro': 'Nenhum arquivo PDF enviado.'}, status=status.HTTP_400_BAD_REQUEST)
+ 
 class EndpointsView(APIView):
     def get(self, request):
         host = request.get_host()
