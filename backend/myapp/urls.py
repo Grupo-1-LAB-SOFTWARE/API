@@ -77,11 +77,11 @@ urlpatterns = [
 
     path('banca_examinadora/<int:id>/', BancaExaminadoraView.as_view(), name='banca_examinadora/id/'),
 
-    path('ch_semanal_atividade_ensino', CHSemanalAtividadeEnsinoView.as_view(), name='ch_semanal_atividade_ensino'),
+    path('ch_semanal_atividades_ensino', CHSemanalAtividadeEnsinoView.as_view(), name='ch_semanal_atividades_ensino'),
 
-    path('ch_semanal_atividade_ensino/', CHSemanalAtividadeEnsinoView.as_view(), name='ch_semanal_atividade_ensino/'),
+    path('ch_semanal_atividades_ensino/', CHSemanalAtividadeEnsinoView.as_view(), name='ch_semanal_atividades_ensino/'),
 
-    path('ch_semanal_atividade_ensino/<int:id>/', CHSemanalAtividadeEnsinoView.as_view(), name='ch_semanal_atividade_ensino/id/'),
+    path('ch_semanal_atividades_ensino/<int:id>/', CHSemanalAtividadeEnsinoView.as_view(), name='ch_semanal_atividades_ensino/id/'),
 
     path('avaliacao_discente', AvaliacaoDiscenteView.as_view(), name='avaliacao_discente'),
 
