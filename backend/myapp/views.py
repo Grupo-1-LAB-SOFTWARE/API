@@ -1,8 +1,8 @@
 from django.utils import timezone
 from django.urls import get_resolver
 from django.forms.models import model_to_dict
-from myapp.serializer import (UsuarioSerializer, RelatorioDocenteSerializer, AtividadeLetivaSerializer, CalculoCHSemanalAulasSerializer, AtividadePedagogicaComplementarSerializer, AtividadeOrientacaoSupervisaoPreceptoriaTutoriaSerializer, DescricaoOrientacaoCoorientacaoAcademicaSerializer, SupervisaoAcademicaSerializer, PreceptoriaTutoriaResidenciaSerializer, BancaExaminadoraSerializer, CHSemanalAtividadeEnsinoSerializer)
-from .models import (Usuario, RelatorioDocente, AtividadeLetiva, CalculoCHSemanalAulas, AtividadePedagogicaComplementar, AtividadeOrientacaoSupervisaoPreceptoriaTutoria, DescricaoOrientacaoCoorientacaoAcademica, SupervisaoAcademica, PreceptoriaTutoriaResidencia, BancaExaminadora, CHSemanalAtividadeEnsino)
+from myapp.serializer import (UsuarioSerializer, RelatorioDocenteSerializer, AtividadeLetivaSerializer, CalculoCHSemanalAulasSerializer, AtividadePedagogicaComplementarSerializer, AtividadeOrientacaoSupervisaoPreceptoriaTutoriaSerializer, DescricaoOrientacaoCoorientacaoAcademicaSerializer, SupervisaoAcademicaSerializer, PreceptoriaTutoriaResidenciaSerializer, BancaExaminadoraSerializer, CHSemanalAtividadeEnsinoSerializer, AvaliacaoDiscenteSerializer, ProjetoPesquisaProducaoIntelectualSerializer, TrabalhoCompletoPublicadoPeriodicoBoletimTecnicoSerializer, LivroCapituloVerbetePublicadoSerializer, TrabalhoCompletoResumoPublicadoApresentadoCongressosSerializer, OutraAtividadePesquisaProducaoIntelectualSerializer, CHSemanalAtividadesPesquisaSerializer)
+from .models import (Usuario, RelatorioDocente, AtividadeLetiva, CalculoCHSemanalAulas, AtividadePedagogicaComplementar, AtividadeOrientacaoSupervisaoPreceptoriaTutoria, DescricaoOrientacaoCoorientacaoAcademica, SupervisaoAcademica, PreceptoriaTutoriaResidencia, BancaExaminadora, CHSemanalAtividadeEnsino, AvaliacaoDiscente, ProjetoPesquisaProducaoIntelectual, TrabalhoCompletoPublicadoPeriodicoBoletimTecnico, LivroCapituloVerbetePublicado, TrabalhoCompletoResumoPublicadoApresentadoCongressos, OutraAtividadePesquisaProducaoIntelectual, CHSemanalAtividadesPesquisa)
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -191,7 +191,7 @@ class AtividadeLetivaView(APIView):
             except AtividadeLetiva.DoesNotExist:
                 return Util.response_not_found('Não foi possível encontrar uma ativiade letiva com o id fornecido.')
 
-        return Util.response_bad_request('É necessário fornecer o id da atividade letiva que você deseja atualizar em atividade_letiva/{id}')
+        return Util.response_bad_request('É necessário fornecer o id da atividade letiva que você deseja atualizar em atividade_letiva/{id}/')
 
 
     def getAllAll(self, request):
@@ -241,7 +241,7 @@ class CalculoCHSemanalAulasView(APIView):
             except CalculoCHSemanalAulas.DoesNotExist:
                 return Util.response_not_found('Não foi possível encontrar uma calculo_ch_semanal_aulas com o id fornecido.')
 
-        return Util.response_bad_request('É necessário fornecer o id da calculo_ch_semanal_aulas que você deseja atualizar em calculo_ch_semanal_aulas/{id}')
+        return Util.response_bad_request('É necessário fornecer o id da calculo_ch_semanal_aulas que você deseja atualizar em calculo_ch_semanal_aulas/{id}/')
 
 
     def getAll(self, request):
@@ -291,7 +291,7 @@ class AtividadePedagogicaComplementarView(APIView):
             except AtividadePedagogicaComplementar.DoesNotExist:
                 return Util.response_not_found('Não foi possível encontrar uma atividade_pedagogica_complementar com o id fornecido.')
 
-        return Util.response_bad_request('É necessário fornecer o id da atividade_pedagogica_complementar que você deseja atualizar em atividade_pedagogica_complementar/{id}')
+        return Util.response_bad_request('É necessário fornecer o id da atividade_pedagogica_complementar que você deseja atualizar em atividade_pedagogica_complementar/{id}/')
 
     def getAll(self, request):
         atividade_pedagogica_complementar = AtividadePedagogicaComplementar.objects.all()
@@ -339,7 +339,7 @@ class AtividadeOrientacaoSupervisaoPreceptoriaTutoriaView(APIView):
             except AtividadeOrientacaoSupervisaoPreceptoriaTutoria.DoesNotExist:
                 return Util.response_not_found('Não foi possível encontrar uma atividade_orientacao_supervisao_preceptoria_tutoria com o id fornecido.')
 
-        return Util.response_bad_request('É necessário fornecer o id do objeto que você deseja atualizar em atividade_orientacao_supervisao_preceptoria_tutoria/{id}')
+        return Util.response_bad_request('É necessário fornecer o id do objeto que você deseja atualizar em atividade_orientacao_supervisao_preceptoria_tutoria/{id}/')
 
     def getAll(self, request):
         instances = AtividadeOrientacaoSupervisaoPreceptoriaTutoria.objects.all()
@@ -386,7 +386,7 @@ class DescricaoOrientacaoCoorientacaoAcademicaView(APIView):
             except DescricaoOrientacaoCoorientacaoAcademica.DoesNotExist:
                 return Util.response_not_found('Não foi possível encontrar uma descricao_orientacao_coorientacao_academica com o id fornecido.')
 
-        return Util.response_bad_request('É necessário fornecer o id do objeto que você deseja atualizar em descricao_orientacao_coorientacao_academica/{id}')
+        return Util.response_bad_request('É necessário fornecer o id do objeto que você deseja atualizar em descricao_orientacao_coorientacao_academica/{id}/')
 
     def getAll(self, request):
         instances = DescricaoOrientacaoCoorientacaoAcademica.objects.all()
@@ -433,7 +433,7 @@ class SupervisaoAcademicaView(APIView):
             except SupervisaoAcademica.DoesNotExist:
                 return Util.response_not_found('Não foi possível encontrar uma supervisao_academica com o id fornecido.')
 
-        return Util.response_bad_request('É necessário fornecer o id do objeto que você deseja atualizar em supervisao_academica/{id}')
+        return Util.response_bad_request('É necessário fornecer o id do objeto que você deseja atualizar em supervisao_academica/{id}/')
 
     def getAll(self, request):
         instances = SupervisaoAcademica.objects.all()
@@ -480,7 +480,7 @@ class PreceptoriaTutoriaResidenciaView(APIView):
             except PreceptoriaTutoriaResidencia.DoesNotExist:
                 return Util.response_not_found('Não foi possível encontrar uma preceptoria_tutoria_residencia com o id fornecido.')
 
-        return Util.response_bad_request('É necessário fornecer o id do objeto que você deseja atualizar em preceptoria_tutoria_residencia/{id}')
+        return Util.response_bad_request('É necessário fornecer o id do objeto que você deseja atualizar em preceptoria_tutoria_residencia/{id}/')
 
 
     def getAll(self, request):
@@ -528,7 +528,7 @@ class BancaExaminadoraView(APIView):
             except BancaExaminadora.DoesNotExist:
                 return Util.response_not_found('Não foi possível encontrar uma banca_examinadora com o id fornecido.')
 
-        return Util.response_bad_request('É necessário fornecer o id do objeto que você deseja atualizar em banca_examinadora/{id}')
+        return Util.response_bad_request('É necessário fornecer o id do objeto que você deseja atualizar em banca_examinadora/{id}/')
 
     def getAll(self, request):
         instances = BancaExaminadora.objects.all()
@@ -575,7 +575,7 @@ class CHSemanalAtividadeEnsinoView(APIView):
             except CHSemanalAtividadeEnsino.DoesNotExist:
                 return Util.response_not_found('Não foi possível encontrar uma ch_semanal_atividade_ensino com o id fornecido.')
 
-        return Util.response_bad_request('É necessário fornecer o id do objeto que você deseja atualizar em ch_semanal_atividade_ensino/{id}')
+        return Util.response_bad_request('É necessário fornecer o id do objeto que você deseja atualizar em ch_semanal_atividade_ensino/{id}/')
 
     def getAll(self, request):
         instances = CHSemanalAtividadeEnsino.objects.all()
@@ -590,8 +590,338 @@ class CHSemanalAtividadeEnsinoView(APIView):
         except CHSemanalAtividadeEnsino.DoesNotExist:
             return Util.response_not_found('Não foi possível encontrar uma ch_semanal_atividade_ensino com o id fornecido')
 
-class RelatorioDocenteView(APIView):
+class AvaliacaoDiscenteView(APIView):
+    def get(self, request, id=None):
+        if id:
+            return self.getById(request, id)
+        else:
+            return self.getAll(request)
 
+    def post(self, request):
+        serializer = AvaliacaoDiscenteSerializer(data=request.data)
+        if serializer.is_valid():
+            instance = serializer.save() 
+            return Util.response_created(f'id: {instance.pk}')
+        return Util.response_bad_request(serializer.errors)
+
+    def put(self, request, id=None):
+        if id is not None:
+            try:
+                instance = AvaliacaoDiscente.objects.get(pk=id)
+                data = request.data.copy()
+                if 'id' in data:
+                    return Util.response_unauthorized('Não é permitido atualizar nenhum id')
+
+                serializer = AvaliacaoDiscenteSerializer(instance, data=data, partial=True)
+                if serializer.is_valid():
+                    serializer.save()
+                    return Util.response_ok_no_message(serializer.data)
+                else:
+                    return Util.response_bad_request(serializer.errors)
+
+            except AvaliacaoDiscente.DoesNotExist:
+                return Util.response_not_found('Não foi possível encontrar uma avaliacao_discente com o id fornecido.')
+
+        return Util.response_bad_request('É necessário fornecer o id do objeto que você deseja atualizar em avaliacao_discente/{id}/')
+
+    def getAll(self, request):
+        instances = AvaliacaoDiscente.objects.all()
+        serializer = AvaliacaoDiscenteSerializer(instances, many=True)
+        return Util.response_ok_no_message(serializer.data)
+
+    def getById(self, request, id):
+        try:
+            instance = AvaliacaoDiscente.objects.get(pk=id)
+            serializer = AvaliacaoDiscenteSerializer(instance)
+            return Util.response_ok_no_message(serializer.data)
+        except AvaliacaoDiscente.DoesNotExist:
+            return Util.response_not_found('Não foi possível encontrar uma avaliacao_discente com o id fornecido')
+
+class ProjetoPesquisaProducaoIntelectualView(APIView):
+    def get(self, request, id=None):
+        if id:
+            return self.getById(request, id)
+        else:
+            return self.getAll(request)
+
+    def post(self, request):
+        serializer = ProjetoPesquisaProducaoIntelectualSerializer(data=request.data)
+        if serializer.is_valid():
+            instance = serializer.save() 
+            return Util.response_created(f'id: {instance.pk}')
+        return Util.response_bad_request(serializer.errors)
+
+    def put(self, request, id=None):
+        if id is not None:
+            try:
+                instance = ProjetoPesquisaProducaoIntelectual.objects.get(pk=id)
+                data = request.data.copy()
+                if 'id' in data:
+                    return Util.response_unauthorized('Não é permitido atualizar nenhum id')
+
+                serializer = ProjetoPesquisaProducaoIntelectualSerializer(instance, data=data, partial=True)
+                if serializer.is_valid():
+                    serializer.save()
+                    return Util.response_ok_no_message(serializer.data)
+                else:
+                    return Util.response_bad_request(serializer.errors)
+
+            except ProjetoPesquisaProducaoIntelectual.DoesNotExist:
+                return Util.response_not_found('Não foi possível encontrar uma projeto_pesquisa_producao_intelectual com o id fornecido.')
+
+        return Util.response_bad_request('É necessário fornecer o id do objeto que você deseja atualizar em projeto_pesquisa_producao_intelectual/{id}/')
+
+    def getAll(self, request):
+        instances = ProjetoPesquisaProducaoIntelectual.objects.all()
+        serializer = ProjetoPesquisaProducaoIntelectualSerializer(instances, many=True)
+        return Util.response_ok_no_message(serializer.data)
+
+    def getById(self, request, id):
+        try:
+            instance = ProjetoPesquisaProducaoIntelectual.objects.get(pk=id)
+            serializer = ProjetoPesquisaProducaoIntelectualSerializer(instance)
+            return Util.response_ok_no_message(serializer.data)
+        except ProjetoPesquisaProducaoIntelectual.DoesNotExist:
+            return Util.response_not_found('Não foi possível encontrar um projeto_pesquisa_producao_intelectual com o id fornecido')
+
+
+class TrabalhoCompletoPublicadoPeriodicoBoletimTecnicoView(APIView):
+    def get(self, request, id=None):
+        if id:
+            return self.getById(request, id)
+        else:
+            return self.getAll(request)
+
+    def post(self, request):
+        serializer = TrabalhoCompletoPublicadoPeriodicoBoletimTecnicoSerializer(data=request.data)
+        if serializer.is_valid():
+            instance = serializer.save() 
+            return Util.response_created(f'id: {instance.pk}')
+        return Util.response_bad_request(serializer.errors)
+
+    def put(self, request, id=None):
+        if id is not None:
+            try:
+                instance = TrabalhoCompletoPublicadoPeriodicoBoletimTecnico.objects.get(pk=id)
+                data = request.data.copy()
+                if 'id' in data:
+                    return Util.response_unauthorized('Não é permitido atualizar nenhum id')
+
+                serializer = TrabalhoCompletoPublicadoPeriodicoBoletimTecnicoSerializer(instance, data=data, partial=True)
+                if serializer.is_valid():
+                    serializer.save()
+                    return Util.response_ok_no_message(serializer.data)
+                else:
+                    return Util.response_bad_request(serializer.errors)
+
+            except TrabalhoCompletoPublicadoPeriodicoBoletimTecnico.DoesNotExist:
+                return Util.response_not_found('Não foi possível encontrar um trabalho_completo_publicado_periodico_boletim_tecnico com o id fornecido.')
+
+        return Util.response_bad_request('É necessário fornecer o id do objeto que você deseja atualizar em trabalho_completo_publicado_periodico_boletim_tecnico/{id}/')
+
+    def getAll(self, request):
+        instances = TrabalhoCompletoPublicadoPeriodicoBoletimTecnico.objects.all()
+        serializer = TrabalhoCompletoPublicadoPeriodicoBoletimTecnicoSerializer(instances, many=True)
+        return Util.response_ok_no_message(serializer.data)
+
+    def getById(self, request, id):
+        try:
+            instance = TrabalhoCompletoPublicadoPeriodicoBoletimTecnico.objects.get(pk=id)
+            serializer = TrabalhoCompletoPublicadoPeriodicoBoletimTecnicoSerializer(instance)
+            return Util.response_ok_no_message(serializer.data)
+        except TrabalhoCompletoPublicadoPeriodicoBoletimTecnico.DoesNotExist:
+            return Util.response_not_found('Não foi possível encontrar um trabalho_completo_publicado_periodico_boletim_tecnico com o id fornecido')
+
+class LivroCapituloVerbetePublicadoView(APIView):
+    def get(self, request, id=None):
+        if id:
+            return self.getById(request, id)
+        else:
+            return self.getAll(request)
+
+    def post(self, request):
+        serializer = LivroCapituloVerbetePublicadoSerializer(data=request.data)
+        if serializer.is_valid():
+            instance = serializer.save() 
+            return Util.response_created(f'id: {instance.pk}')
+        return Util.response_bad_request(serializer.errors)
+
+    def put(self, request, id=None):
+        if id is not None:
+            try:
+                instance = LivroCapituloVerbetePublicado.objects.get(pk=id)
+                data = request.data.copy()
+                if 'id' in data:
+                    return Util.response_unauthorized('Não é permitido atualizar nenhum id')
+
+                serializer = LivroCapituloVerbetePublicadoSerializer(instance, data=data, partial=True)
+                if serializer.is_valid():
+                    serializer.save()
+                    return Util.response_ok_no_message(serializer.data)
+                else:
+                    return Util.response_bad_request(serializer.errors)
+
+            except TrabalhoCompletoPublicadoPeriodicoBoletimTecnico.DoesNotExist:
+                return Util.response_not_found('Não foi possível encontrar um livro_capitulo_verbete_publicado com o id fornecido.')
+
+        return Util.response_bad_request('É necessário fornecer o id do objeto que você deseja atualizar em livro_capitulo_verbete_publicado/{id}/')
+
+    def getAll(self, request):
+        instances = LivroCapituloVerbetePublicado.objects.all()
+        serializer = LivroCapituloVerbetePublicadoSerializer(instances, many=True)
+        return Util.response_ok_no_message(serializer.data)
+
+    def getById(self, request, id):
+        try:
+            instance = LivroCapituloVerbetePublicado.objects.get(pk=id)
+            serializer = LivroCapituloVerbetePublicadoSerializer(instance)
+            return Util.response_ok_no_message(serializer.data)
+        except LivroCapituloVerbetePublicado.DoesNotExist:
+            return Util.response_not_found('Não foi possível encontrar um livro_capitulo_verbete_publicado com o id fornecido')
+
+class TrabalhoCompletoResumoPublicadoApresentadoCongressosView(APIView):
+    def get(self, request, id=None):
+        if id:
+            return self.getById(request, id)
+        else:
+            return self.getAll(request)
+
+    def post(self, request):
+        serializer = TrabalhoCompletoResumoPublicadoApresentadoCongressosSerializer(data=request.data)
+        if serializer.is_valid():
+            instance = serializer.save() 
+            return Util.response_created(f'id: {instance.pk}')
+        return Util.response_bad_request(serializer.errors)
+
+    def put(self, request, id=None):
+        if id is not None:
+            try:
+                instance = TrabalhoCompletoResumoPublicadoApresentadoCongressos.objects.get(pk=id)
+                data = request.data.copy()
+                if 'id' in data:
+                    return Util.response_unauthorized('Não é permitido atualizar nenhum id')
+
+                serializer = TrabalhoCompletoResumoPublicadoApresentadoCongressosSerializer(instance, data=data, partial=True)
+                if serializer.is_valid():
+                    serializer.save()
+                    return Util.response_ok_no_message(serializer.data)
+                else:
+                    return Util.response_bad_request(serializer.errors)
+
+            except TrabalhoCompletoResumoPublicadoApresentadoCongressos.DoesNotExist:
+                return Util.response_not_found('Não foi possível encontrar um trabalho_completo_resumo_publicado_apresentado_congressos com o id fornecido.')
+
+        return Util.response_bad_request('É necessário fornecer o id do objeto que você deseja atualizar em trabalho_completo_resumo_publicado_apresentado_congressos/{id}/')
+
+    def getAll(self, request):
+        instances = TrabalhoCompletoResumoPublicadoApresentadoCongressos.objects.all()
+        serializer = TrabalhoCompletoResumoPublicadoApresentadoCongressosSerializer(instances, many=True)
+        return Util.response_ok_no_message(serializer.data)
+
+    def getById(self, request, id):
+        try:
+            instance = TrabalhoCompletoResumoPublicadoApresentadoCongressos.objects.get(pk=id)
+            serializer = TrabalhoCompletoResumoPublicadoApresentadoCongressosSerializer(instance)
+            return Util.response_ok_no_message(serializer.data)
+        except TrabalhoCompletoResumoPublicadoApresentadoCongressos.DoesNotExist:
+            return Util.response_not_found('Não foi possível encontrar um trabalho_completo_resumo_publicado_apresentado_congressos com o id fornecido')
+
+
+class OutraAtividadePesquisaProducaoIntelectualView(APIView):
+    def get(self, request, id=None):
+        if id:
+            return self.getById(request, id)
+        else:
+            return self.getAll(request)
+
+    def post(self, request):
+        serializer = OutraAtividadePesquisaProducaoIntelectualSerializer(data=request.data)
+        if serializer.is_valid():
+            instance = serializer.save() 
+            return Util.response_created(f'id: {instance.pk}')
+        return Util.response_bad_request(serializer.errors)
+
+    def put(self, request, id=None):
+        if id is not None:
+            try:
+                instance = OutraAtividadePesquisaProducaoIntelectual.objects.get(pk=id)
+                data = request.data.copy()
+                if 'id' in data:
+                    return Util.response_unauthorized('Não é permitido atualizar nenhum id')
+
+                serializer = OutraAtividadePesquisaProducaoIntelectualSerializer(instance, data=data, partial=True)
+                if serializer.is_valid():
+                    serializer.save()
+                    return Util.response_ok_no_message(serializer.data)
+                else:
+                    return Util.response_bad_request(serializer.errors)
+
+            except OutraAtividadePesquisaProducaoIntelectual.DoesNotExist:
+                return Util.response_not_found('Não foi possível encontrar uma outra_atividade_pesquisa_producao_intelectual com o id fornecido.')
+
+        return Util.response_bad_request('É necessário fornecer o id do objeto que você deseja atualizar em outra_atividade_pesquisa_producao_intelectual/{id}/')
+
+    def getAll(self, request):
+        instances = OutraAtividadePesquisaProducaoIntelectual.objects.all()
+        serializer = OutraAtividadePesquisaProducaoIntelectualSerializer(instances, many=True)
+        return Util.response_ok_no_message(serializer.data)
+
+    def getById(self, request, id):
+        try:
+            instance = OutraAtividadePesquisaProducaoIntelectual.objects.get(pk=id)
+            serializer = OutraAtividadePesquisaProducaoIntelectualSerializer(instance)
+            return Util.response_ok_no_message(serializer.data)
+        except OutraAtividadePesquisaProducaoIntelectual.DoesNotExist:
+            return Util.response_not_found('Não foi possível encontrar uma outra_atividade_pesquisa_producao_intelectual com o id fornecido')
+
+class CHSemanalAtividadesPesquisaView(APIView):
+    def get(self, request, id=None):
+        if id:
+            return self.getById(request, id)
+        else:
+            return self.getAll(request)
+
+    def post(self, request):
+        serializer = CHSemanalAtividadesPesquisaSerializer(data=request.data)
+        if serializer.is_valid():
+            instance = serializer.save() 
+            return Util.response_created(f'id: {instance.pk}')
+        return Util.response_bad_request(serializer.errors)
+
+    def put(self, request, id=None):
+        if id is not None:
+            try:
+                instance = CHSemanalAtividadesPesquisa.objects.get(pk=id)
+                data = request.data.copy()
+                if 'id' in data:
+                    return Util.response_unauthorized('Não é permitido atualizar nenhum id')
+
+                serializer = CHSemanalAtividadesPesquisaSerializer(instance, data=data, partial=True)
+                if serializer.is_valid():
+                    serializer.save()
+                    return Util.response_ok_no_message(serializer.data)
+                else:
+                    return Util.response_bad_request(serializer.errors)
+
+            except CHSemanalAtividadesPesquisa.DoesNotExist:
+                return Util.response_not_found('Não foi possível encontrar uma ch_semanal_atividades_pesquisa com o id fornecido.')
+
+        return Util.response_bad_request('É necessário fornecer o id do objeto que você deseja atualizar em ch_semanal_atividades_pesquisa/{id}/')
+
+    def getAll(self, request):
+        instances = CHSemanalAtividadesPesquisa.objects.all()
+        serializer = CHSemanalAtividadesPesquisaSerializer(instances, many=True)
+        return Util.response_ok_no_message(serializer.data)
+
+    def getById(self, request, id):
+        try:
+            instance = CHSemanalAtividadesPesquisa.objects.get(pk=id)
+            serializer = CHSemanalAtividadesPesquisaSerializer(instance)
+            return Util.response_ok_no_message(serializer.data)
+        except CHSemanalAtividadesPesquisa.DoesNotExist:
+            return Util.response_not_found('Não foi possível encontrar uma ch_semanal_atividades_pesquisa com o id fornecido')
+
+class RelatorioDocenteView(APIView):
     def post(self, request):
         serializer = RelatorioDocenteSerializer(data=request.data)
         if serializer.is_valid():
@@ -603,7 +933,6 @@ class RelatorioDocenteView(APIView):
         radocs = RelatorioDocente.objects.all()
         serializer = RelatorioDocenteSerializer(radocs, many=True)
         return Util.response_ok_no_message(serializer.data)
-   
 
 class ExtrairDadosAtividadesLetivasPDFAPIView(APIView):
     def post(self, request):

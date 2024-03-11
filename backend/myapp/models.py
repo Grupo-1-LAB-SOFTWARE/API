@@ -19,30 +19,30 @@ class Usuario(AbstractUser):
         ('e', 'E'),
     )
     REGIME = (
-        ('exclusivo', 'Dedicação Exclusiva'),
-        ('integral', '40h'),
-        ('parcial', '20h'),
+        ('Exclusivo', 'Dedicação Exclusiva'),
+        ('Integral', 'Integral'),
+        ('Parcial', 'Parcial'),
     )
     VINCULO = (
-        ('estatuario', 'Estatuário'),
-        ('não selecionado', 'Não selecionado')
+        ('Estatuário', 'Estatuário'),
+        ('Não selecionado', 'Não selecionado')
     )
     TITULACAO = (
-        ('graduacao', 'Graduação'),
-        ('especializacao', 'Especialização'),
-        ('mestre', 'Mestre'),
-        ('doutor', 'Doutor'),
+        ('Graduacão', 'Graduação'),
+        ('Especialização', 'Especialização'),
+        ('Mestre', 'Mestre'),
+        ('Doutor', 'Doutor'),
     )
     PERFIL = (
-        ('docente', 'Docente'),
-        ('admin', 'Administrador'),
+        ('Docente', 'Docente'),
+        ('Administrador', 'Administrador'),
     )
     id = models.AutoField(primary_key=True)
     nome_completo = models.CharField(max_length=500)
     perfil = models.CharField(
-        max_length=10,
+        max_length=25,
         choices=PERFIL,
-        default='docente'
+        default='Docente'
     )
     email = models.EmailField(unique=True)
     siape = models.CharField(max_length=500)
@@ -449,13 +449,13 @@ class AvaliacaoDiscente(models.Model):
 class ProjetoPesquisaProducaoIntelectual(models.Model):
     relatorio_id = models.ForeignKey(RelatorioDocente, on_delete=models.CASCADE)
     FUNCAO = (
-        ('coordenador', 'Coordenador'),
-        ('colaborador', 'Colaborador'),
+        ('Coordenador', 'Coordenador'),
+        ('Colaborador', 'Colaborador'),
     )
     SITUACAO_ATUAL = (
-        ('concluida', 'CONCLUÍDA'),
-        ('em_andamento', 'EM ANDAMENTO'),
-        ('em_pausa', 'EM PAUSA'),
+        ('Concluída', 'CONCLUÍDA'),
+        ('Em andamento', 'EM ANDAMENTO'),
+        ('Em pausa', 'EM PAUSA'),
     )
 
     numero_doc = models.IntegerField()
@@ -463,13 +463,13 @@ class ProjetoPesquisaProducaoIntelectual(models.Model):
     funcao = models.CharField(
         max_length=20,
         choices=FUNCAO,
-        default='coordenador'
+        default='Coordenador'
     )
     cadastro_proped = models.CharField(max_length=100)
     situacao_atual = models.CharField(
         max_length=30,
         choices=SITUACAO_ATUAL,
-        default='concluida'
+        default='Concluída'
     )
 
     def save(self, *args, **kwargs):
@@ -483,6 +483,7 @@ class ProjetoPesquisaProducaoIntelectual(models.Model):
     def update(self, *args, **kwargs):
         super().update(*args, **kwargs)
         self.relatorio_id.atualizar_projetos_pesquisa_producao_intelectual()
+
 
 class TrabalhoCompletoPublicadoPeriodicoBoletimTecnico(models.Model):
     relatorio_id = models.ForeignKey(RelatorioDocente, on_delete=models.CASCADE)
@@ -501,6 +502,7 @@ class TrabalhoCompletoPublicadoPeriodicoBoletimTecnico(models.Model):
         super().update(*args, **kwargs)
         self.relatorio_id.atualizar_trabalhos_completos_publicados_periodicos_boletins_tecnicos()
 
+
 class LivroCapituloVerbetePublicado(models.Model):
     relatorio_id = models.ForeignKey(RelatorioDocente, on_delete=models.CASCADE)
     numero_doc = models.IntegerField()
@@ -517,6 +519,7 @@ class LivroCapituloVerbetePublicado(models.Model):
     def update(self, *args, **kwargs):
         super().update(*args, **kwargs)
         self.relatorio_id.atualizar_livros_capitulos_verbetes_publicados()
+
 
 class TrabalhoCompletoResumoPublicadoApresentadoCongressos(models.Model):
     relatorio_id = models.ForeignKey(RelatorioDocente, on_delete=models.CASCADE)
@@ -553,7 +556,7 @@ class OutraAtividadePesquisaProducaoIntelectual(models.Model):
         self.relatorio_id.atualizar_outras_atividades_pesquisa_producao_intelectual()
 
 class CHSemanalAtividadesPesquisa(models.Model):
-    relatorio_id = models.ForeignKey(RelatorioDocente, on_delete=models.CASCADE)
+    relatorio_id = models.ForeignKey(RelatorioDocente, on_delete=models.CASCADE, unique=True)
     ch_semanal_primeiro_semestre = models.FloatField()
     ch_semanal_segundo_semestre = models.FloatField()
 
