@@ -126,7 +126,7 @@ class RelatorioDocente(models.Model):
         self.descricoes_orientacao_coorientacao_academica = descricoes_orientacao_coorientacao_academica
         self.save()    
 
-    def atualizar_atualizar_supervisoes_academicas(self):
+    def atualizar_supervisoes_academicas(self):
         supervisoes_academicas = list(self.supervisaoacademica_set.all().values())
         self.supervisoes_academicas = supervisoes_academicas
         self.save()    
@@ -237,7 +237,7 @@ class RelatorioDocente(models.Model):
         self.save() 
 
 class AtividadeLetiva(models.Model):
-    relatorio_id_id = models.ForeignKey(RelatorioDocente, on_delete=models.CASCADE)
+    relatorio_id = models.ForeignKey(RelatorioDocente, on_delete=models.CASCADE)
     semestre = models.IntegerField()
     codigo_disciplina = models.CharField(max_length=20)
     nome_disciplina = models.CharField(max_length=70)
@@ -253,11 +253,11 @@ class AtividadeLetiva(models.Model):
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
-        self.relatorio_id_id.atualizar_atividades_letivas()
+        self.relatorio_id.atualizar_atividades_letivas()
 
     def delete(self, *args, **kwargs):
         super().delete(*args, **kwargs)
-        self.relatorio_id_id.atualizar_atividades_letivas()
+        self.relatorio_id.atualizar_atividades_letivas()
 
     def update(self, *args, **kwargs):
         super().update(*args, **kwargs)
@@ -265,7 +265,6 @@ class AtividadeLetiva(models.Model):
 
 class CalculoCHSemanalAulas(models.Model):
     relatorio_id = models.ForeignKey(RelatorioDocente, on_delete=models.CASCADE)
-    relatorio_id = models.ForeignKey(RelatorioDocente, on_delete=models.CASCADE)
     semestre = models.IntegerField()
     ch_semanal_graduacao = models.FloatField()
     ch_semanal_pos_graduacao = models.FloatField()
@@ -282,11 +281,9 @@ class CalculoCHSemanalAulas(models.Model):
     def update(self, *args, **kwargs):
         super().update(*args, **kwargs)
         self.relatorio_id.atualizar_calculos_ch_semanal_aulas()
-
 
 class AtividadePedagogicaComplementar(models.Model):
     relatorio_id = models.ForeignKey(RelatorioDocente, on_delete=models.CASCADE)
-    relatorio_id = models.ForeignKey(RelatorioDocente, on_delete=models.CASCADE)
     semestre = models.IntegerField()
     ch_semanal_graduacao = models.FloatField()
     ch_semanal_pos_graduacao = models.FloatField()
@@ -303,7 +300,6 @@ class AtividadePedagogicaComplementar(models.Model):
     def update(self, *args, **kwargs):
         super().update(*args, **kwargs)
         self.relatorio_id.atualizar_atividades_pedagogicas_complementares()
-
 
 class AtividadeOrientacaoSupervisaoPreceptoriaTutoria(models.Model):
     relatorio_id = models.ForeignKey(RelatorioDocente, on_delete=models.CASCADE)
@@ -415,7 +411,7 @@ class BancaExaminadora(models.Model):
         self.relatorio_id.atualizar_bancas_examinadoras()
 
 class CHSemanalAtividadeEnsino(models.Model):
-    relatorio_id = models.ForeignKey(RelatorioDocente, on_delete=models.CASCADE, unique=True, unique=True)
+    relatorio_id = models.ForeignKey(RelatorioDocente, on_delete=models.CASCADE, unique=True)
     ch_semanal_primeiro_semestre = models.FloatField()
     ch_semanal_segundo_semestre = models.FloatField()
 
@@ -850,8 +846,8 @@ def atualizar_descricoes_orientacao_coorientacao_academica(sender, instance, **k
     instance.relatorio_id.atualizar_descricoes_orientacao_coorientacao_academica()
 
 @receiver(post_save, sender=SupervisaoAcademica)
-def atualizar_atualizar_supervisoes_academicas(sender, instance, **kwargs):
-    instance.relatorio_id.atualizar_atualizar_supervisoes_academicas()
+def atualizar_supervisoes_academicas(sender, instance, **kwargs):
+    instance.relatorio_id.atualizar_supervisoes_academicas()
 
 @receiver(post_save, sender=PreceptoriaTutoriaResidencia)
 def atualizar_preceptorias_tutorias_residencia(sender, instance, **kwargs):
