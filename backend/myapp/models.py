@@ -411,7 +411,7 @@ class BancaExaminadora(models.Model):
         self.relatorio_id.atualizar_bancas_examinadoras()
 
 class CHSemanalAtividadeEnsino(models.Model):
-    relatorio_id = models.ForeignKey(RelatorioDocente, on_delete=models.CASCADE, unique=True, unique=True)
+    relatorio_id = models.ForeignKey(RelatorioDocente, on_delete=models.CASCADE, unique=True)
     ch_semanal_primeiro_semestre = models.FloatField()
     ch_semanal_segundo_semestre = models.FloatField()
 
