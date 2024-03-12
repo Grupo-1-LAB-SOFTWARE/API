@@ -102,8 +102,8 @@ class RelatorioDocente(models.Model):
     afastamentos = models.JSONField(null=True)
 
     def atualizar_atividades_letivas(self):
-        atividades_letivas_letivas = list(self.atividadeletiva_set.all().values())
-        self.atividades_letivas = atividades_letivas_letivas
+        atividades_letivas = list(self.atividadeletiva_set.all().values())
+        self.atividades_letivas = atividades_letivas
         self.save()    
 
     def atualizar_calculos_ch_semanal_aulas(self):
