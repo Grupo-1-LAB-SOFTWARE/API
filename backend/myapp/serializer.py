@@ -255,6 +255,7 @@ class AtividadeOrientacaoSupervisaoPreceptoriaTutoriaSerializer(serializers.Mode
         ch_semanal_supervisao = validated_data['ch_semanal_supervisao']
         ch_semanal_preceptoria_e_ou_tutoria = validated_data['ch_semanal_preceptoria_e_ou_tutoria']
 
+
         ch_semanal_total = ch_semanal_orientacao + ch_semanal_coorientacao + ch_semanal_supervisao + ch_semanal_preceptoria_e_ou_tutoria
 
         semestre = int(validated_data['semestre'])
