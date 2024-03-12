@@ -577,27 +577,26 @@ class CHSemanalAtividadesPesquisa(models.Model):
 class ProjetoExtensao(models.Model):
     relatorio_id = models.ForeignKey(RelatorioDocente, on_delete=models.CASCADE)
     FUNCAO = (
-        ('coordenador', 'Coordenador'),
-        ('colaborador', 'Colaborador'),
+        ('Coordenador', 'Coordenador'),
+        ('Colaborador', 'Colaborador'),
     )
     SITUACAO_ATUAL = (
-        ('concluida', 'CONCLUÍDA'),
-        ('em_andamento', 'EM ANDAMENTO'),
-        ('em_pausa', 'EM PAUSA'),
+        ('Concluída', 'CONCLUÍDA'),
+        ('Em andamento', 'EM ANDAMENTO'),
+        ('Em pausa', 'EM PAUSA'),
     )
-
     numero_doc = models.IntegerField()
     titulo = models.CharField(max_length=600)
     funcao = models.CharField(
         max_length=20,
         choices=FUNCAO,
-        default='coordenador'
+        default='Coordenador'
     )
     cadastro_proex = models.CharField(max_length=100)
     situacao_atual = models.CharField(
         max_length=30,
         choices=SITUACAO_ATUAL,
-        default='concluida'
+        default='Concluída'
     )
 
     def save(self, *args, **kwargs):
