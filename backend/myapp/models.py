@@ -642,7 +642,7 @@ class AtividadeEnsinoNaoFormal(models.Model):
 
     def save(self):
         self.ch_semanal_primeiro_semestre = float(self.ch_total_primeiro_semestre) / 23
-        self.ch_semanal_segundo_semestre = float(self.ch_semanal_segundo_semestre) / 23
+        self.ch_semanal_segundo_semestre = float(self.ch_total_segundo_semestre) / 23
         super().save()
 
     def save(self, *args, **kwargs):
