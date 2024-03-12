@@ -1,7 +1,7 @@
 from django.urls import path
 
 from .views import (UsuarioView, ActivateEmail, LoginView, EndpointsView,
-                    RelatorioDocenteView, AtividadeLetivaView, CalculoCHSemanalAulasView, AtividadePedagogicaComplementarView, AtividadeOrientacaoSupervisaoPreceptoriaTutoriaView, DescricaoOrientacaoCoorientacaoAcademicaView, SupervisaoAcademicaView, PreceptoriaTutoriaResidenciaView, BancaExaminadoraView, CHSemanalAtividadeEnsinoView, AvaliacaoDiscenteView, ProjetoPesquisaProducaoIntelectualView, TrabalhoCompletoPublicadoPeriodicoBoletimTecnicoView, LivroCapituloVerbetePublicadoView, TrabalhoCompletoResumoPublicadoApresentadoCongressosView, OutraAtividadePesquisaProducaoIntelectualView, CHSemanalAtividadesPesquisaView, ProjetoExtensaoView, ExtrairDadosAtividadesLetivasPDFAPIView)
+                    RelatorioDocenteView, AtividadeLetivaView, CalculoCHSemanalAulasView, AtividadePedagogicaComplementarView, AtividadeOrientacaoSupervisaoPreceptoriaTutoriaView, DescricaoOrientacaoCoorientacaoAcademicaView, SupervisaoAcademicaView, PreceptoriaTutoriaResidenciaView, BancaExaminadoraView, CHSemanalAtividadeEnsinoView, AvaliacaoDiscenteView, ProjetoPesquisaProducaoIntelectualView, TrabalhoCompletoPublicadoPeriodicoBoletimTecnicoView, LivroCapituloVerbetePublicadoView, TrabalhoCompletoResumoPublicadoApresentadoCongressosView, OutraAtividadePesquisaProducaoIntelectualView, CHSemanalAtividadesPesquisaView, ProjetoExtensaoView, EstagioExtensaoView, AtividadeEnsinoNaoFormalView, ExtrairDadosAtividadesLetivasPDFAPIView)
 
 
 urlpatterns = [
@@ -130,6 +130,18 @@ urlpatterns = [
     path('projeto_extensao/', ProjetoExtensaoView.as_view(), name='projeto_extensao/'),
 
     path('projeto_extensao/<int:id>/', ProjetoExtensaoView.as_view(), name='projeto_extensao/id/'),
+
+    path('estagio_extensao', EstagioExtensaoView.as_view(), name='estagio_extensao'),
+    
+    path('estagio_extensao/', EstagioExtensaoView.as_view(), name='estagio_extensao/'),
+
+    path('estagio_extensao/<int:id>', EstagioExtensaoView.as_view(), name='estagio_extensao/id/'),
+
+    path('atividade_ensino_nao_formal', AtividadeEnsinoNaoFormalView.as_view(), name='atividade_ensino_nao_formal'),
+
+    path('atividade_ensino_nao_formal/', AtividadeEnsinoNaoFormalView.as_view(), name='atividade_ensino_nao_formal/'),
+    
+    path('atividade_ensino_nao_formal/<int:id>/', AtividadeEnsinoNaoFormalView.as_view(), name='atividade_ensino_nao_formal/id/'),
     
     path('extrair_dados_atividades_letivas', ExtrairDadosAtividadesLetivasPDFAPIView.as_view(), name='extrair_dados_atividades_letivas'),
 ]

@@ -101,7 +101,7 @@ class UsuarioSerializer(serializers.ModelSerializer):
         return usuario
 
 class AtividadeLetivaSerializer(serializers.ModelSerializer):
-    ch_total = serializers.FloatField(required=False)
+    ch_total = serializers.FloatField(read_only = True)
 
     class Meta:
         model = AtividadeLetiva
@@ -164,8 +164,8 @@ class AtividadeLetivaSerializer(serializers.ModelSerializer):
 
 
 class CalculoCHSemanalAulasSerializer(serializers.ModelSerializer):
-    ch_semanal_total = serializers.FloatField(required=False)
-    ch_semanal_total = serializers.FloatField(required=False)
+    ch_semanal_total = serializers.FloatField(read_only = True)
+    ch_semanal_total = serializers.FloatField(read_only = True)
 
     class Meta:
         model = CalculoCHSemanalAulas
@@ -204,7 +204,7 @@ class CalculoCHSemanalAulasSerializer(serializers.ModelSerializer):
 
 
 class AtividadePedagogicaComplementarSerializer(serializers.ModelSerializer):
-    ch_semanal_total = serializers.FloatField(required=False)
+    ch_semanal_total = serializers.FloatField(read_only=True)
 
     class Meta:
         model = AtividadePedagogicaComplementar
@@ -243,7 +243,7 @@ class AtividadePedagogicaComplementarSerializer(serializers.ModelSerializer):
 
 
 class AtividadeOrientacaoSupervisaoPreceptoriaTutoriaSerializer(serializers.ModelSerializer):
-    ch_semanal_total = serializers.FloatField(required=False)
+    ch_semanal_total = serializers.FloatField(read_only=True)
 
     class Meta:
         model = AtividadeOrientacaoSupervisaoPreceptoriaTutoria
@@ -374,11 +374,41 @@ class EstagioExtensaoSerializer(serializers.ModelSerializer):
         model = EstagioExtensao
         fields = '__all__'
 
+
 class AtividadeEnsinoNaoFormalSerializer(serializers.ModelSerializer):
+    ch_semanal_primeiro_semestre = serializers.FloatField(read_only=True)
+    ch_semanal_segundo_semestre = serializers.FloatField(read_only=True)
 
     class Meta:
         model = AtividadeEnsinoNaoFormal
         fields = '__all__'
+
+    def create(self, validated_data):
+        ch_total_primeiro_semestre = validated_data['ch_total_primeiro_semestre']
+        ch_total_segundo_semestre = validated_data['ch_total_segundo_semestre']
+
+        ch_semanal_primeiro_semestre = ch_total_primeiro_semestre / 23
+        ch_semanal_segundo_semestre = ch_total_segundo_semestre / 23
+
+        atividade_ensino_nao_formal = AtividadeEnsinoNaoFormal.objects.create(
+            **validated_data,
+            ch_semanal_primeiro_semestre = ch_semanal_primeiro_semestre,
+            ch_semanal_segundo_semestre = ch_semanal_segundo_semestre
+        )
+        return atividade_ensino_nao_formal
+
+    def update(self, instance, validated_data):
+        instance.numero_doc = validated_data.get('numero_doc', instance.numero_doc)
+        instance.atividade = validated_data.get('atividade', instance.atividade)
+
+        instance.ch_total_primeiro_semestre = validated_data.get('ch_total_primeiro_semestre', instance.ch_total_primeiro_semestre)
+        instance.ch_total_segundo_semestre = validated_data.get('ch_total_segundo_semestre', instance.ch_total_segundo_semestre)
+
+        instance.ch_semanal_primeiro_semestre = instance.ch_total_primeiro_semestre / 23
+        instance.ch_semanal_segundo_semestre = instance.ch_total_segundo_semestre / 23
+    
+        instance.save()
+        return instance
 
 
 class OutraAtividadeExtensaoSerializer(serializers.ModelSerializer):
