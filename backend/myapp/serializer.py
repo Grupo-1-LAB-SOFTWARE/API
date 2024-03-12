@@ -36,6 +36,7 @@ from myapp.models import (
                           )
 
 
+
 class UsuarioSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
     confirmar_email = serializers.EmailField(write_only=True, required=False)
