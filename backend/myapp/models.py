@@ -640,11 +640,6 @@ class AtividadeEnsinoNaoFormal(models.Model):
     ch_total_segundo_semestre = models.FloatField()
     ch_semanal_segundo_semestre = models.FloatField(null=True)
 
-    def save(self):
-        self.ch_semanal_primeiro_semestre = float(self.ch_total_primeiro_semestre) / 23
-        self.ch_semanal_segundo_semestre = float(self.ch_total_segundo_semestre) / 23
-        super().save()
-
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
         self.relatorio_id.atualizar_atividades_ensino_nao_formal()
@@ -665,11 +660,6 @@ class OutraAtividadeExtensao(models.Model):
     ch_semanal_primeiro_semestre = models.FloatField(null=True)
     ch_total_segundo_semestre = models.FloatField()
     ch_semanal_segundo_semestre = models.FloatField(null=True)
-
-    def save(self):
-        self.ch_semanal_primeiro_semestre = float(self.ch_total_primeiro_semestre) / 23
-        self.ch_semanal_segundo_semestre = float(self.ch_semanal_segundo_semestre) / 23
-        super().save()
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)

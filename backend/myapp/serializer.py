@@ -412,10 +412,40 @@ class AtividadeEnsinoNaoFormalSerializer(serializers.ModelSerializer):
 
 
 class OutraAtividadeExtensaoSerializer(serializers.ModelSerializer):
+    ch_semanal_primeiro_semestre = serializers.FloatField(read_only=True)
+    ch_semanal_segundo_semestre = serializers.FloatField(read_only=True)
 
     class Meta:
         model = OutraAtividadeExtensao
         fields = '__all__'
+
+    def create(self, validated_data):
+        ch_total_primeiro_semestre = validated_data['ch_total_primeiro_semestre']
+        ch_total_segundo_semestre = validated_data['ch_total_segundo_semestre']
+
+        ch_semanal_primeiro_semestre = ch_total_primeiro_semestre / 23
+        ch_semanal_segundo_semestre = ch_total_segundo_semestre / 23
+
+        outra_atividade_extensao = OutraAtividadeExtensao.objects.create(
+            **validated_data,
+            ch_semanal_primeiro_semestre = ch_semanal_primeiro_semestre,
+            ch_semanal_segundo_semestre = ch_semanal_segundo_semestre
+        )
+        return outra_atividade_extensao
+
+    def update(self, instance, validated_data):
+        instance.numero_doc = validated_data.get('numero_doc', instance.numero_doc)
+        instance.atividade = validated_data.get('atividade', instance.atividade)
+
+        instance.ch_total_primeiro_semestre = validated_data.get('ch_total_primeiro_semestre', instance.ch_total_primeiro_semestre)
+        instance.ch_total_segundo_semestre = validated_data.get('ch_total_segundo_semestre', instance.ch_total_segundo_semestre)
+
+        instance.ch_semanal_primeiro_semestre = instance.ch_total_primeiro_semestre / 23
+        instance.ch_semanal_segundo_semestre = instance.ch_total_segundo_semestre / 23
+    
+        instance.save()
+        return instance
+    
 
 class CHSemanalAtividadesExtensaoSerializer(serializers.ModelSerializer):
 
