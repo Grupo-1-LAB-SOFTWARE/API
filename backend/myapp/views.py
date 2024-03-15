@@ -1,6 +1,7 @@
 from django.utils import timezone
 from django.urls import get_resolver
 from django.forms.models import model_to_dict
+from backend.myapp.extraction_strategy import PDFExtractionCoordinator
 from myapp.serializer import (UsuarioSerializer, RelatorioDocenteSerializer, AtividadeLetivaSerializer, CalculoCHSemanalAulasSerializer, AtividadePedagogicaComplementarSerializer, AtividadeOrientacaoSupervisaoPreceptoriaTutoriaSerializer, DescricaoOrientacaoCoorientacaoAcademicaSerializer, SupervisaoAcademicaSerializer, PreceptoriaTutoriaResidenciaSerializer, BancaExaminadoraSerializer, CHSemanalAtividadeEnsinoSerializer, AvaliacaoDiscenteSerializer, ProjetoPesquisaProducaoIntelectualSerializer, TrabalhoCompletoPublicadoPeriodicoBoletimTecnicoSerializer, LivroCapituloVerbetePublicadoSerializer, TrabalhoCompletoResumoPublicadoApresentadoCongressosSerializer, OutraAtividadePesquisaProducaoIntelectualSerializer, CHSemanalAtividadesPesquisaSerializer, ProjetoExtensaoSerializer, EstagioExtensaoSerializer, AtividadeEnsinoNaoFormalSerializer, OutraAtividadeExtensaoSerializer, CHSemanalAtividadesExtensaoSerializer)
 from .models import (Usuario, RelatorioDocente, AtividadeLetiva, CalculoCHSemanalAulas, AtividadePedagogicaComplementar, AtividadeOrientacaoSupervisaoPreceptoriaTutoria, DescricaoOrientacaoCoorientacaoAcademica, SupervisaoAcademica, PreceptoriaTutoriaResidencia, BancaExaminadora, CHSemanalAtividadeEnsino, AvaliacaoDiscente, ProjetoPesquisaProducaoIntelectual, TrabalhoCompletoPublicadoPeriodicoBoletimTecnico, LivroCapituloVerbetePublicado, TrabalhoCompletoResumoPublicadoApresentadoCongressos, OutraAtividadePesquisaProducaoIntelectual, CHSemanalAtividadesPesquisa, ProjetoExtensao, EstagioExtensao, AtividadeEnsinoNaoFormal, OutraAtividadeExtensao, CHSemanalAtividadesExtensao)
 from rest_framework import status
@@ -1453,11 +1454,12 @@ class RelatorioDocenteView(APIView):
 class ExtrairDadosAtividadesLetivasPDFAPIView(APIView):
     def post(self, request):
         arquivo_pdf = request.FILES.get('pdf')
+        opcao = request.data.get('opcao')
 
         if arquivo_pdf:
             try:
-                texto_extraido = extrair_texto_do_pdf(arquivo_pdf)
-                dados_extraidos = extrair_dados_de_atividades_letivas(texto_extraido)
+                coordinator = PDFExtractionCoordinator()
+                dados_extraidos = coordinator.extract_data(arquivo_pdf, opcao)
 
                 # Retorna os dados processados como parte da resposta
                 return Response({'dados': dados_extraidos}, status=status.HTTP_200_OK)
