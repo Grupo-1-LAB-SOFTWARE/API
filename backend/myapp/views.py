@@ -101,10 +101,10 @@ class UsuarioView(APIView):
         except Usuario.DoesNotExist:
             return True
         
-    def delete(self, request, id=None):
-        if id:
+    def delete(self, request, user_id=None):
+        if user_id:
             try:
-                instance = Usuario.objects.get(pk=id)
+                instance = Usuario.objects.get(pk=user_id)
                 instance.delete()
                 return Util.response_ok_no_message('Usuário excluído com sucesso.')
             except Usuario.DoesNotExist:
