@@ -9,16 +9,15 @@ import django.utils.timezone
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [
-        ('auth', '0012_alter_user_first_name_max_length'),
+        ("auth", "0012_alter_user_first_name_max_length"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='Usuario',
+            name="AvaliacaoDiscente",
             fields=[
                 ('password', models.CharField(max_length=128, verbose_name='password')),
                 ('last_login', models.DateTimeField(blank=True, null=True, verbose_name='last login')),
@@ -55,7 +54,7 @@ class Migration(migrations.Migration):
             ],
         ),
         migrations.CreateModel(
-            name='RelatorioDocente',
+            name="AtividadesGestaoRepresentacao",
             fields=[
                 ('id', models.AutoField(primary_key=True, serialize=False)),
                 ('data_criacao', models.DateField()),
