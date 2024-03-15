@@ -19,30 +19,30 @@ class Usuario(AbstractUser):
         ('e', 'E'),
     )
     REGIME = (
-        ('exclusivo', 'Dedicação Exclusiva'),
-        ('integral', '40h'),
-        ('parcial', '20h'),
+        ('Exclusivo', 'Dedicação Exclusiva'),
+        ('Integral', 'Integral'),
+        ('Parcial', 'Parcial'),
     )
     VINCULO = (
-        ('estatuario', 'Estatuário'),
-        ('não selecionado', 'Não selecionado')
+        ('Estatuário', 'Estatuário'),
+        ('Não selecionado', 'Não selecionado')
     )
     TITULACAO = (
-        ('graduacao', 'Graduação'),
-        ('especializacao', 'Especialização'),
-        ('mestre', 'Mestre'),
-        ('doutor', 'Doutor'),
+        ('Graduacão', 'Graduação'),
+        ('Especialização', 'Especialização'),
+        ('Mestre', 'Mestre'),
+        ('Doutor', 'Doutor'),
     )
     PERFIL = (
-        ('docente', 'Docente'),
-        ('admin', 'Administrador'),
+        ('Docente', 'Docente'),
+        ('Administrador', 'Administrador'),
     )
     id = models.AutoField(primary_key=True)
     nome_completo = models.CharField(max_length=500)
     perfil = models.CharField(
-        max_length=10,
+        max_length=25,
         choices=PERFIL,
-        default='docente'
+        default='Docente'
     )
     email = models.EmailField(unique=True)
     siape = models.CharField(max_length=500)
@@ -94,144 +94,150 @@ class RelatorioDocente(models.Model):
     atividades_ensino_nao_formal = models.JSONField(null=True)
     outras_atividades_extensao = models.JSONField(null=True)
     ch_semanal_atividades_extensao = models.JSONField(null=True)
+    distribuicao_ch_semanal = models.JSONField(null=True)
+    distribuicao_ch_semanal = models.JSONField(null=True)
     atividades_gestao_representacao = models.JSONField(null=True)
     qualificacoes_docente_academica_profissional = models.JSONField(null=True)
-    distribuicao_ch_semanal = models.JSONField(null=True)
     outras_informacoes = models.JSONField(null=True)
-    afastamentos_json = models.JSONField(null=True)
+    afastamentos = models.JSONField(null=True)
 
     def atualizar_atividades_letivas(self):
-        atividades_letivas_letivas = list(self.atividadeletiva_set.all().values())
-        self.atividades_letivas = atividades_letivas_letivas
-        self.save()
+        atividades_letivas = list(self.atividadeletiva_set.all().values())
+        self.atividades_letivas = atividades_letivas
+        self.save()    
 
     def atualizar_calculos_ch_semanal_aulas(self):
         calculos_ch_semanal_aulas = list(self.calculochsemanalaulas_set.all().values())
         self.calculos_ch_semanal_aulas = calculos_ch_semanal_aulas
-        self.save()
+        self.save()    
 
     def atualizar_atividades_pedagogicas_complementares(self):
         atividades_pedagogicas_complementares = list(self.atividadepedagogicacomplementar_set.all().values())
         self.atividades_pedagogicas_complementares = atividades_pedagogicas_complementares
-        self.save()
+        self.save()    
 
     def atualizar_atividades_orientacao_supervisao_preceptoria_tutoria(self):
         atividades_orientacao_supervisao_preceptoria_tutoria = list(self.atividadeorientacaosupervisaopreceptoriatutoria_set.all().values())
         self.atividades_orientacao_supervisao_preceptoria_tutoria = atividades_orientacao_supervisao_preceptoria_tutoria
-        self.save()
+        self.save()    
 
     def atualizar_descricoes_orientacao_coorientacao_academica(self):
         descricoes_orientacao_coorientacao_academica = list(self.descricaoorientacaocoorientacaoacademica_set.all().values())
         self.descricoes_orientacao_coorientacao_academica = descricoes_orientacao_coorientacao_academica
-        self.save()
+        self.save()    
 
-    def atualizar_atualizar_supervisoes_academicas(self):
-        supervisoes_academicas = list(self.supervisoesacademicas_set.all().values())
+    def atualizar_supervisoes_academicas(self):
+        supervisoes_academicas = list(self.supervisaoacademica_set.all().values())
         self.supervisoes_academicas = supervisoes_academicas
-        self.save()
+        self.save()    
     
     def atualizar_preceptorias_tutorias_residencia(self):
-        preceptorias_tutorias_residencia = list(self.preceptoriastutoriasresidencia_set.all().values())
+        preceptorias_tutorias_residencia = list(self.preceptoriatutoriaresidencia_set.all().values())
         self.preceptorias_tutorias_residencia = preceptorias_tutorias_residencia
-        self.save()
+        self.save()    
     
     def atualizar_bancas_examinadoras(self):
-        bancas_examinadoras = list(self.bancasexaminadoras_set.all().values())
+        bancas_examinadoras = list(self.bancaexaminadora_set.all().values())
         self.bancas_examinadoras = bancas_examinadoras
-        self.save()
+        self.save()    
 
     def atualizar_ch_semanal_atividade_ensino(self):
         ch_semanal_atividade_ensino = list(self.chsemanalatividadeensino_set.all().values())
         self.ch_semanal_atividade_ensino = ch_semanal_atividade_ensino
-        self.save()
+        self.save()    
 
     def atualizar_avaliacoes_discentes(self):
-        avaliacoes_discentes = list(self.avaliacoesdiscentes_set.all().values())
+        avaliacoes_discentes = list(self.avaliacaodiscente_set.all().values())
         self.avaliacoes_discentes = avaliacoes_discentes
-        self.save()
+        self.save()    
 
     def atualizar_projetos_pesquisa_producao_intelectual(self):
-        projetos_pesquisa_producao_intelectual = list(self.projetospesquisaproducaointelectual_set.all().values())
+        projetos_pesquisa_producao_intelectual = list(self.projetopesquisaproducaointelectual_set.all().values())
         self.projetos_pesquisa_producao_intelectual = projetos_pesquisa_producao_intelectual
-        self.save()
+        self.save()    
 
     def atualizar_trabalhos_completos_publicados_periodicos_boletins_tecnicos(self):
-        trabalhos_completos_publicados_periodicos_boletins_tecnicos = list(self.trabalhoscompletospublicadosperiodicosboletinstecnicos_set.all().values())
+        trabalhos_completos_publicados_periodicos_boletins_tecnicos = list(self.trabalhocompletopublicadoperiodicoboletimtecnico_set.all().values())
         self.trabalhos_completos_publicados_periodicos_boletins_tecnicos = trabalhos_completos_publicados_periodicos_boletins_tecnicos
-        self.save()   
+        self.save()  
 
     def atualizar_livros_capitulos_verbetes_publicados(self):
-        livros_capitulos_verbetes_publicados = list(self.livroscapitulosverbetespublicadosl_set.all().values())
+        livros_capitulos_verbetes_publicados = list(self.livrocapituloverbetepublicado_set.all().values())
         self.livros_capitulos_verbetes_publicados = livros_capitulos_verbetes_publicados
-        self.save()
+        self.save()    
 
     def atualizar_trabalhos_completos_resumos_publicados_apresentados_congressos(self):
-        trabalhos_completos_resumos_publicados_apresentados_congressos = list(self.trabalhoscompletosresumospublicadosapresentadoscongressos_set.all().values())
+        trabalhos_completos_resumos_publicados_apresentados_congressos = list(self.trabalhocompletoresumopublicadoapresentadocongressos_set.all().values())
         self.trabalhos_completos_resumos_publicados_apresentados_congressos = trabalhos_completos_resumos_publicados_apresentados_congressos
-        self.save()
+        self.save()    
 
     def atualizar_outras_atividades_pesquisa_producao_intelectual(self):
-        outras_atividades_pesquisa_producao_intelectual = list(self.outrasatividadespesquisaproducaointelectual_set.all().values())
+        outras_atividades_pesquisa_producao_intelectual = list(self.outraatividadepesquisaproducaointelectual_set.all().values())
         self.outras_atividades_pesquisa_producao_intelectual = outras_atividades_pesquisa_producao_intelectual
-        self.save()
+        self.save()    
 
     def atualizar_ch_semanal_atividades_pesquisa(self):
         ch_semanal_atividades_pesquisa = list(self.chsemanalatividadespesquisa_set.all().values())
         self.ch_semanal_atividades_pesquisa = ch_semanal_atividades_pesquisa
-        self.save()
+        self.save()    
 
     def atualizar_projetos_extensao(self):
-        projetos_extensao = list(self.projetosextensao_set.all().values())
+        projetos_extensao = list(self.projetoextensao_set.all().values())
         self.projetos_extensao = projetos_extensao
-        self.save()
+        self.save()    
 
     def atualizar_estagios_extensao(self):
-        estagios_extensao = list(self.estagiosextensao_set.all().values())
+        estagios_extensao = list(self.estagioextensao_set.all().values())
         self.estagios_extensao = estagios_extensao
-        self.save()
+        self.save()    
 
     def atualizar_atividades_ensino_nao_formal(self):
-        atividades_ensino_nao_formal = list(self.atividadesensinonaoformal_set.all().values())
+        atividades_ensino_nao_formal = list(self.atividadeensinonaoformal_set.all().values())
         self.atividades_ensino_nao_formal = atividades_ensino_nao_formal
-        self.save()
+        self.save()    
 
     def atualizar_outras_atividades_extensao(self):
-        outras_atividades_extensao = list(self.outrasatividadesextensao_set.all().values())
+        outras_atividades_extensao = list(self.outraatividadeextensao_set.all().values())
         self.outras_atividades_extensao = outras_atividades_extensao
-        self.save()
+        self.save()    
 
     def atualizar_ch_semanal_atividades_extensao(self):
         ch_semanal_atividades_extensao = list(self.chsemanalatividadesextensao_set.all().values())
         self.ch_semanal_atividades_extensao = ch_semanal_atividades_extensao
-        self.save()
-
-    def atualizar_atividades_gestao_representacao(self):
-        atividades_gestao_representacao = list(self.atividadesgestaorepresentacao_set.all().values())
-        self.atividades_gestao_representacao = atividades_gestao_representacao
-        self.save()
-    
-    def atualizar_qualificacoes_docente_academica_profissional(self):
-        qualificacoes_docente_academica_profissional = list(self.qualificacoesdocenteacademicaprofissional_set.all().values())
-        self.qualificacoes_docente_academica_profissional = qualificacoes_docente_academica_profissional
-        self.save()
+        self.save()    
 
     def atualizar_distribuicao_ch_semanal(self):
         distribuicao_ch_semanal = list(self.distribuicaochsemanal_set.all().values())
         self.distribuicao_ch_semanal = distribuicao_ch_semanal
-        self.save()
+        self.save() 
+
+    def atualizar_distribuicao_ch_semanal(self):
+        distribuicao_ch_semanal = list(self.distribuicaochsemanal_set.all().values())
+        self.distribuicao_ch_semanal = distribuicao_ch_semanal
+        self.save() 
+
+    def atualizar_atividades_gestao_representacao(self):
+        atividades_gestao_representacao = list(self.atividadegestaorepresentacao_set.all().values())
+        self.atividades_gestao_representacao = atividades_gestao_representacao
+        self.save()  
+
+    def atualizar_qualificacoes_docente_academica_profissional(self):
+        qualificacoes_docente_academica_profissional = list(self.qualificacaodocenteacademicaprofissional_set.all().values())
+        self.qualificacoes_docente_academica_profissional = qualificacoes_docente_academica_profissional
+        self.save()    
 
     def atualizar_outras_informacoes(self):
-        outras_informacoes = list(self.outrasinformacoes_set.all().values())
+        outras_informacoes = list(self.outrainformacao_set.all().values())
         self.outras_informacoes = outras_informacoes
-        self.save()
+        self.save()    
 
     def atualizar_afastamentos(self):
-        afastamentos_json = list(self.afastamentosjson_set.all().values())
-        self.afastamentos_json = afastamentos_json
-        self.save()
+        afastamentos = list(self.afastamento_set.all().values())
+        self.afastamentos = afastamentos
+        self.save() 
 
 class AtividadeLetiva(models.Model):
-    relatorio_id_id = models.ForeignKey(RelatorioDocente, on_delete=models.CASCADE)
+    relatorio_id = models.ForeignKey(RelatorioDocente, on_delete=models.CASCADE)
     semestre = models.IntegerField()
     codigo_disciplina = models.CharField(max_length=20)
     nome_disciplina = models.CharField(max_length=70)
@@ -247,11 +253,11 @@ class AtividadeLetiva(models.Model):
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
-        self.relatorio_id_id.atualizar_atividades_letivas()
+        self.relatorio_id.atualizar_atividades_letivas()
 
     def delete(self, *args, **kwargs):
         super().delete(*args, **kwargs)
-        self.relatorio_id_id.atualizar_atividades_letivas()
+        self.relatorio_id.atualizar_atividades_letivas()
 
     def update(self, *args, **kwargs):
         super().update(*args, **kwargs)
@@ -259,7 +265,6 @@ class AtividadeLetiva(models.Model):
 
 class CalculoCHSemanalAulas(models.Model):
     relatorio_id = models.ForeignKey(RelatorioDocente, on_delete=models.CASCADE)
-    relatorio_id = models.ForeignKey(RelatorioDocente, on_delete=models.CASCADE)
     semestre = models.IntegerField()
     ch_semanal_graduacao = models.FloatField()
     ch_semanal_pos_graduacao = models.FloatField()
@@ -276,11 +281,9 @@ class CalculoCHSemanalAulas(models.Model):
     def update(self, *args, **kwargs):
         super().update(*args, **kwargs)
         self.relatorio_id.atualizar_calculos_ch_semanal_aulas()
-
 
 class AtividadePedagogicaComplementar(models.Model):
     relatorio_id = models.ForeignKey(RelatorioDocente, on_delete=models.CASCADE)
-    relatorio_id = models.ForeignKey(RelatorioDocente, on_delete=models.CASCADE)
     semestre = models.IntegerField()
     ch_semanal_graduacao = models.FloatField()
     ch_semanal_pos_graduacao = models.FloatField()
@@ -297,7 +300,6 @@ class AtividadePedagogicaComplementar(models.Model):
     def update(self, *args, **kwargs):
         super().update(*args, **kwargs)
         self.relatorio_id.atualizar_atividades_pedagogicas_complementares()
-
 
 class AtividadeOrientacaoSupervisaoPreceptoriaTutoria(models.Model):
     relatorio_id = models.ForeignKey(RelatorioDocente, on_delete=models.CASCADE)
@@ -386,7 +388,7 @@ class PreceptoriaTutoriaResidencia(models.Model):
         super().update(*args, **kwargs)
         self.relatorio_id.atualizar_preceptorias_tutorias_residencia()
 
-class BancasExaminadoras(models.Model):
+class BancaExaminadora(models.Model):
     relatorio_id = models.ForeignKey(RelatorioDocente, on_delete=models.CASCADE)
     numero_doc = models.IntegerField()
     nome_candidato = models.CharField(max_length=400)
@@ -409,7 +411,7 @@ class BancasExaminadoras(models.Model):
         self.relatorio_id.atualizar_bancas_examinadoras()
 
 class CHSemanalAtividadeEnsino(models.Model):
-    relatorio_id = models.ForeignKey(RelatorioDocente, on_delete=models.CASCADE)
+    relatorio_id = models.ForeignKey(RelatorioDocente, on_delete=models.CASCADE, unique=True)
     ch_semanal_primeiro_semestre = models.FloatField()
     ch_semanal_segundo_semestre = models.FloatField()
 
@@ -449,13 +451,13 @@ class AvaliacaoDiscente(models.Model):
 class ProjetoPesquisaProducaoIntelectual(models.Model):
     relatorio_id = models.ForeignKey(RelatorioDocente, on_delete=models.CASCADE)
     FUNCAO = (
-        ('coordenador', 'Coordenador'),
-        ('colaborador', 'Colaborador'),
+        ('Coordenador', 'Coordenador'),
+        ('Colaborador', 'Colaborador'),
     )
     SITUACAO_ATUAL = (
-        ('concluida', 'CONCLUÍDA'),
-        ('em_andamento', 'EM ANDAMENTO'),
-        ('em_pausa', 'EM PAUSA'),
+        ('Concluída', 'CONCLUÍDA'),
+        ('Em andamento', 'EM ANDAMENTO'),
+        ('Em pausa', 'EM PAUSA'),
     )
 
     numero_doc = models.IntegerField()
@@ -463,13 +465,13 @@ class ProjetoPesquisaProducaoIntelectual(models.Model):
     funcao = models.CharField(
         max_length=20,
         choices=FUNCAO,
-        default='coordenador'
+        default='Coordenador'
     )
     cadastro_proped = models.CharField(max_length=100)
     situacao_atual = models.CharField(
         max_length=30,
         choices=SITUACAO_ATUAL,
-        default='concluida'
+        default='Concluída'
     )
 
     def save(self, *args, **kwargs):
@@ -484,7 +486,8 @@ class ProjetoPesquisaProducaoIntelectual(models.Model):
         super().update(*args, **kwargs)
         self.relatorio_id.atualizar_projetos_pesquisa_producao_intelectual()
 
-class TrabalhosCompletosPeriodicosBoletinsTecnicos(models.Model):
+
+class TrabalhoCompletoPublicadoPeriodicoBoletimTecnico(models.Model):
     relatorio_id = models.ForeignKey(RelatorioDocente, on_delete=models.CASCADE)
     numero_doc = models.IntegerField()
     descricao = models.CharField(max_length = 1500)
@@ -501,7 +504,8 @@ class TrabalhosCompletosPeriodicosBoletinsTecnicos(models.Model):
         super().update(*args, **kwargs)
         self.relatorio_id.atualizar_trabalhos_completos_publicados_periodicos_boletins_tecnicos()
 
-class LivrosCapitulosVerbetesPublicados(models.Model):
+
+class LivroCapituloVerbetePublicado(models.Model):
     relatorio_id = models.ForeignKey(RelatorioDocente, on_delete=models.CASCADE)
     numero_doc = models.IntegerField()
     descricao = models.CharField(max_length = 1500)
@@ -518,7 +522,8 @@ class LivrosCapitulosVerbetesPublicados(models.Model):
         super().update(*args, **kwargs)
         self.relatorio_id.atualizar_livros_capitulos_verbetes_publicados()
 
-class TrabalhosCompletosResumosPublicadosApresentadosCongressos(models.Model):
+
+class TrabalhoCompletoResumoPublicadoApresentadoCongressos(models.Model):
     relatorio_id = models.ForeignKey(RelatorioDocente, on_delete=models.CASCADE)
     numero_doc = models.IntegerField()
     descricao = models.CharField(max_length = 1500)
@@ -535,7 +540,7 @@ class TrabalhosCompletosResumosPublicadosApresentadosCongressos(models.Model):
         super().update(*args, **kwargs)
         self.relatorio_id.atualizar_trabalhos_completos_resumos_publicados_apresentados_congressos()
 
-class OutrasAtividadesPesquisaProducaoIntelectual(models.Model):
+class OutraAtividadePesquisaProducaoIntelectual(models.Model):
     relatorio_id = models.ForeignKey(RelatorioDocente, on_delete=models.CASCADE)
     numero_doc = models.IntegerField()
     descricao = models.CharField(max_length = 1500)
@@ -551,10 +556,9 @@ class OutrasAtividadesPesquisaProducaoIntelectual(models.Model):
     def update(self, *args, **kwargs):
         super().update(*args, **kwargs)
         self.relatorio_id.atualizar_outras_atividades_pesquisa_producao_intelectual()
-
 
 class CHSemanalAtividadesPesquisa(models.Model):
-    relatorio_id = models.ForeignKey(RelatorioDocente, on_delete=models.CASCADE)
+    relatorio_id = models.ForeignKey(RelatorioDocente, on_delete=models.CASCADE, unique=True)
     ch_semanal_primeiro_semestre = models.FloatField()
     ch_semanal_segundo_semestre = models.FloatField()
 
@@ -573,27 +577,26 @@ class CHSemanalAtividadesPesquisa(models.Model):
 class ProjetoExtensao(models.Model):
     relatorio_id = models.ForeignKey(RelatorioDocente, on_delete=models.CASCADE)
     FUNCAO = (
-        ('coordenador', 'Coordenador'),
-        ('colaborador', 'Colaborador'),
+        ('Coordenador', 'Coordenador'),
+        ('Colaborador', 'Colaborador'),
     )
     SITUACAO_ATUAL = (
-        ('concluida', 'CONCLUÍDA'),
-        ('em_andamento', 'EM ANDAMENTO'),
-        ('em_pausa', 'EM PAUSA'),
+        ('Concluída', 'CONCLUÍDA'),
+        ('Em andamento', 'EM ANDAMENTO'),
+        ('Em pausa', 'EM PAUSA'),
     )
-
     numero_doc = models.IntegerField()
     titulo = models.CharField(max_length=600)
     funcao = models.CharField(
         max_length=20,
         choices=FUNCAO,
-        default='coordenador'
+        default='Coordenador'
     )
     cadastro_proex = models.CharField(max_length=100)
     situacao_atual = models.CharField(
         max_length=30,
         choices=SITUACAO_ATUAL,
-        default='concluida'
+        default='Concluída'
     )
 
     def save(self, *args, **kwargs):
@@ -637,11 +640,6 @@ class AtividadeEnsinoNaoFormal(models.Model):
     ch_total_segundo_semestre = models.FloatField()
     ch_semanal_segundo_semestre = models.FloatField(null=True)
 
-    def save(self):
-        self.ch_semanal_primeiro_semestre = float(self.ch_total_primeiro_semestre) / 23
-        self.ch_semanal_segundo_semestre = float(self.ch_semanal_segundo_semestre) / 23
-        super().save()
-
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
         self.relatorio_id.atualizar_atividades_ensino_nao_formal()
@@ -654,7 +652,7 @@ class AtividadeEnsinoNaoFormal(models.Model):
         super().update(*args, **kwargs)
         self.relatorio_id.atualizar_atividades_ensino_nao_formal()
 
-class OutrasAtividasExtensao(models.Model):
+class OutraAtividadeExtensao(models.Model):
     relatorio_id = models.ForeignKey(RelatorioDocente, on_delete=models.CASCADE)
     numero_doc = models.IntegerField()
     atividade = models.CharField(max_length=1500)
@@ -662,11 +660,6 @@ class OutrasAtividasExtensao(models.Model):
     ch_semanal_primeiro_semestre = models.FloatField(null=True)
     ch_total_segundo_semestre = models.FloatField()
     ch_semanal_segundo_semestre = models.FloatField(null=True)
-
-    def save(self):
-        self.ch_semanal_primeiro_semestre = float(self.ch_total_primeiro_semestre) / 23
-        self.ch_semanal_segundo_semestre = float(self.ch_semanal_segundo_semestre) / 23
-        super().save()
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
@@ -727,25 +720,7 @@ class DistribuicaoCHSemanal(models.Model):
         super().update(*args, **kwargs)
         self.relatorio_id.atualizar_distribuicao_ch_semanal()
 
-class Afastamentos(models.Model):
-    relatorio_id = models.ForeignKey(RelatorioDocente, on_delete=models.CASCADE)
-    numero_doc = models.IntegerField()
-    motivo = models.CharField(max_length = 1500)
-    portaria = models.CharField(max_length= 150)
-
-    def save(self, *args, **kwargs):
-        super().save(*args, **kwargs)
-        self.relatorio_id.atualizar_afastamentos()
-
-    def delete(self, *args, **kwargs):
-        super().delete(*args, **kwargs)
-        self.relatorio_id.atualizar_afastamentos()
-
-    def update(self, *args, **kwargs):
-        super().update(*args, **kwargs)
-        self.relatorio_id.atualizar_afastamentos()
-
-class AtividadesGestaoRepresentacao(models.Model):
+class AtividadeGestaoRepresentacao(models.Model):
     relatorio_id = models.ForeignKey(RelatorioDocente, on_delete=models.CASCADE)
     cargo_e_ou_funcao = models.CharField(max_length=100)
     semestre = models.IntegerField()
@@ -783,7 +758,7 @@ class QualificacaoDocenteAcademicaProfissional(models.Model):
         super().update(*args, **kwargs)
         self.relatorio_id.atualizar_qualificacoes_docente_academica_profissional()
 
-class OutrasInformacoes(models.Model):
+class OutraInformacao(models.Model):
     relatorio_id = models.ForeignKey(RelatorioDocente, on_delete=models.CASCADE)
     numero_doc = models.IntegerField()
     atividades = models.CharField(max_length=1500)
@@ -799,6 +774,44 @@ class OutrasInformacoes(models.Model):
     def update(self, *args, **kwargs):
         super().update(*args, **kwargs)
         self.relatorio_id.atualizar_outras_informacoes()
+
+
+class Afastamento(models.Model):
+    relatorio_id = models.ForeignKey(RelatorioDocente, on_delete=models.CASCADE)
+    numero_doc = models.IntegerField()
+    motivo = models.CharField(max_length = 1500)
+    portaria = models.CharField(max_length= 150)
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        self.relatorio_id.atualizar_afastamentos()
+
+    def delete(self, *args, **kwargs):
+        super().delete(*args, **kwargs)
+        self.relatorio_id.atualizar_afastamentos()
+
+    def update(self, *args, **kwargs):
+        super().update(*args, **kwargs)
+        self.relatorio_id.atualizar_afastamentos()
+
+
+class Afastamento(models.Model):
+    relatorio_id = models.ForeignKey(RelatorioDocente, on_delete=models.CASCADE)
+    numero_doc = models.IntegerField()
+    motivo = models.CharField(max_length = 1500)
+    portaria = models.CharField(max_length= 150)
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        self.relatorio_id.atualizar_afastamentos()
+
+    def delete(self, *args, **kwargs):
+        super().delete(*args, **kwargs)
+        self.relatorio_id.atualizar_afastamentos()
+
+    def update(self, *args, **kwargs):
+        super().update(*args, **kwargs)
+        self.relatorio_id.atualizar_afastamentos()
 
 
 @receiver(post_save, sender=AtividadeLetiva)
@@ -822,14 +835,14 @@ def atualizar_descricoes_orientacao_coorientacao_academica(sender, instance, **k
     instance.relatorio_id.atualizar_descricoes_orientacao_coorientacao_academica()
 
 @receiver(post_save, sender=SupervisaoAcademica)
-def atualizar_atualizar_supervisoes_academicas(sender, instance, **kwargs):
-    instance.relatorio_id.atualizar_atualizar_supervisoes_academicas()
+def atualizar_supervisoes_academicas(sender, instance, **kwargs):
+    instance.relatorio_id.atualizar_supervisoes_academicas()
 
 @receiver(post_save, sender=PreceptoriaTutoriaResidencia)
 def atualizar_preceptorias_tutorias_residencia(sender, instance, **kwargs):
     instance.relatorio_id.atualizar_preceptorias_tutorias_residencia()
 
-@receiver(post_save, sender=BancasExaminadoras)
+@receiver(post_save, sender=BancaExaminadora)
 def atualizar_bancas_examinadoras(sender, instance, **kwargs):
     instance.relatorio_id.atualizar_bancas_examinadoras()
 
@@ -845,19 +858,19 @@ def atualizar_avaliacoes_discentes(sender, instance, **kwargs):
 def atualizar_projetos_pesquisa_producao_intelectual(sender, instance, **kwargs):
     instance.relatorio_id.atualizar_projetos_pesquisa_producao_intelectual()
 
-@receiver(post_save, sender=TrabalhosCompletosPeriodicosBoletinsTecnicos)
+@receiver(post_save, sender=TrabalhoCompletoPublicadoPeriodicoBoletimTecnico)
 def atualizar_trabalhos_completos_publicados_periodicos_boletins_tecnicos(sender, instance, **kwargs):
     instance.relatorio_id.atualizar_trabalhos_completos_publicados_periodicos_boletins_tecnicos()
 
-@receiver(post_save, sender=LivrosCapitulosVerbetesPublicados)
+@receiver(post_save, sender=LivroCapituloVerbetePublicado)
 def atualizar_livros_capitulos_verbetes_publicados(sender, instance, **kwargs):
     instance.relatorio_id.atualizar_livros_capitulos_verbetes_publicados()
 
-@receiver(post_save, sender=TrabalhosCompletosResumosPublicadosApresentadosCongressos)
+@receiver(post_save, sender=TrabalhoCompletoResumoPublicadoApresentadoCongressos)
 def atualizar_trabalhos_completos_resumos_publicados_apresentados_congressos(sender, instance, **kwargs):
     instance.relatorio_id.atualizar_trabalhos_completos_resumos_publicados_apresentados_congressos()
 
-@receiver(post_save, sender=OutrasAtividadesPesquisaProducaoIntelectual)
+@receiver(post_save, sender=OutraAtividadePesquisaProducaoIntelectual)
 def atualizar_outras_atividades_pesquisa_producao_intelectual(sender, instance, **kwargs):
     instance.relatorio_id.atualizar_outras_atividades_pesquisa_producao_intelectual()
 
@@ -877,7 +890,7 @@ def atualizar_estagios_extensao(sender, instance, **kwargs):
 def atualizar_atividades_ensino_nao_formal(sender, instance, **kwargs):
     instance.relatorio_id.atualizar_atividades_ensino_nao_formal()
 
-@receiver(post_save, sender=OutrasAtividasExtensao)
+@receiver(post_save, sender=OutraAtividadeExtensao)
 def atualizar_outras_atividades_extensao(sender, instance, **kwargs):
     instance.relatorio_id.atualizar_outras_atividades_extensao()
 
@@ -885,7 +898,7 @@ def atualizar_outras_atividades_extensao(sender, instance, **kwargs):
 def atualizar_ch_semanal_atividades_extensao(sender, instance, **kwargs):
     instance.relatorio_id.atualizar_ch_semanal_atividades_extensao()
 
-@receiver(post_save, sender=AtividadesGestaoRepresentacao)
+@receiver(post_save, sender=AtividadeGestaoRepresentacao)
 def atualizar_atividades_gestao_representacao(sender, instance, **kwargs):
     instance.relatorio_id.atualizar_atividades_gestao_representacao()
 
@@ -897,10 +910,10 @@ def atualizar_qualificacoes_docente_academica_profissional(sender, instance, **k
 def atualizar_distribuicao_ch_semanal(sender, instance, **kwargs):
     instance.relatorio_id.atualizar_distribuicao_ch_semanal()
 
-@receiver(post_save, sender=OutrasInformacoes)
+@receiver(post_save, sender=OutraInformacao)
 def atualizar_outras_informacoes(sender, instance, **kwargs):
     instance.relatorio_id.atualizar_outras_informacoes()
 
-@receiver(post_save, sender=Afastamentos)
+@receiver(post_save, sender=Afastamento)
 def atualizar_afastamentos(sender, instance, **kwargs):
     instance.relatorio_id.atualizar_afastamentos()

@@ -14,24 +14,25 @@ from myapp.models import (
                           DescricaoOrientacaoCoorientacaoAcademica,
                           SupervisaoAcademica,
                           PreceptoriaTutoriaResidencia,
-                          BancasExaminadoras,
+                          BancaExaminadora,
                           CHSemanalAtividadeEnsino,
                           AvaliacaoDiscente,
                           ProjetoPesquisaProducaoIntelectual,
-                          TrabalhosCompletosPeriodicosBoletinsTecnicos,
-                          LivrosCapitulosVerbetesPublicados,
-                          TrabalhosCompletosResumosPublicadosApresentadosCongressos,
-                          OutrasAtividadesPesquisaProducaoIntelectual,
+                          TrabalhoCompletoPublicadoPeriodicoBoletimTecnico,
+                          LivroCapituloVerbetePublicado,
+                          TrabalhoCompletoResumoPublicadoApresentadoCongressos,
+                          OutraAtividadePesquisaProducaoIntelectual,
                           CHSemanalAtividadesPesquisa,
                           ProjetoExtensao, 
                           EstagioExtensao,
                           AtividadeEnsinoNaoFormal,
-                          OutrasAtividasExtensao,
+                          OutraAtividadeExtensao,
                           CHSemanalAtividadesExtensao,
                           DistribuicaoCHSemanal,
-                          Afastamentos,
-                          AtividadesGestaoRepresentacao,
-                          QualificacaoDocenteAcademicaProfissional
+                          Afastamento,
+                          AtividadeGestaoRepresentacao,
+                          QualificacaoDocenteAcademicaProfissional,
+                          OutraInformacao,
                           )
 
 
@@ -100,7 +101,7 @@ class UsuarioSerializer(serializers.ModelSerializer):
         return usuario
 
 class AtividadeLetivaSerializer(serializers.ModelSerializer):
-    ch_total = serializers.FloatField(required=False)
+    ch_total = serializers.FloatField(read_only = True)
 
     class Meta:
         model = AtividadeLetiva
@@ -163,8 +164,8 @@ class AtividadeLetivaSerializer(serializers.ModelSerializer):
 
 
 class CalculoCHSemanalAulasSerializer(serializers.ModelSerializer):
-    ch_semanal_total = serializers.FloatField(required=False)
-    ch_semanal_total = serializers.FloatField(required=False)
+    ch_semanal_total = serializers.FloatField(read_only = True)
+    ch_semanal_total = serializers.FloatField(read_only = True)
 
     class Meta:
         model = CalculoCHSemanalAulas
@@ -203,7 +204,7 @@ class CalculoCHSemanalAulasSerializer(serializers.ModelSerializer):
 
 
 class AtividadePedagogicaComplementarSerializer(serializers.ModelSerializer):
-    ch_semanal_total = serializers.FloatField(required=False)
+    ch_semanal_total = serializers.FloatField(read_only=True)
 
     class Meta:
         model = AtividadePedagogicaComplementar
@@ -242,7 +243,7 @@ class AtividadePedagogicaComplementarSerializer(serializers.ModelSerializer):
 
 
 class AtividadeOrientacaoSupervisaoPreceptoriaTutoriaSerializer(serializers.ModelSerializer):
-    ch_semanal_total = serializers.FloatField(required=False)
+    ch_semanal_total = serializers.FloatField(read_only=True)
 
     class Meta:
         model = AtividadeOrientacaoSupervisaoPreceptoriaTutoria
@@ -253,6 +254,7 @@ class AtividadeOrientacaoSupervisaoPreceptoriaTutoriaSerializer(serializers.Mode
         ch_semanal_coorientacao = validated_data['ch_semanal_coorientacao']
         ch_semanal_supervisao = validated_data['ch_semanal_supervisao']
         ch_semanal_preceptoria_e_ou_tutoria = validated_data['ch_semanal_preceptoria_e_ou_tutoria']
+
 
         ch_semanal_total = ch_semanal_orientacao + ch_semanal_coorientacao + ch_semanal_supervisao + ch_semanal_preceptoria_e_ou_tutoria
 
@@ -305,10 +307,10 @@ class PreceptoriaTutoriaResidenciaSerializer(serializers.ModelSerializer):
         model = PreceptoriaTutoriaResidencia
         fields = '__all__'
 
-class BancasExaminadorasSerializer(serializers.ModelSerializer):
+class BancaExaminadoraSerializer(serializers.ModelSerializer):
 
     class Meta:
-        model = BancasExaminadoras
+        model = BancaExaminadora
         fields = '__all__'
 
 class CHSemanalAtividadeEnsinoSerializer(serializers.ModelSerializer):
@@ -329,28 +331,28 @@ class ProjetoPesquisaProducaoIntelectualSerializer(serializers.ModelSerializer):
         model = ProjetoPesquisaProducaoIntelectual
         fields = '__all__'
 
-class TrabalhosCompletosPeriodicosBoletinsTecnicosSerializer(serializers.ModelSerializer):
+class TrabalhoCompletoPublicadoPeriodicoBoletimTecnicoSerializer(serializers.ModelSerializer):
 
     class Meta:
-        model = TrabalhosCompletosPeriodicosBoletinsTecnicos
+        model = TrabalhoCompletoPublicadoPeriodicoBoletimTecnico
         fields = '__all__'
 
-class LivrosCapitulosVerbetesPublicadosSerializer(serializers.ModelSerializer):
+class LivroCapituloVerbetePublicadoSerializer(serializers.ModelSerializer):
 
     class Meta:
-        model = LivrosCapitulosVerbetesPublicados
+        model = LivroCapituloVerbetePublicado
         fields = '__all__'
 
-class TrabalhosCompletosResumosPublicadosApresentadosCongressosSerializer(serializers.ModelSerializer):
+class TrabalhoCompletoResumoPublicadoApresentadoCongressosSerializer(serializers.ModelSerializer):
 
     class Meta:
-        model = TrabalhosCompletosResumosPublicadosApresentadosCongressos
+        model = TrabalhoCompletoResumoPublicadoApresentadoCongressos
         fields = '__all__'
 
-class OutrasAtividadesPesquisaProducaoIntelectualSerializer(serializers.ModelSerializer):
+class OutraAtividadePesquisaProducaoIntelectualSerializer(serializers.ModelSerializer):
 
     class Meta:
-        model = OutrasAtividadesPesquisaProducaoIntelectual
+        model = OutraAtividadePesquisaProducaoIntelectual
         fields = '__all__'
 
 class CHSemanalAtividadesPesquisaSerializer(serializers.ModelSerializer):
@@ -372,18 +374,78 @@ class EstagioExtensaoSerializer(serializers.ModelSerializer):
         model = EstagioExtensao
         fields = '__all__'
 
+
 class AtividadeEnsinoNaoFormalSerializer(serializers.ModelSerializer):
+    ch_semanal_primeiro_semestre = serializers.FloatField(read_only=True)
+    ch_semanal_segundo_semestre = serializers.FloatField(read_only=True)
 
     class Meta:
         model = AtividadeEnsinoNaoFormal
         fields = '__all__'
 
+    def create(self, validated_data):
+        ch_total_primeiro_semestre = validated_data['ch_total_primeiro_semestre']
+        ch_total_segundo_semestre = validated_data['ch_total_segundo_semestre']
 
-class OutrasAtividasExtensaoSerializer(serializers.ModelSerializer):
+        ch_semanal_primeiro_semestre = ch_total_primeiro_semestre / 23
+        ch_semanal_segundo_semestre = ch_total_segundo_semestre / 23
+
+        atividade_ensino_nao_formal = AtividadeEnsinoNaoFormal.objects.create(
+            **validated_data,
+            ch_semanal_primeiro_semestre = ch_semanal_primeiro_semestre,
+            ch_semanal_segundo_semestre = ch_semanal_segundo_semestre
+        )
+        return atividade_ensino_nao_formal
+
+    def update(self, instance, validated_data):
+        instance.numero_doc = validated_data.get('numero_doc', instance.numero_doc)
+        instance.atividade = validated_data.get('atividade', instance.atividade)
+
+        instance.ch_total_primeiro_semestre = validated_data.get('ch_total_primeiro_semestre', instance.ch_total_primeiro_semestre)
+        instance.ch_total_segundo_semestre = validated_data.get('ch_total_segundo_semestre', instance.ch_total_segundo_semestre)
+
+        instance.ch_semanal_primeiro_semestre = instance.ch_total_primeiro_semestre / 23
+        instance.ch_semanal_segundo_semestre = instance.ch_total_segundo_semestre / 23
+    
+        instance.save()
+        return instance
+
+
+class OutraAtividadeExtensaoSerializer(serializers.ModelSerializer):
+    ch_semanal_primeiro_semestre = serializers.FloatField(read_only=True)
+    ch_semanal_segundo_semestre = serializers.FloatField(read_only=True)
 
     class Meta:
-        model = OutrasAtividasExtensao
+        model = OutraAtividadeExtensao
         fields = '__all__'
+
+    def create(self, validated_data):
+        ch_total_primeiro_semestre = validated_data['ch_total_primeiro_semestre']
+        ch_total_segundo_semestre = validated_data['ch_total_segundo_semestre']
+
+        ch_semanal_primeiro_semestre = ch_total_primeiro_semestre / 23
+        ch_semanal_segundo_semestre = ch_total_segundo_semestre / 23
+
+        outra_atividade_extensao = OutraAtividadeExtensao.objects.create(
+            **validated_data,
+            ch_semanal_primeiro_semestre = ch_semanal_primeiro_semestre,
+            ch_semanal_segundo_semestre = ch_semanal_segundo_semestre
+        )
+        return outra_atividade_extensao
+
+    def update(self, instance, validated_data):
+        instance.numero_doc = validated_data.get('numero_doc', instance.numero_doc)
+        instance.atividade = validated_data.get('atividade', instance.atividade)
+
+        instance.ch_total_primeiro_semestre = validated_data.get('ch_total_primeiro_semestre', instance.ch_total_primeiro_semestre)
+        instance.ch_total_segundo_semestre = validated_data.get('ch_total_segundo_semestre', instance.ch_total_segundo_semestre)
+
+        instance.ch_semanal_primeiro_semestre = instance.ch_total_primeiro_semestre / 23
+        instance.ch_semanal_segundo_semestre = instance.ch_total_segundo_semestre / 23
+    
+        instance.save()
+        return instance
+    
 
 class CHSemanalAtividadesExtensaoSerializer(serializers.ModelSerializer):
 
@@ -397,17 +459,17 @@ class DistribuicaoCHSemanalSerializer(serializers.ModelSerializer):
         model = DistribuicaoCHSemanal
         fields = '__all__'
 
-class AfastamentosSerializer(serializers.ModelSerializer):
+class AfastamentoSerializer(serializers.ModelSerializer):
 
     class Meta:
-        model = Afastamentos
+        model = Afastamento
         fields = '__all__'
 
 
-class AtividadesGestaoRepresentacaoSerializer(serializers.ModelSerializer):
+class AtividadeGestaoRepresentacaoSerializer(serializers.ModelSerializer):
 
     class Meta:
-        model = AtividadesGestaoRepresentacao
+        model = AtividadeGestaoRepresentacao
         fields = '__all__'
 
 class QualificacaoDocenteAcademicaProfissionalSerializer(serializers.ModelSerializer):
@@ -416,10 +478,10 @@ class QualificacaoDocenteAcademicaProfissionalSerializer(serializers.ModelSerial
         model = QualificacaoDocenteAcademicaProfissional
         fields = '__all__'
 
-class OutrasInformacoesSerializer(serializers.ModelSerializer):
+class OutraInformacaoSerializer(serializers.ModelSerializer):
 
     class Meta:
-        model = QualificacaoDocenteAcademicaProfissional
+        model = OutraInformacao
         fields = '__all__'
 
 
@@ -427,21 +489,9 @@ class RelatorioDocenteSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = RelatorioDocente
-        fields = ('id', 'usuario_id', 'usuario_id', 'atividades_letivas', 'ano_relatorio', 'calculos_ch_semanal_aulas', 'atividades_pedagogicas_complementares', 'atividades_orientacao_supervisao_preceptoria_tutoria', 'descricoes_orientacao_coorientacao_academica', 'supervisoes_academicas', 'preceptorias_tutorias_residencia', 'bancas_examinadoras', 'ch_semanal_atividade_ensino',)
+        fields = ('id', 'usuario_id', 'usuario_id', 'atividades_letivas', 'ano_relatorio', 'calculos_ch_semanal_aulas', 'atividades_pedagogicas_complementares', 'atividades_orientacao_supervisao_preceptoria_tutoria', 'descricoes_orientacao_coorientacao_academica', 'supervisoes_academicas', 'preceptorias_tutorias_residencia', 'bancas_examinadoras', 'ch_semanal_atividade_ensino', 'avaliacoes_discentes', 'projetos_pesquisa_producao_intelectual', 'trabalhos_completos_publicados_periodicos_boletins_tecnicos', 'livros_capitulos_verbetes_publicados', 'trabalhos_completos_resumos_publicados_apresentados_congressos', 'outras_atividades_pesquisa_producao_intelectual', 'ch_semanal_atividades_pesquisa', 'projetos_extensao', 'estagios_extensao', 'atividades_ensino_nao_formal', 'outras_atividades_extensao', 'ch_semanal_atividades_extensao', 'distribuicao_ch_semanal', 'atividades_gestao_representacao', 'qualificacoes_docente_academica_profissional', 'outras_informacoes', 'afastamentos')
 
     def create(self, validated_data):
-        #bancas_examinadoras
-        bancas_examinadoras_data = validated_data.pop('bancas_examinadoras', None)
-
-        if bancas_examinadoras_data:
-
-            bancas_examinadoras_serializer = BancasExaminadorasSerializer(many=True, data=bancas_examinadoras_data)
-            
-            if not bancas_examinadoras_serializer.is_valid():
-                raise ValidationError(f'ERRO: bancas_examinadoras - {bancas_examinadoras_serializer.errors}')
-
-            bancas_examinadoras_data = bancas_examinadoras_serializer.data
-
         #ch_semanal_atividade_ensino
         ch_semanal_atividade_ensino_data = validated_data.pop('ch_semanal_atividade_ensino', None)
 
@@ -457,13 +507,7 @@ class RelatorioDocenteSerializer(serializers.ModelSerializer):
 
         relatorio_docente = RelatorioDocente.objects.create(
             data_criacao = timezone.now(),
-
             usuario_id = validated_data['usuario_id'],
-
             ano_relatorio = validated_data['ano_relatorio'],
-
-            bancas_examinadoras = bancas_examinadoras_data,
-
-            ch_semanal_atividade_ensino = ch_semanal_atividade_ensino_data
         )
         return relatorio_docente
