@@ -454,10 +454,57 @@ class CHSemanalAtividadesExtensaoSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class DistribuicaoCHSemanalSerializer(serializers.ModelSerializer):
+    ch_semanal_total = serializers.FloatField(read_only=True)
 
     class Meta:
         model = DistribuicaoCHSemanal
         fields = '__all__'
+
+    def create(self, validated_data):
+        ch_semanal_atividade_didatica = validated_data['ch_semanal_atividade_didatica']
+        ch_semanal_administracao = validated_data['ch_semanal_administracao']
+        ch_semanal_pesquisa = validated_data['ch_semanal_pesquisa']
+        ch_semanal_extensao = validated_data['ch_semanal_extensao']
+
+        ch_semanal_total = ch_semanal_atividade_didatica + ch_semanal_administracao + ch_semanal_pesquisa + ch_semanal_extensao
+
+        if ch_semanal_total > 40.0:
+            raise ValidationError({'ch_semanal_total': ['A carga horária semanal total não pode ultrapassar 40 horas.']})
+        
+        semestre = int(validated_data['semestre'])
+        if semestre > 2 or semestre < 1:
+            raise ValidationError({'semestre': ['ERRO: O semestre pode ser apenas 1 ou 2']})
+
+        distribuicao_ch_semanal = DistribuicaoCHSemanal.objects.create(
+            **validated_data,
+            ch_semanal_total = ch_semanal_total
+        )
+        return distribuicao_ch_semanal
+
+    def update(self, instance, validated_data):
+        semestre = validated_data.get('semestre', None)
+        if semestre:
+            if semestre > 2 or semestre < 1:
+                raise ValidationError({'semestre': ['ERRO: O semestre pode ser apenas 1 ou 2']})
+            instance.semestre = semestre
+        
+        instance.ch_semanal_atividade_didatica = validated_data.get('ch_semanal_atividade_didatica', instance.ch_semanal_atividade_didatica)
+
+        instance.ch_semanal_administracao = validated_data.get('ch_semanal_administracao', instance.ch_semanal_administracao)
+
+        instance.ch_semanal_pesquisa = validated_data.get('ch_semanal_pesquisa', instance.ch_semanal_pesquisa)
+
+        instance.ch_semanal_extensao = validated_data.get('ch_semanal_extensao', instance.ch_semanal_extensao)
+
+        ch_semanal_total = instance.ch_semanal_atividade_didatica + instance.ch_semanal_administracao + instance.ch_semanal_pesquisa + instance.ch_semanal_extensao
+        
+        if ch_semanal_total > 40.0:
+            raise ValidationError({'ch_semanal_total': ['A carga horária semanal total não pode ultrapassar 40 horas.']})
+        
+        instance.ch_semanal_total = ch_semanal_total
+    
+        instance.save()
+        return instance
 
 class AfastamentoSerializer(serializers.ModelSerializer):
 
@@ -489,25 +536,13 @@ class RelatorioDocenteSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = RelatorioDocente
-        fields = ('id', 'usuario_id', 'usuario_id', 'atividades_letivas', 'ano_relatorio', 'calculos_ch_semanal_aulas', 'atividades_pedagogicas_complementares', 'atividades_orientacao_supervisao_preceptoria_tutoria', 'descricoes_orientacao_coorientacao_academica', 'supervisoes_academicas', 'preceptorias_tutorias_residencia', 'bancas_examinadoras', 'ch_semanal_atividade_ensino', 'avaliacoes_discentes', 'projetos_pesquisa_producao_intelectual', 'trabalhos_completos_publicados_periodicos_boletins_tecnicos', 'livros_capitulos_verbetes_publicados', 'trabalhos_completos_resumos_publicados_apresentados_congressos', 'outras_atividades_pesquisa_producao_intelectual', 'ch_semanal_atividades_pesquisa', 'projetos_extensao', 'estagios_extensao', 'atividades_ensino_nao_formal', 'outras_atividades_extensao', 'ch_semanal_atividades_extensao', 'distribuicao_ch_semanal', 'atividades_gestao_representacao', 'qualificacoes_docente_academica_profissional', 'outras_informacoes', 'afastamentos')
+        fields = ('id', 'nome', 'usuario_id', 'usuario_id', 'atividades_letivas', 'ano_relatorio', 'calculos_ch_semanal_aulas', 'atividades_pedagogicas_complementares', 'atividades_orientacao_supervisao_preceptoria_tutoria', 'descricoes_orientacao_coorientacao_academica', 'supervisoes_academicas', 'preceptorias_tutorias_residencia', 'bancas_examinadoras', 'ch_semanal_atividade_ensino', 'avaliacoes_discentes', 'projetos_pesquisa_producao_intelectual', 'trabalhos_completos_publicados_periodicos_boletins_tecnicos', 'livros_capitulos_verbetes_publicados', 'trabalhos_completos_resumos_publicados_apresentados_congressos', 'outras_atividades_pesquisa_producao_intelectual', 'ch_semanal_atividades_pesquisa', 'projetos_extensao', 'estagios_extensao', 'atividades_ensino_nao_formal', 'outras_atividades_extensao', 'ch_semanal_atividades_extensao', 'distribuicao_ch_semanal', 'atividades_gestao_representacao', 'qualificacoes_docente_academica_profissional', 'outras_informacoes', 'afastamentos')
 
     def create(self, validated_data):
-        #ch_semanal_atividade_ensino
-        ch_semanal_atividade_ensino_data = validated_data.pop('ch_semanal_atividade_ensino', None)
-
-        if ch_semanal_atividade_ensino_data:
-
-            ch_semanal_atividade_ensino_serializer = CHSemanalAtividadeEnsinoSerializer(many=False, data=ch_semanal_atividade_ensino_data)
-            
-            if not ch_semanal_atividade_ensino_serializer.is_valid():
-                raise ValidationError(f'ERRO: ch_semanal_atividade_ensino - {ch_semanal_atividade_ensino_serializer.errors}')
-
-            ch_semanal_atividade_ensino_data = ch_semanal_atividade_ensino_serializer.data
-
-
         relatorio_docente = RelatorioDocente.objects.create(
             data_criacao = timezone.now(),
             usuario_id = validated_data['usuario_id'],
             ano_relatorio = validated_data['ano_relatorio'],
+            nome = validated_data['nome']
         )
         return relatorio_docente

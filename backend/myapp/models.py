@@ -70,6 +70,7 @@ class Usuario(AbstractUser):
 
 class RelatorioDocente(models.Model):
     id = models.AutoField(primary_key=True)
+    nome = models.CharField(max_length = 50)
     usuario_id = models.ForeignKey(Usuario, related_name="usuario_id", on_delete=models.CASCADE)
     data_criacao = models.DateField()
     ano_relatorio = models.CharField(max_length=4)
@@ -699,15 +700,6 @@ class DistribuicaoCHSemanal(models.Model):
     ch_semanal_extensao = models.FloatField()
     ch_semanal_total = models.FloatField(null=True)
 
-    def save(self):
-        self.ch_semanal_total = float(self.ch_semanal_atividade_didatica) + float(self.ch_semanal_administracao) + float(self.ch_semanal_pesquisa) + float(self.ch_semanal_extensao)
-        super().save()
-
-    def clean(self):
-        super().clean()
-        if self.ch_semanal_total > 40:
-            raise ValidationError({'ch_semanal_total': 'A carga horária semanal total pode ter no máximo 40 horas'})
-
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
         self.relatorio_id.atualizar_distribuicao_ch_semanal()
@@ -774,25 +766,6 @@ class OutraInformacao(models.Model):
     def update(self, *args, **kwargs):
         super().update(*args, **kwargs)
         self.relatorio_id.atualizar_outras_informacoes()
-
-
-class Afastamento(models.Model):
-    relatorio_id = models.ForeignKey(RelatorioDocente, on_delete=models.CASCADE)
-    numero_doc = models.IntegerField()
-    motivo = models.CharField(max_length = 1500)
-    portaria = models.CharField(max_length= 150)
-
-    def save(self, *args, **kwargs):
-        super().save(*args, **kwargs)
-        self.relatorio_id.atualizar_afastamentos()
-
-    def delete(self, *args, **kwargs):
-        super().delete(*args, **kwargs)
-        self.relatorio_id.atualizar_afastamentos()
-
-    def update(self, *args, **kwargs):
-        super().update(*args, **kwargs)
-        self.relatorio_id.atualizar_afastamentos()
 
 
 class Afastamento(models.Model):
