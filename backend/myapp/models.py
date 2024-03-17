@@ -714,11 +714,12 @@ class DistribuicaoCHSemanal(models.Model):
 
 class AtividadeGestaoRepresentacao(models.Model):
     relatorio_id = models.ForeignKey(RelatorioDocente, on_delete=models.CASCADE)
-    cargo_e_ou_funcao = models.CharField(max_length=100)
+    numero_doc = models.IntegerField()
+    cargo_e_ou_funcao = models.CharField(max_length=400)
     semestre = models.IntegerField()
     ch_semanal = models.FloatField()
-    ato_de_designacao = models.CharField(max_length=150)
-    periodo = models.CharField(max_length=100)
+    ato_de_designacao = models.CharField(max_length=400)
+    periodo = models.CharField(max_length=200)
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
@@ -771,8 +772,8 @@ class OutraInformacao(models.Model):
 class Afastamento(models.Model):
     relatorio_id = models.ForeignKey(RelatorioDocente, on_delete=models.CASCADE)
     numero_doc = models.IntegerField()
-    motivo = models.CharField(max_length = 1500)
-    portaria = models.CharField(max_length= 150)
+    motivacao = models.CharField(max_length = 1500)
+    portaria = models.CharField(max_length= 200)
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
