@@ -519,6 +519,32 @@ class AtividadeGestaoRepresentacaoSerializer(serializers.ModelSerializer):
         model = AtividadeGestaoRepresentacao
         fields = '__all__'
 
+    def create(self, validated_data):
+        semestre = int(validated_data['semestre'])
+        if semestre > 2 or semestre < 1:
+            raise ValidationError({'semestre': ['ERRO: O semestre pode ser apenas 1 ou 2']})
+
+        atividade_gestao_representacao = AtividadeGestaoRepresentacao.objects.create(
+            **validated_data
+        )
+        return atividade_gestao_representacao
+
+    def update(self, instance, validated_data):
+        semestre = validated_data.get('semestre', None)
+        if semestre:
+            if semestre > 2 or semestre < 1:
+                raise ValidationError({'semestre': ['ERRO: O semestre pode ser apenas 1 ou 2']})
+            instance.semestre = semestre
+        
+        instance.numero_doc = validated_data.get('numero_doc', instance.numero_doc)
+        instance.cargo_e_ou_funcao = validated_data.get('cargo_e_ou_funcao', instance.cargo_e_ou_funcao)
+        instance.ch_semanal = validated_data.get('ch_semanal', instance.ch_semanal)
+        instance.ato_de_designacao = validated_data.get('ato_de_designacao', instance.ato_de_designacao)
+        instance.periodo = validated_data.get('periodo', instance.periodo)
+
+        instance.save()
+        return instance
+
 class QualificacaoDocenteAcademicaProfissionalSerializer(serializers.ModelSerializer):
 
     class Meta:
@@ -536,7 +562,7 @@ class RelatorioDocenteSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = RelatorioDocente
-        fields = ('id', 'nome', 'usuario_id', 'usuario_id', 'atividades_letivas', 'ano_relatorio', 'calculos_ch_semanal_aulas', 'atividades_pedagogicas_complementares', 'atividades_orientacao_supervisao_preceptoria_tutoria', 'descricoes_orientacao_coorientacao_academica', 'supervisoes_academicas', 'preceptorias_tutorias_residencia', 'bancas_examinadoras', 'ch_semanal_atividade_ensino', 'avaliacoes_discentes', 'projetos_pesquisa_producao_intelectual', 'trabalhos_completos_publicados_periodicos_boletins_tecnicos', 'livros_capitulos_verbetes_publicados', 'trabalhos_completos_resumos_publicados_apresentados_congressos', 'outras_atividades_pesquisa_producao_intelectual', 'ch_semanal_atividades_pesquisa', 'projetos_extensao', 'estagios_extensao', 'atividades_ensino_nao_formal', 'outras_atividades_extensao', 'ch_semanal_atividades_extensao', 'distribuicao_ch_semanal', 'atividades_gestao_representacao', 'qualificacoes_docente_academica_profissional', 'outras_informacoes', 'afastamentos')
+        fields = ('id', 'nome', 'usuario_id', 'atividades_letivas', 'ano_relatorio', 'calculos_ch_semanal_aulas', 'atividades_pedagogicas_complementares', 'atividades_orientacao_supervisao_preceptoria_tutoria', 'descricoes_orientacao_coorientacao_academica', 'supervisoes_academicas', 'preceptorias_tutorias_residencia', 'bancas_examinadoras', 'ch_semanal_atividade_ensino', 'avaliacoes_discentes', 'projetos_pesquisa_producao_intelectual', 'trabalhos_completos_publicados_periodicos_boletins_tecnicos', 'livros_capitulos_verbetes_publicados', 'trabalhos_completos_resumos_publicados_apresentados_congressos', 'outras_atividades_pesquisa_producao_intelectual', 'ch_semanal_atividades_pesquisa', 'projetos_extensao', 'estagios_extensao', 'atividades_ensino_nao_formal', 'outras_atividades_extensao', 'ch_semanal_atividades_extensao', 'distribuicao_ch_semanal', 'atividades_gestao_representacao', 'qualificacoes_docente_academica_profissional', 'outras_informacoes', 'afastamentos')
 
     def create(self, validated_data):
         relatorio_docente = RelatorioDocente.objects.create(
