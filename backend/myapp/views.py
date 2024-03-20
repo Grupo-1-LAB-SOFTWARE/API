@@ -1753,7 +1753,7 @@ class DocumentoComprobatorioView(APIView):
         if id:
             try:
                 instance = DocumentoComprobatorio.objects.get(pk=id)
-                
+                nome_pdf = instance.nome_pdf
                 binary_data = instance.binary_pdf
                 with tempfile.NamedTemporaryFile(delete=False) as temp_file:
                     temp_file.write(binary_data)
@@ -1761,7 +1761,7 @@ class DocumentoComprobatorioView(APIView):
                     
                     # Retorna o arquivo PDF diretamente como resposta
                     response = HttpResponse(temp_file, content_type='application/pdf')
-                    response['Content-Disposition'] = 'inline; filename="documento.pdf"'
+                    response['Content-Disposition'] = f'inline; filename="{nome_pdf}"'
                     return response
                 
             except DocumentoComprobatorio.DoesNotExist:
