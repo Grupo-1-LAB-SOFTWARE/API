@@ -1,8 +1,11 @@
 from django.utils import timezone
+import tempfile
+
+from django.http import HttpResponse
 from django.urls import get_resolver
 from django.forms.models import model_to_dict
-from myapp.serializer import (UsuarioSerializer, RelatorioDocenteSerializer, AtividadeLetivaSerializer, CalculoCHSemanalAulasSerializer, AtividadePedagogicaComplementarSerializer, AtividadeOrientacaoSupervisaoPreceptoriaTutoriaSerializer, DescricaoOrientacaoCoorientacaoAcademicaSerializer, SupervisaoAcademicaSerializer, PreceptoriaTutoriaResidenciaSerializer, BancaExaminadoraSerializer, CHSemanalAtividadeEnsinoSerializer, AvaliacaoDiscenteSerializer, ProjetoPesquisaProducaoIntelectualSerializer, TrabalhoCompletoPublicadoPeriodicoBoletimTecnicoSerializer, LivroCapituloVerbetePublicadoSerializer, TrabalhoCompletoResumoPublicadoApresentadoCongressosSerializer, OutraAtividadePesquisaProducaoIntelectualSerializer, CHSemanalAtividadesPesquisaSerializer, ProjetoExtensaoSerializer, EstagioExtensaoSerializer, AtividadeEnsinoNaoFormalSerializer, OutraAtividadeExtensaoSerializer, CHSemanalAtividadesExtensaoSerializer, DistribuicaoCHSemanalSerializer, AtividadeGestaoRepresentacaoSerializer, QualificacaoDocenteAcademicaProfissionalSerializer, OutraInformacaoSerializer, AfastamentoSerializer)
-from .models import (Usuario, RelatorioDocente, AtividadeLetiva, CalculoCHSemanalAulas, AtividadePedagogicaComplementar, AtividadeOrientacaoSupervisaoPreceptoriaTutoria, DescricaoOrientacaoCoorientacaoAcademica, SupervisaoAcademica, PreceptoriaTutoriaResidencia, BancaExaminadora, CHSemanalAtividadeEnsino, AvaliacaoDiscente, ProjetoPesquisaProducaoIntelectual, TrabalhoCompletoPublicadoPeriodicoBoletimTecnico, LivroCapituloVerbetePublicado, TrabalhoCompletoResumoPublicadoApresentadoCongressos, OutraAtividadePesquisaProducaoIntelectual, CHSemanalAtividadesPesquisa, ProjetoExtensao, EstagioExtensao, AtividadeEnsinoNaoFormal, OutraAtividadeExtensao, CHSemanalAtividadesExtensao, DistribuicaoCHSemanal, AtividadeGestaoRepresentacao, QualificacaoDocenteAcademicaProfissional, OutraInformacao, Afastamento)
+from myapp.serializer import (UsuarioSerializer, RelatorioDocenteSerializer, AtividadeLetivaSerializer, CalculoCHSemanalAulasSerializer, AtividadePedagogicaComplementarSerializer, AtividadeOrientacaoSupervisaoPreceptoriaTutoriaSerializer, DescricaoOrientacaoCoorientacaoAcademicaSerializer, SupervisaoAcademicaSerializer, PreceptoriaTutoriaResidenciaSerializer, BancaExaminadoraSerializer, CHSemanalAtividadeEnsinoSerializer, AvaliacaoDiscenteSerializer, ProjetoPesquisaProducaoIntelectualSerializer, TrabalhoCompletoPublicadoPeriodicoBoletimTecnicoSerializer, LivroCapituloVerbetePublicadoSerializer, TrabalhoCompletoResumoPublicadoApresentadoCongressosSerializer, OutraAtividadePesquisaProducaoIntelectualSerializer, CHSemanalAtividadesPesquisaSerializer, ProjetoExtensaoSerializer, EstagioExtensaoSerializer, AtividadeEnsinoNaoFormalSerializer, OutraAtividadeExtensaoSerializer, CHSemanalAtividadesExtensaoSerializer, DistribuicaoCHSemanalSerializer, AtividadeGestaoRepresentacaoSerializer, QualificacaoDocenteAcademicaProfissionalSerializer, OutraInformacaoSerializer, AfastamentoSerializer, DocumentoComprobatorioSerializer)
+from .models import (Usuario, RelatorioDocente, AtividadeLetiva, CalculoCHSemanalAulas, AtividadePedagogicaComplementar, AtividadeOrientacaoSupervisaoPreceptoriaTutoria, DescricaoOrientacaoCoorientacaoAcademica, SupervisaoAcademica, PreceptoriaTutoriaResidencia, BancaExaminadora, CHSemanalAtividadeEnsino, AvaliacaoDiscente, ProjetoPesquisaProducaoIntelectual, TrabalhoCompletoPublicadoPeriodicoBoletimTecnico, LivroCapituloVerbetePublicado, TrabalhoCompletoResumoPublicadoApresentadoCongressos, OutraAtividadePesquisaProducaoIntelectual, CHSemanalAtividadesPesquisa, ProjetoExtensao, EstagioExtensao, AtividadeEnsinoNaoFormal, OutraAtividadeExtensao, CHSemanalAtividadesExtensao, DistribuicaoCHSemanal, AtividadeGestaoRepresentacao, QualificacaoDocenteAcademicaProfissional, OutraInformacao, Afastamento, DocumentoComprobatorio)
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -1706,6 +1709,75 @@ class AfastamentoView(APIView):
             except Afastamento.DoesNotExist:
                 return Util.response_not_found('Não foi possível encontrar um afastamento com o id fornecido.')
         return Util.response_bad_request('É necessário fornecer o id do objeto que você deseja excluir em afastamento/{id}/')
+    
+class DocumentoComprobatorioView(APIView):
+    def get(self, request, id=None):
+        if id:
+            return self.getById(request, id)
+        else:
+            return self.getAll(request)
+
+    def post(self, request):
+        serializer = DocumentoComprobatorioSerializer(data=request.data)
+        if serializer.is_valid():
+            instance = serializer.save() 
+            return Util.response_created(f'id: {instance.pk}')
+        return Util.response_bad_request(serializer.errors)
+
+    def put(self, request, id=None):
+        if id is not None:
+            try:
+                instance = DocumentoComprobatorio.objects.get(pk=id)
+                data = request.data.copy()
+                if 'id' in data or 'relatorio_id' in data:
+                    return Util.response_unauthorized('Não é permitido atualizar nenhum id ou relatorio_id')
+
+                serializer = DocumentoComprobatorioSerializer(instance, data=data, partial=True)
+                if serializer.is_valid():
+                    serializer.save()
+                    return Util.response_ok_no_message(serializer.data)
+                else:
+                    return Util.response_bad_request(serializer.errors)
+
+            except DocumentoComprobatorio.DoesNotExist:
+                return Util.response_not_found('Não foi possível encontrar um documento_comprobatorio com o id fornecido.')
+
+        return Util.response_bad_request('É necessário fornecer o id do objeto que você deseja atualizar em documento_comprobatorio/{id}/')
+
+    def getAll(self, request):
+        instances = DocumentoComprobatorio.objects.all()
+        serializer = DocumentoComprobatorioSerializer(instances, many=True)
+        return Util.response_ok_no_message(serializer.data)
+    
+    def getById(self, request, id=None):
+        if id:
+            try:
+                instance = DocumentoComprobatorio.objects.get(pk=id)
+                
+                binary_data = instance.binary_pdf
+                with tempfile.NamedTemporaryFile(delete=False) as temp_file:
+                    temp_file.write(binary_data)
+                    temp_file.seek(0)
+                    
+                    # Retorna o arquivo PDF diretamente como resposta
+                    response = HttpResponse(temp_file, content_type='application/pdf')
+                    response['Content-Disposition'] = 'inline; filename="documento.pdf"'
+                    return response
+                
+            except DocumentoComprobatorio.DoesNotExist:
+                return Util.response_not_found('Não foi possível encontrar um documento_comprobatorio com o id fornecido')
+        return Util.response_bad_request('É necessário fornecer o id do objeto que você deseja ler em documento_comprobatorio/{id}/')
+        
+    def delete(self, request, id=None):
+        if id:
+            try:
+                instance = DocumentoComprobatorio.objects.get(pk=id)
+                instance.delete()
+                return Util.response_ok_no_message('Objeto excluído com sucesso.')
+            except DocumentoComprobatorio.DoesNotExist:
+                return Util.response_not_found('Não foi possível encontrar um documento_comprobatorio com o id fornecido.')
+        return Util.response_bad_request('É necessário fornecer o id do objeto que você deseja excluir em documento_comprobatorio/{id}/')
+
 
 class RelatorioDocenteView(APIView):
     def post(self, request):

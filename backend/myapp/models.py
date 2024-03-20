@@ -101,6 +101,7 @@ class RelatorioDocente(models.Model):
     qualificacoes_docente_academica_profissional = models.JSONField(null=True)
     outras_informacoes = models.JSONField(null=True)
     afastamentos = models.JSONField(null=True)
+    documentos_comprobatorios = models.JSONField(null=True)
 
     def atualizar_atividades_letivas(self):
         atividades_letivas = list(self.atividadeletiva_set.all().values())
@@ -235,6 +236,12 @@ class RelatorioDocente(models.Model):
     def atualizar_afastamentos(self):
         afastamentos = list(self.afastamento_set.all().values())
         self.afastamentos = afastamentos
+        self.save() 
+
+    def atualizar_documentos_comprobatorios(self):
+        fields = [field.name for field in DocumentoComprobatorio._meta.get_fields() if field.name != 'binary_pdf']
+        documentos_comprobatorios = list(self.documentocomprobatorio_set.all().values(*fields))
+        self.documentos_comprobatorios = documentos_comprobatorios
         self.save() 
 
 class AtividadeLetiva(models.Model):
@@ -787,6 +794,23 @@ class Afastamento(models.Model):
         super().update(*args, **kwargs)
         self.relatorio_id.atualizar_afastamentos()
 
+class DocumentoComprobatorio(models.Model):
+    relatorio_id = models.ForeignKey(RelatorioDocente, on_delete=models.CASCADE)
+    binary_pdf = models.BinaryField()
+    nome_pdf = models.CharField(max_length=500)
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        self.relatorio_id.atualizar_documentos_comprobatorios()
+
+    def delete(self, *args, **kwargs):
+        super().delete(*args, **kwargs)
+        self.relatorio_id.atualizar_documentos_comprobatorios()
+
+    def update(self, *args, **kwargs):
+        super().update(*args, **kwargs)
+        self.relatorio_id.atualizar_documentos_comprobatorios()
+
 
 @receiver(post_save, sender=AtividadeLetiva)
 def atualizar_atividades_letivas(sender, instance, **kwargs):
@@ -891,3 +915,7 @@ def atualizar_outras_informacoes(sender, instance, **kwargs):
 @receiver(post_save, sender=Afastamento)
 def atualizar_afastamentos(sender, instance, **kwargs):
     instance.relatorio_id.atualizar_afastamentos()
+
+@receiver(post_save, sender=DocumentoComprobatorio)
+def atualizar_documentos_comprobatorios(sender, instance, **kwargs):
+    instance.relatorio_id.atualizar_documentos_comprobatorios()
