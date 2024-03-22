@@ -560,7 +560,7 @@ class OutraInformacaoSerializer(serializers.ModelSerializer):
 
 class DocumentoComprobatorioSerializer(serializers.ModelSerializer):
     binary_pdf = serializers.FileField(max_length=None, use_url=True, write_only=True)
-    nome_pdf = serializers.CharField(read_only=True)
+    
     class Meta:
         model = DocumentoComprobatorio
         fields = '__all__'
@@ -568,22 +568,20 @@ class DocumentoComprobatorioSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         documento_pdf = validated_data.pop('binary_pdf', None)
         documento_comprobatorio = DocumentoComprobatorio.objects.create(
-            binary_pdf=documento_pdf.read(),
-            nome_pdf=documento_pdf.name,
-            **validated_data)
+            binary_pdf=documento_pdf.read()
+        )
         return documento_comprobatorio
 
 class RelatorioDocenteSerializer(serializers.ModelSerializer):
-
+    data_criacao = serializers.DateField(read_only=True)
+    
     class Meta:
         model = RelatorioDocente
-        fields = ('id', 'nome', 'usuario_id', 'atividades_letivas', 'ano_relatorio', 'calculos_ch_semanal_aulas', 'atividades_pedagogicas_complementares', 'atividades_orientacao_supervisao_preceptoria_tutoria', 'descricoes_orientacao_coorientacao_academica', 'supervisoes_academicas', 'preceptorias_tutorias_residencia', 'bancas_examinadoras', 'ch_semanal_atividade_ensino', 'avaliacoes_discentes', 'projetos_pesquisa_producao_intelectual', 'trabalhos_completos_publicados_periodicos_boletins_tecnicos', 'livros_capitulos_verbetes_publicados', 'trabalhos_completos_resumos_publicados_apresentados_congressos', 'outras_atividades_pesquisa_producao_intelectual', 'ch_semanal_atividades_pesquisa', 'projetos_extensao', 'estagios_extensao', 'atividades_ensino_nao_formal', 'outras_atividades_extensao', 'ch_semanal_atividades_extensao', 'distribuicao_ch_semanal', 'atividades_gestao_representacao', 'qualificacoes_docente_academica_profissional', 'outras_informacoes', 'afastamentos', 'documentos_comprobatorios')
+        fields = '__all__'
 
     def create(self, validated_data):
         relatorio_docente = RelatorioDocente.objects.create(
             data_criacao = timezone.now(),
-            usuario_id = validated_data['usuario_id'],
-            ano_relatorio = validated_data['ano_relatorio'],
-            nome = validated_data['nome']
+            **validated_data
         )
         return relatorio_docente
