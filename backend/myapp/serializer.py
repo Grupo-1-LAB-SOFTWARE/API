@@ -568,7 +568,8 @@ class DocumentoComprobatorioSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         documento_pdf = validated_data.pop('binary_pdf', None)
         documento_comprobatorio = DocumentoComprobatorio.objects.create(
-            binary_pdf=documento_pdf.read()
+            binary_pdf=documento_pdf.read(),
+            **validated_data
         )
         return documento_comprobatorio
 

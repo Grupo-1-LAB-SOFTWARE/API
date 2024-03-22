@@ -1711,6 +1711,69 @@ class AfastamentoView(APIView):
             except Afastamento.DoesNotExist:
                 return Util.response_not_found('Não foi possível encontrar um afastamento com o id fornecido.')
         return Util.response_bad_request('É necessário fornecer o id do objeto que você deseja excluir em afastamento/{id}/')
+    
+class DocumentoComprobatorioView(APIView):
+    def get(self, request, id=None):
+        if id:
+            return self.getById(request, id)
+        else:
+            return self.getAll(request)
+
+    def post(self, request):
+        serializer = DocumentoComprobatorioSerializer(data=request.data)
+        if serializer.is_valid():
+            instance = serializer.save() 
+            return Util.response_created(f'id: {instance.pk}')
+        return Util.response_bad_request(serializer.errors)
+    
+    def put(self, request, id=None):
+        if id is not None:
+            try:
+                instance = DocumentoComprobatorio.objects.get(pk=id)
+                data = request.data.copy()
+                if 'id' in data or 'relatorio_id' in data:
+                    return Util.response_unauthorized('Não é permitido atualizar nenhum id ou relatorio_id')
+                serializer = DocumentoComprobatorioSerializer(instance, data=data, partial=True)
+                if serializer.is_valid():
+                    serializer.save()
+                    return Util.response_ok_no_message(serializer.data)
+                else:
+                    return Util.response_bad_request(serializer.errors)
+            except DocumentoComprobatorio.DoesNotExist:
+                return Util.response_not_found('Não foi possível encontrar um documento_comprobatorio com o id fornecido.')
+        return Util.response_bad_request('É necessário fornecer o id do objeto que você deseja atualizar em documento_comprobatorio/{id}/')
+    def getAll(self, request):
+        instances = DocumentoComprobatorio.objects.all()
+        serializer = DocumentoComprobatorioSerializer(instances, many=True)
+        return Util.response_ok_no_message(serializer.data)
+    
+    def getById(self, request, id=None):
+        if id:
+            try:
+                instance = DocumentoComprobatorio.objects.get(pk=id)
+                binary_data = instance.binary_pdf
+                with tempfile.NamedTemporaryFile(delete=False) as temp_file:
+                    temp_file.write(binary_data)
+                    temp_file.seek(0)
+
+                    # Retorna o arquivo PDF diretamente como resposta
+                    response = HttpResponse(temp_file, content_type='application/pdf')
+                    response['Content-Disposition'] = f'inline; filename="{temp_file.name}"'
+                    return response
+
+            except DocumentoComprobatorio.DoesNotExist:
+                return Util.response_not_found('Não foi possível encontrar um documento_comprobatorio com o id fornecido')
+        return Util.response_bad_request('É necessário fornecer o id do objeto que você deseja ler em documento_comprobatorio/{id}/')
+        
+    def delete(self, request, id=None):
+        if id:
+            try:
+                instance = DocumentoComprobatorio.objects.get(pk=id)
+                instance.delete()
+                return Util.response_ok_no_message('Objeto excluído com sucesso.')
+            except DocumentoComprobatorio.DoesNotExist:
+                return Util.response_not_found('Não foi possível encontrar um documento_comprobatorio com o id fornecido.')
+        return Util.response_bad_request('É necessário fornecer o id do objeto que você deseja excluir em documento_comprobatorio/{id}/')
 
 class RelatorioDocenteView(APIView):
     def post(self, request):
@@ -1760,7 +1823,7 @@ class DownloadRelatorioDocenteView(APIView):
         except Exception as e:
             return False
     
-    def post(self, request, relatorio_id=None):
+    def get(self, request, relatorio_id=None):
         if relatorio_id:
             try:
                 instance = RelatorioDocente.objects.get(pk=relatorio_id)
@@ -1775,33 +1838,27 @@ class DownloadRelatorioDocenteView(APIView):
                     #    output_pdf.append_pages_from_reader(temp_file_radoc)
                     #else:
                     #    return Util.response_bad_request(f'Erro da API: O RADOC de id {id} gerado não é um arquivo PDF válido.')
+                    documentos_comprobatorios = DocumentoComprobatorio.objects.filter(relatorio_id=relatorio_id)
+                    for documento in documentos_comprobatorios:
+                        binary_data = documento.binary_pdf
+                        with tempfile.NamedTemporaryFile(delete=False) as temp_file_doc:
+                            temp_file_doc.write(binary_data)
+                            temp_file_doc.seek(0)
 
-                    if request:
-                        documentos = {}
-                        serializer = DocumentoComprobatorioSerializer(data=request.data, many=True)
-                        if serializer.is_valid():
-                            documentos = request.data
-                            lista_binary_pdf = documentos.getlist('binary_pdf', [])
-                            for binary in lista_binary_pdf:
-                                binary_data = binary.read()
-                                with tempfile.NamedTemporaryFile(delete=False) as temp_file_doc:
-                                    temp_file_doc.write(binary_data)
-                                    temp_file_doc.seek(0)
-                                    
-                                    if not self.is_pdf(temp_file_doc.name):
-                                        return Util.response_bad_request(f'Erro: O documento comprobatório {binary.name} não é um arquivo PDF válido.')
+                            if not self.is_pdf(temp_file_doc.name):
+                                return Util.response_bad_request(f'Erro: O documento comprobatório {temp_file_doc.name} não é um arquivo PDF válido.')
                                         
-                                    temp_file_doc = PdfReader(temp_file_doc)
-                                    output_pdf.append_pages_from_reader(temp_file_doc)
+                            temp_file_doc = PdfReader(temp_file_doc)
+                            output_pdf.append_pages_from_reader(temp_file_doc)
                            
-                with tempfile.NamedTemporaryFile(delete=False) as merged_file:
-                    output_pdf.write(merged_file)
-                    merged_file.seek(0)
+                    with tempfile.NamedTemporaryFile(delete=False) as merged_file:
+                        output_pdf.write(merged_file)
+                        merged_file.seek(0)
                         
-                    # Retorna o arquivo PDF diretamente como resposta
-                    response = HttpResponse(merged_file, content_type='application/pdf')
-                    response['Content-Disposition'] = f'inline; filename="Relatório Docente - UFRA"'
-                    return response
+                        # Retorna o arquivo PDF diretamente como resposta
+                        response = HttpResponse(merged_file, content_type='application/pdf')
+                        response['Content-Disposition'] = f'inline; filename="Relatório Docente - UFRA"'
+                        return response
 
             except RelatorioDocente.DoesNotExist:
                 return Util.response_not_found('Não foi possível encontrar um relatorio_docente com o id fornecido')

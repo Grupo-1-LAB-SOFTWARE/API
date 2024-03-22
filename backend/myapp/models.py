@@ -308,8 +308,6 @@ class Afastamento(models.Model):
     portaria = models.CharField(max_length= 200)
 
 class DocumentoComprobatorio(models.Model):
+    relatorio_id = models.ForeignKey(RelatorioDocente, on_delete=models.CASCADE)
     binary_pdf = models.BinaryField()
-
-    class Meta:
-        managed = False 
 
