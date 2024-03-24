@@ -236,9 +236,24 @@ class CalculoCHSemanalAulasView(APIView):
             return self.getAll(request)
 
     def post(self, request):
+        calculo_ch_semanal_aulas = None
         serializer = CalculoCHSemanalAulasSerializer(data=request.data)
         if serializer.is_valid():
-            calculo_ch_semanal_aulas = serializer.save()
+            relatorio_id = serializer.validated_data.get('relatorio_id')
+            try:
+                instances = CalculoCHSemanalAulas.objects.filter(relatorio_id=relatorio_id)
+                if instances.count() > 0:
+                    if instances.count() == 2:
+                        return Util.response_bad_request('Objeto não criado: só podem ser adicionados dois calculo_ch_semanal_aulas para cada relatorio_docente. Um para cada semestre.')
+                    if instances[0].semestre is 1 and serializer.validated_data.get('semestre') is 1:
+                        return Util.response_bad_request('Objeto não criado: só pode ser adicionado um calculo_ch_semanal_aulas por semestre para cada relatorio_docente.')
+                    if instances[0].semestre is 2 and serializer.validated_data.get('semestre') is 2:
+                        return Util.response_bad_request('Objeto não criado: só pode ser adicionado um calculo_ch_semanal_aulas por semestre para cada relatorio_docente.')
+                
+                calculo_ch_semanal_aulas = serializer.save()
+
+            except CalculoCHSemanalAulas.DoesNotExist:
+                calculo_ch_semanal_aulas = serializer.save()
             return Util.response_created(f'id: {calculo_ch_semanal_aulas.pk}')
         return Util.response_bad_request(serializer.errors)
 
@@ -297,9 +312,25 @@ class AtividadePedagogicaComplementarView(APIView):
             return self.getAll(request)
 
     def post(self, request):
+        atividade_pedagogica_complementar = None
         serializer = AtividadePedagogicaComplementarSerializer(data=request.data)
         if serializer.is_valid():
-            atividade_pedagogica_complementar = serializer.save() 
+            relatorio_id = serializer.validated_data.get('relatorio_id')
+            try:
+                instances = AtividadePedagogicaComplementar.objects.filter(relatorio_id=relatorio_id)
+                if instances.count() > 0:
+                    if instances.count() == 2:
+                        return Util.response_bad_request('Objeto não criado: só podem ser adicionadas duas atividade_pedagogica_complementar para cada relatorio_docente. Uma para cada semestre.')
+                    if instances[0].semestre is 1 and serializer.validated_data.get('semestre') is 1:
+                        return Util.response_bad_request('Objeto não criado: só pode ser adicionada uma atividade_pedagogica_complementar por semestre para cada relatorio_docente.')
+                    if instances[0].semestre is 2 and serializer.validated_data.get('semestre') is 2:
+                        return Util.response_bad_request('Objeto não criado: só pode ser adicionada uma atividade_pedagogica_complementar por semestre para cada relatorio_docente.')
+                
+                atividade_pedagogica_complementar = serializer.save()
+
+            except AtividadePedagogicaComplementar.DoesNotExist:
+                atividade_pedagogica_complementar = serializer.save()
+
             return Util.response_created(f'id: {atividade_pedagogica_complementar.pk}')
         return Util.response_bad_request(serializer.errors)
 
@@ -356,9 +387,25 @@ class AtividadeOrientacaoSupervisaoPreceptoriaTutoriaView(APIView):
             return self.getAll(request)
 
     def post(self, request):
+        instance = None
         serializer = AtividadeOrientacaoSupervisaoPreceptoriaTutoriaSerializer(data=request.data)
         if serializer.is_valid():
-            instance = serializer.save() 
+            relatorio_id = serializer.validated_data.get('relatorio_id')
+            try:
+                instances = AtividadeOrientacaoSupervisaoPreceptoriaTutoria.objects.filter(relatorio_id=relatorio_id)
+                if instances.count() > 0:
+                    if instances.count() == 2:
+                        return Util.response_bad_request('Objeto não criado: só podem ser adicionadas duas atividade_orientacao_supervisao_preceptoria_tutoria para cada relatorio_docente. Uma para cada semestre.')
+                    if instances[0].semestre is 1 and serializer.validated_data.get('semestre') is 1:
+                        return Util.response_bad_request('Objeto não criado: só pode ser adicionada uma atividade_orientacao_supervisao_preceptoria_tutoria por semestre para cada relatorio_docente.')
+                    if instances[0].semestre is 2 and serializer.validated_data.get('semestre') is 2:
+                        return Util.response_bad_request('Objeto não criado: só pode ser adicionada uma atividade_orientacao_supervisao_preceptoria_tutoria por semestre para cada relatorio_docente.')
+                
+                instance = serializer.save()
+
+            except AtividadeOrientacaoSupervisaoPreceptoriaTutoria.DoesNotExist:
+                instance = serializer.save()
+
             return Util.response_created(f'id: {instance.pk}')
         return Util.response_bad_request(serializer.errors)
 
@@ -651,9 +698,20 @@ class CHSemanalAtividadeEnsinoView(APIView):
             return self.getAll(request)
 
     def post(self, request):
+        instance = None
         serializer = CHSemanalAtividadeEnsinoSerializer(data=request.data)
         if serializer.is_valid():
-            instance = serializer.save() 
+            relatorio_id = serializer.validated_data.get('relatorio_id')
+            try:
+                instances = CHSemanalAtividadeEnsino.objects.filter(relatorio_id=relatorio_id)
+                if instances.count() > 0:
+                    if instances.count() == 1:
+                        return Util.response_bad_request('Objeto não criado: só podem ser adicionada uma ch_semanal_atividade_ensino para cada relatorio_docente.')
+                
+                instance = serializer.save()
+
+            except CHSemanalAtividadeEnsino.DoesNotExist:
+                instance = serializer.save()
             return Util.response_created(f'id: {instance.pk}')
         return Util.response_bad_request(serializer.errors)
 
@@ -1067,9 +1125,21 @@ class CHSemanalAtividadesPesquisaView(APIView):
             return self.getAll(request)
 
     def post(self, request):
+        instance = None
         serializer = CHSemanalAtividadesPesquisaSerializer(data=request.data)
         if serializer.is_valid():
-            instance = serializer.save() 
+            relatorio_id = serializer.validated_data.get('relatorio_id')
+            try:
+                instances = CHSemanalAtividadesPesquisa.objects.filter(relatorio_id=relatorio_id)
+                if instances.count() > 0:
+                    if instances.count() == 1:
+                        return Util.response_bad_request('Objeto não criado: só podem ser adicionada uma ch_semanal_atividades_pesquisa para cada relatorio_docente.')
+                
+                instance = serializer.save()
+
+            except CHSemanalAtividadesPesquisa.DoesNotExist:
+                instance = serializer.save()
+            
             return Util.response_created(f'id: {instance.pk}')
         return Util.response_bad_request(serializer.errors)
 
@@ -1365,9 +1435,20 @@ class CHSemanalAtividadesExtensaoView(APIView):
             return self.getAll(request)
 
     def post(self, request):
+        instance = None
         serializer = CHSemanalAtividadesExtensaoSerializer(data=request.data)
         if serializer.is_valid():
-            instance = serializer.save() 
+            relatorio_id = serializer.validated_data.get('relatorio_id')
+            try:
+                instances = CHSemanalAtividadesExtensao.objects.filter(relatorio_id=relatorio_id)
+                if instances.count() > 0:
+                    if instances.count() == 1:
+                        return Util.response_bad_request('Objeto não criado: só podem ser adicionada uma ch_semanal_atividades_extensao para cada relatorio_docente.')
+                
+                instance = serializer.save()
+
+            except CHSemanalAtividadesExtensao.DoesNotExist:
+                instance = serializer.save()
             return Util.response_created(f'id: {instance.pk}')
         return Util.response_bad_request(serializer.errors)
 
@@ -1424,9 +1505,25 @@ class DistribuicaoCHSemanalView(APIView):
             return self.getAll(request)
 
     def post(self, request):
+        instance = None
         serializer = DistribuicaoCHSemanalSerializer(data=request.data)
         if serializer.is_valid():
-            instance = serializer.save() 
+            relatorio_id = serializer.validated_data.get('relatorio_id')
+            try:
+                instances = DistribuicaoCHSemanal.objects.filter(relatorio_id=relatorio_id)
+                if instances.count() > 0:
+                    if instances.count() == 2:
+                        return Util.response_bad_request('Objeto não criado: só podem ser adicionadas duas distribuicao_ch_semanal para cada relatorio_docente. Uma para cada semestre.')
+                    if instances[0].semestre is 1 and serializer.validated_data.get('semestre') is 1:
+                        return Util.response_bad_request('Objeto não criado: só pode ser adicionada uma distribuicao_ch_semanal por semestre para cada relatorio_docente.')
+                    if instances[0].semestre is 2 and serializer.validated_data.get('semestre') is 2:
+                        return Util.response_bad_request('Objeto não criado: só pode ser adicionada uma distribuicao_ch_semanal por semestre para cada relatorio_docente.')
+                
+                instance = serializer.save()
+
+            except DistribuicaoCHSemanal.DoesNotExist:
+                instance = serializer.save()
+                
             return Util.response_created(f'id: {instance.pk}')
         return Util.response_bad_request(serializer.errors)
 
