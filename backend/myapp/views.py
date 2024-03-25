@@ -1,7 +1,7 @@
 from django.utils import timezone
 from django.urls import get_resolver
 from django.forms.models import model_to_dict
-from backend.myapp.extraction_strategy import PDFExtractionCoordinator
+from myapp.extraction_strategy import PDFExtractionCoordinator
 from myapp.serializer import (UsuarioSerializer, RelatorioDocenteSerializer, AtividadeLetivaSerializer, CalculoCHSemanalAulasSerializer, AtividadePedagogicaComplementarSerializer, AtividadeOrientacaoSupervisaoPreceptoriaTutoriaSerializer, DescricaoOrientacaoCoorientacaoAcademicaSerializer, SupervisaoAcademicaSerializer, PreceptoriaTutoriaResidenciaSerializer, BancaExaminadoraSerializer, CHSemanalAtividadeEnsinoSerializer, AvaliacaoDiscenteSerializer, ProjetoPesquisaProducaoIntelectualSerializer, TrabalhoCompletoPublicadoPeriodicoBoletimTecnicoSerializer, LivroCapituloVerbetePublicadoSerializer, TrabalhoCompletoResumoPublicadoApresentadoCongressosSerializer, OutraAtividadePesquisaProducaoIntelectualSerializer, CHSemanalAtividadesPesquisaSerializer, ProjetoExtensaoSerializer, EstagioExtensaoSerializer, AtividadeEnsinoNaoFormalSerializer, OutraAtividadeExtensaoSerializer, CHSemanalAtividadesExtensaoSerializer)
 from .models import (Usuario, RelatorioDocente, AtividadeLetiva, CalculoCHSemanalAulas, AtividadePedagogicaComplementar, AtividadeOrientacaoSupervisaoPreceptoriaTutoria, DescricaoOrientacaoCoorientacaoAcademica, SupervisaoAcademica, PreceptoriaTutoriaResidencia, BancaExaminadora, CHSemanalAtividadeEnsino, AvaliacaoDiscente, ProjetoPesquisaProducaoIntelectual, TrabalhoCompletoPublicadoPeriodicoBoletimTecnico, LivroCapituloVerbetePublicado, TrabalhoCompletoResumoPublicadoApresentadoCongressos, OutraAtividadePesquisaProducaoIntelectual, CHSemanalAtividadesPesquisa, ProjetoExtensao, EstagioExtensao, AtividadeEnsinoNaoFormal, OutraAtividadeExtensao, CHSemanalAtividadesExtensao)
 from rest_framework import status
@@ -10,7 +10,7 @@ from rest_framework.views import APIView
 from .utils import Util
 from rest_framework.authtoken.models import Token
 from django.contrib.auth.hashers import check_password
-from .services import extrair_texto_do_pdf, extrair_dados_de_atividades_letivas
+from .services import escrever_dados_no_pdf, extrair_texto_do_pdf, extrair_dados_de_atividades_letivas
 
 class UsuarioView(APIView):
     def get(self, request, user_id=None):
@@ -1451,7 +1451,7 @@ class RelatorioDocenteView(APIView):
                 return Util.response_not_found('Não foi possível encontrar uma relatorio_docente com o id fornecido.')
         return Util.response_bad_request('É necessário fornecer o id do objeto que você deseja excluir em relatorio_docente/{id}/')
 
-class ExtrairDadosAtividadesLetivasPDFAPIView(APIView):
+class ExtrairDadosPDFAPIView(APIView):
     def post(self, request):
         arquivo_pdf = request.FILES.get('pdf')
         opcao = request.data.get('opcao')
@@ -1467,6 +1467,14 @@ class ExtrairDadosAtividadesLetivasPDFAPIView(APIView):
                 return Response({'erro': str(e + "não foi possível extrair os dados")}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         else:
             return Response({'erro': 'Nenhum arquivo PDF enviado.'}, status=status.HTTP_400_BAD_REQUEST)
+
+class GerarRelatorioDocenteView(APIView):
+    def get(self, request):
+        id = request.data.get('id')
+        usurario_id = request.data.get('ususrio_id')
+        instance = RelatorioDocente.objects.get(pk=id, usurario_id=usurario_id)
+        instance_dict = model_to_dict(instance)
+        escrever_dados_no_pdf(instance_dict)
  
 class EndpointsView(APIView):
     def get(self, request):
