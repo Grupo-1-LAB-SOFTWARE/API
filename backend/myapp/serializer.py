@@ -4,6 +4,7 @@ from django.contrib.auth.hashers import make_password
 from rest_framework.exceptions import ValidationError
 from .utils import Util
 from django.forms.models import model_to_dict
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from myapp.models import ( 
                           Usuario,
                           RelatorioDocente,
@@ -36,6 +37,14 @@ from myapp.models import (
                           DocumentoComprobatorio
                           )
 
+
+class CustomizarTokenSerializer(TokenObtainPairSerializer):
+    @classmethod
+    def get_token(cls, user):
+        token = super().get_token(user)
+        #token['username'] = user.username
+
+        return token
 
 class UsuarioSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
