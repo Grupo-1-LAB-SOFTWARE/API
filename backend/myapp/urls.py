@@ -1,7 +1,7 @@
 from django.urls import path
 
 from .views import (UsuarioView, ActivateEmail, LoginView, EndpointsView,
-                    RelatorioDocenteView, AtividadeLetivaView, CalculoCHSemanalAulasView, AtividadePedagogicaComplementarView, AtividadeOrientacaoSupervisaoPreceptoriaTutoriaView, DescricaoOrientacaoCoorientacaoAcademicaView, SupervisaoAcademicaView, PreceptoriaTutoriaResidenciaView, BancaExaminadoraView, CHSemanalAtividadeEnsinoView, AvaliacaoDiscenteView, ProjetoPesquisaProducaoIntelectualView, TrabalhoCompletoPublicadoPeriodicoBoletimTecnicoView, LivroCapituloVerbetePublicadoView, TrabalhoCompletoResumoPublicadoApresentadoCongressosView, OutraAtividadePesquisaProducaoIntelectualView, CHSemanalAtividadesPesquisaView, ProjetoExtensaoView, EstagioExtensaoView, AtividadeEnsinoNaoFormalView, OutraAtividadeExtensaoView, CHSemanalAtividadesExtensaoView, ExtrairDadosAtividadesLetivasPDFAPIView, ExtrairDadosAtividadesLetivasPDFAPIView)
+                    RelatorioDocenteView, AtividadeLetivaView, CalculoCHSemanalAulasView, AtividadePedagogicaComplementarView, AtividadeOrientacaoSupervisaoPreceptoriaTutoriaView, DescricaoOrientacaoCoorientacaoAcademicaView, SupervisaoAcademicaView, PreceptoriaTutoriaResidenciaView, BancaExaminadoraView, CHSemanalAtividadeEnsinoView, AvaliacaoDiscenteView, ProjetoPesquisaProducaoIntelectualView, TrabalhoCompletoPublicadoPeriodicoBoletimTecnicoView, LivroCapituloVerbetePublicadoView, TrabalhoCompletoResumoPublicadoApresentadoCongressosView, OutraAtividadePesquisaProducaoIntelectualView, CHSemanalAtividadesPesquisaView, ProjetoExtensaoView, EstagioExtensaoView, AtividadeEnsinoNaoFormalView, OutraAtividadeExtensaoView, CHSemanalAtividadesExtensaoView, DistribuicaoCHSemanalView, AtividadeGestaoRepresentacaoView, QualificacaoDocenteAcademicaProfissionalView, OutraInformacaoView, AfastamentoView, DocumentoComprobatorioView, DownloadRelatorioDocenteView, ExtrairDadosAtividadesLetivasPDFAPIView, ExtrairDadosAtividadesLetivasPDFAPIView)
 
 
 urlpatterns = [
@@ -152,7 +152,44 @@ urlpatterns = [
     path('ch_semanal_atividades_extensao/', CHSemanalAtividadesExtensaoView.as_view(), name='ch_semanal_atividades_extensao/'),
 
     path('ch_semanal_atividades_extensao/<int:id>/', CHSemanalAtividadesExtensaoView.as_view(), name='ch_semanal_atividades_extensao/id/'),
+
+    path('distribuicao_ch_semanal', DistribuicaoCHSemanalView.as_view(), name='distribuicao_ch_semanal'),
+
+    path('distribuicao_ch_semanal/', DistribuicaoCHSemanalView.as_view(), name='distribuicao_ch_semanal/'),
+
+    path('distribuicao_ch_semanal/<int:id>/', DistribuicaoCHSemanalView.as_view(), name='distribuicao_ch_semanal/id/'),
+
+    path('atividade_gestao_representacao', AtividadeGestaoRepresentacaoView.as_view(), name='atividade_gestao_representacao'),
+
+    path('atividade_gestao_representacao/', AtividadeGestaoRepresentacaoView.as_view(), name='atividade_gestao_representacao/'),
+
+    path('atividade_gestao_representacao/<int:id>/', AtividadeGestaoRepresentacaoView.as_view(), name='atividade_gestao_representacao/id/'),
     
-    path('extrair_dados_atividades_letivas', ExtrairDadosAtividadesLetivasPDFAPIView.as_view(), name='extrair_dados_atividades_letivas'),
+    path('qualificacao_docente_academica_profissional', QualificacaoDocenteAcademicaProfissionalView.as_view(), name='qualificacao_docente_academica_profissional'),
+    
+    path('qualificacao_docente_academica_profissional/', QualificacaoDocenteAcademicaProfissionalView.as_view(), name='qualificacao_docente_academica_profissional/'),
+
+    path('qualificacao_docente_academica_profissional/<int:id>/', QualificacaoDocenteAcademicaProfissionalView.as_view(), name='qualificacao_docente_academica_profissional/id/'),
+
+    path('outra_informacao', OutraInformacaoView.as_view(), name='outra_informacao'),
+    
+    path('outra_informacao/', OutraInformacaoView.as_view(), name='outra_informacao/'),
+
+    path('outra_informacao/<int:id>/', OutraInformacaoView.as_view(), name='outra_informacao/id/'),
+
+    path('afastamento', AfastamentoView.as_view(), name='afastamento'),
+    
+    path('afastamento/', AfastamentoView.as_view(), name='afastamento/'),
+
+    path('afastamento/<int:id>/', AfastamentoView.as_view(), name='afastamento/id/'),
+
+    path('documento_comprobatorio', DocumentoComprobatorioView.as_view(), name='documento_comprobatorio'),
+    
+    path('documento_comprobatorio/', DocumentoComprobatorioView.as_view(), name='documento_comprobatorio/'),
+
+    path('documento_comprobatorio/<int:id>/', DocumentoComprobatorioView.as_view(), name='documento_comprobatorio/id/'),
+
+    path('download_relatorio_docente/<int:relatorio_id>/', DownloadRelatorioDocenteView.as_view(), name='download_relatorio_docente/relatorio_id/'),
+    
     path('extrair_dados_atividades_letivas', ExtrairDadosAtividadesLetivasPDFAPIView.as_view(), name='extrair_dados_atividades_letivas'),
 ]
