@@ -266,7 +266,7 @@ class AtividadePedagogicaComplementarSerializer(serializers.ModelSerializer):
                 raise ValidationError({'semestre': ['ERRO: O semestre pode ser apenas 1 ou 2']})
             instance.semestre = semestre
 
-        instance.ch_semanal_graduacao = validated_data.get('ch_semanal_graduacao', instance.ch_semanal_graducao)
+        instance.ch_semanal_graduacao = validated_data.get('ch_semanal_graduacao', instance.ch_semanal_graduacao)
         instance.ch_semanal_pos_graduacao = validated_data.get('ch_semanal_pos_graduacao', instance.ch_semanal_pos_graduacao)
 
         instance.ch_semanal_total = instance.ch_semanal_graduacao + instance.ch_semanal_pos_graduacao
