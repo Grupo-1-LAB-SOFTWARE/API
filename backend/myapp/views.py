@@ -184,6 +184,75 @@ class AtividadeLetivaView(APIView):
         serializer = AtividadeLetivaSerializer(data=request.data)
         if serializer.is_valid():
             atividade_letiva = serializer.save()
+            relatorio_id = atividade_letiva.relatorio_id
+            atividades_letivas = AtividadeLetiva.objects.filter(relatorio_id=relatorio_id)
+
+            calculo_ch_semanal_aulas = CalculoCHSemanalAulas.objects.filter(relatorio_id=relatorio_id)
+            for instance in calculo_ch_semanal_aulas:
+                instance.ch_semanal_graduacao = 0.0
+                instance.ch_semanal_pos_graduacao = 0.0
+                instance.ch_semanal_total = 0.0
+                instance.save()
+
+            for instance in atividades_letivas:
+                ch_usuario = instance.docentes_envolvidos_e_cargas_horarias.pop(relatorio_id.usuario_id.nome_completo.upper(), None)
+                try:
+                    calculo_ch_semanal_aulas = CalculoCHSemanalAulas.objects.get(relatorio_id=relatorio_id, semestre=instance.semestre)
+
+                    if instance.nivel == 'GRA':
+                        if ch_usuario % 15 == 0:
+                            calculo_ch_semanal_aulas.ch_semanal_graduacao = calculo_ch_semanal_aulas.ch_semanal_graduacao + round(ch_usuario / 15, 1)
+                            
+                        else:
+                            calculo_ch_semanal_aulas.ch_semanal_graduacao = calculo_ch_semanal_aulas.ch_semanal_graduacao + round(ch_usuario / 17, 1)
+
+                    elif instance.nivel == 'POS':
+                        calculo_ch_semanal_aulas.ch_semanal_pos_graduacao = calculo_ch_semanal_aulas.ch_semanal_pos_graduacao + round(ch_usuario / 15, 1)
+
+                    calculo_ch_semanal_aulas.save()
+
+                except CalculoCHSemanalAulas.DoesNotExist:
+                    if instance.nivel == 'GRA':
+                        ch_semanal_graduacao = None
+
+                        if ch_usuario % 15 == 0:
+                            ch_semanal_graduacao = round(ch_usuario / 15, 1)
+                        else:
+                            ch_semanal_graduacao = round(ch_usuario / 17, 1)
+
+                        calculo_ch_semanal_aulas = CalculoCHSemanalAulas.objects.create(
+                            relatorio_id = relatorio_id,
+                            semestre = instance.semestre,
+                            ch_semanal_graduacao = ch_semanal_graduacao,
+                            ch_semanal_pos_graduacao = 0.0,
+                            ch_semanal_total = ch_semanal_graduacao
+                        )
+
+                    elif instance.nivel == 'POS':
+                        ch_semanal_pos_graduacao = round(ch_usuario / 15, 1)
+
+                        calculo_ch_semanal_aulas = CalculoCHSemanalAulas.objects.create(
+                            relatorio_id = relatorio_id,
+                            semestre = instance.semestre,
+                            ch_semanal_graduacao = 0.0,
+                            ch_semanal_pos_graduacao = ch_semanal_pos_graduacao,
+                            ch_semanal_total = ch_semanal_pos_graduacao
+                        )
+
+            calculos_ch_semanal_aulas = CalculoCHSemanalAulas.objects.filter(relatorio_id=relatorio_id)
+            for instance in calculos_ch_semanal_aulas:
+                if instance.ch_semanal_graduacao >= 16.0: instance.ch_semanal_graduacao = 16.0
+                elif instance.ch_semanal_pos_graduacao >= 16.0: instance.ch_semanal_pos_graduacao = 16.0
+                elif instance.ch_semanal_graduacao < 8.0: instance.ch_semanal_graduacao = 0.0
+                elif instance.ch_semanal_pos_graduacao < 8.0: instance.ch_semanal_pos_graduacao = 0.0
+
+                instance.ch_semanal_graduacao = round(instance.ch_semanal_graduacao, 1)
+                instance.ch_semanal_pos_graduacao = round(instance.ch_semanal_pos_graduacao, 1)
+
+                instance.ch_semanal_total = instance.ch_semanal_graduacao + instance.ch_semanal_pos_graduacao
+
+                instance.save()
+
             return Util.response_created(f'id: {atividade_letiva.pk}')
         return Util.response_bad_request(serializer.errors)
 
@@ -197,7 +266,76 @@ class AtividadeLetivaView(APIView):
 
                 serializer = AtividadeLetivaSerializer(atividade_letiva, data=data, partial=True)
                 if serializer.is_valid():
-                    serializer.save()
+                    atividade_letiva = serializer.save()
+                    relatorio_id = atividade_letiva.relatorio_id
+                    atividades_letivas = AtividadeLetiva.objects.filter(relatorio_id=relatorio_id)
+
+                    calculo_ch_semanal_aulas = CalculoCHSemanalAulas.objects.filter(relatorio_id=relatorio_id)
+                    for instance in calculo_ch_semanal_aulas:
+                        instance.ch_semanal_graduacao = 0.0
+                        instance.ch_semanal_pos_graduacao = 0.0
+                        instance.ch_semanal_total = 0.0
+                        instance.save()
+
+                    for instance in atividades_letivas:
+                        ch_usuario = instance.docentes_envolvidos_e_cargas_horarias.pop(relatorio_id.usuario_id.nome_completo.upper(), None)
+                        try:
+                            calculo_ch_semanal_aulas = CalculoCHSemanalAulas.objects.get(relatorio_id=relatorio_id, semestre=instance.semestre)
+
+                            if instance.nivel == 'GRA':
+                                if ch_usuario % 15 == 0:
+                                    calculo_ch_semanal_aulas.ch_semanal_graduacao = calculo_ch_semanal_aulas.ch_semanal_graduacao + round(ch_usuario / 15, 1)
+                            
+                                else:
+                                    calculo_ch_semanal_aulas.ch_semanal_graduacao = calculo_ch_semanal_aulas.ch_semanal_graduacao + round(ch_usuario / 17, 1)
+
+                            elif instance.nivel == 'POS':
+                                calculo_ch_semanal_aulas.ch_semanal_pos_graduacao = calculo_ch_semanal_aulas.ch_semanal_pos_graduacao + round(ch_usuario / 15, 1)
+
+                            calculo_ch_semanal_aulas.save()
+
+                        except CalculoCHSemanalAulas.DoesNotExist:
+                            if instance.nivel == 'GRA':
+                                ch_semanal_graduacao = None
+
+                                if ch_usuario % 15 == 0:
+                                    ch_semanal_graduacao = round(ch_usuario / 15, 1)
+                                else:
+                                        ch_semanal_graduacao = round(ch_usuario / 17, 1)
+
+                                calculo_ch_semanal_aulas = CalculoCHSemanalAulas.objects.create(
+                                    relatorio_id = relatorio_id,
+                                    semestre = instance.semestre,
+                                    ch_semanal_graduacao = ch_semanal_graduacao,
+                                    ch_semanal_pos_graduacao = 0.0,
+                                    ch_semanal_total = ch_semanal_graduacao
+                                )
+
+                            elif instance.nivel == 'POS':
+                                ch_semanal_pos_graduacao = round(ch_usuario / 15, 1)
+
+                                calculo_ch_semanal_aulas = CalculoCHSemanalAulas.objects.create(
+                                    relatorio_id = relatorio_id,
+                                    semestre = instance.semestre,
+                                    ch_semanal_graduacao = 0.0,
+                                    ch_semanal_pos_graduacao = ch_semanal_pos_graduacao,
+                                    ch_semanal_total = ch_semanal_pos_graduacao
+                                )
+
+                    calculos_ch_semanal_aulas = CalculoCHSemanalAulas.objects.filter(relatorio_id=relatorio_id)
+                    for instance in calculos_ch_semanal_aulas:
+                        if instance.ch_semanal_graduacao >= 16.0: instance.ch_semanal_graduacao = 16.0
+                        elif instance.ch_semanal_pos_graduacao >= 16.0: instance.ch_semanal_pos_graduacao = 16.0
+                        elif instance.ch_semanal_graduacao < 8.0: instance.ch_semanal_graduacao = 0.0
+                        elif instance.ch_semanal_pos_graduacao < 8.0: instance.ch_semanal_pos_graduacao = 0.0
+
+                        instance.ch_semanal_graduacao = round(instance.ch_semanal_graduacao, 1)
+                        instance.ch_semanal_pos_graduacao = round(instance.ch_semanal_pos_graduacao, 1)
+
+                        instance.ch_semanal_total = instance.ch_semanal_graduacao + instance.ch_semanal_pos_graduacao
+
+                        instance.save()
+
                     return Util.response_ok_no_message(serializer.data)
                 else:
                     return Util.response_bad_request(serializer.errors)
@@ -226,7 +364,81 @@ class AtividadeLetivaView(APIView):
         if id:
             try:
                 instance = AtividadeLetiva.objects.get(pk=id)
+                atividade_letiva = instance
+                relatorio_id = atividade_letiva.relatorio_id
+                atividades_letivas = AtividadeLetiva.objects.filter(relatorio_id=relatorio_id)
                 instance.delete()
+
+                calculo_ch_semanal_aulas = CalculoCHSemanalAulas.objects.filter(relatorio_id=relatorio_id)
+                for instance in calculo_ch_semanal_aulas:
+                    instance.ch_semanal_graduacao = 0.0
+                    instance.ch_semanal_pos_graduacao = 0.0
+                    instance.ch_semanal_total = 0.0
+                    instance.save()
+
+                for instance in atividades_letivas:
+                    ch_usuario = instance.docentes_envolvidos_e_cargas_horarias.pop(relatorio_id.usuario_id.nome_completo.upper(), None)
+                    try:
+                        calculo_ch_semanal_aulas = CalculoCHSemanalAulas.objects.get(relatorio_id=relatorio_id, semestre=instance.semestre)
+
+                        if instance.nivel == 'GRA':
+                            if ch_usuario % 15 == 0:
+                                calculo_ch_semanal_aulas.ch_semanal_graduacao = calculo_ch_semanal_aulas.ch_semanal_graduacao + round(ch_usuario / 15, 1)
+                            
+                            else:
+                                calculo_ch_semanal_aulas.ch_semanal_graduacao = calculo_ch_semanal_aulas.ch_semanal_graduacao + round(ch_usuario / 17, 1)
+
+                        elif instance.nivel == 'POS':
+                            calculo_ch_semanal_aulas.ch_semanal_pos_graduacao = calculo_ch_semanal_aulas.ch_semanal_pos_graduacao + round(ch_usuario / 15, 1)
+
+                        calculo_ch_semanal_aulas.save()
+
+                    except CalculoCHSemanalAulas.DoesNotExist:
+                        if instance.nivel == 'GRA':
+                            ch_semanal_graduacao = None
+
+                            if ch_usuario % 15 == 0:
+                                ch_semanal_graduacao = round(ch_usuario / 15, 1)
+                            else:
+                                    ch_semanal_graduacao = round(ch_usuario / 17, 1)
+
+                            calculo_ch_semanal_aulas = CalculoCHSemanalAulas.objects.create(
+                                relatorio_id = relatorio_id,
+                                semestre = instance.semestre,
+                                ch_semanal_graduacao = ch_semanal_graduacao,
+                                ch_semanal_pos_graduacao = 0.0,
+                                ch_semanal_total = ch_semanal_graduacao
+                            )
+
+                        elif instance.nivel == 'POS':
+                            ch_semanal_pos_graduacao = round(ch_usuario / 15, 1)
+
+                            calculo_ch_semanal_aulas = CalculoCHSemanalAulas.objects.create(
+                                relatorio_id = relatorio_id,
+                                semestre = instance.semestre,
+                                ch_semanal_graduacao = 0.0,
+                                ch_semanal_pos_graduacao = ch_semanal_pos_graduacao,
+                                ch_semanal_total = ch_semanal_pos_graduacao
+                            )
+
+                calculos_ch_semanal_aulas = CalculoCHSemanalAulas.objects.filter(relatorio_id=relatorio_id)
+                if atividades_letivas.count() == 0:
+                    for instance in calculo_ch_semanal_aulas:
+                        instance.delete()
+                else:
+                    for instance in calculos_ch_semanal_aulas:
+                        if instance.ch_semanal_graduacao >= 16.0: instance.ch_semanal_graduacao = 16.0
+                        elif instance.ch_semanal_pos_graduacao >= 16.0: instance.ch_semanal_pos_graduacao = 16.0
+                        elif instance.ch_semanal_graduacao < 8.0: instance.ch_semanal_graduacao = 0.0
+                        elif instance.ch_semanal_pos_graduacao < 8.0: instance.ch_semanal_pos_graduacao = 0.0
+
+                        instance.ch_semanal_graduacao = round(instance.ch_semanal_graduacao, 1)
+                        instance.ch_semanal_pos_graduacao = round(instance.ch_semanal_pos_graduacao, 1)
+
+                        instance.ch_semanal_total = instance.ch_semanal_graduacao + instance.ch_semanal_pos_graduacao
+
+                        instance.save()
+
                 return Util.response_ok_no_message('Objeto excluído com sucesso.')
             except AtividadeLetiva.DoesNotExist:
                 return Util.response_not_found('Não foi possível encontrar uma atividade_letiva com o id fornecido.')
@@ -1527,7 +1739,7 @@ class DistribuicaoCHSemanalView(APIView):
 
             except DistribuicaoCHSemanal.DoesNotExist:
                 instance = serializer.save()
-                
+
             return Util.response_created(f'id: {instance.pk}')
         return Util.response_bad_request(serializer.errors)
 

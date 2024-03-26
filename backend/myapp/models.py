@@ -76,13 +76,21 @@ class RelatorioDocente(models.Model):
     ano_relatorio = models.CharField(max_length=4)
 
 class AtividadeLetiva(models.Model):
+    NIVEL = (
+        ('GRA', 'GRA'),
+        ('POS', 'POS'),
+    )
     relatorio_id = models.ForeignKey(RelatorioDocente, on_delete=models.CASCADE)
     semestre = models.IntegerField()
     codigo_disciplina = models.CharField(max_length=20)
     nome_disciplina = models.CharField(max_length=70)
     ano_e_semestre = models.CharField(max_length=6)
     curso = models.CharField(max_length=300)
-    nivel = models.CharField(max_length=250)
+    nivel = models.CharField(
+        max_length=10,
+        choices=NIVEL,
+        default='GRA'
+    )
     numero_turmas_teorico = models.IntegerField()
     numero_turmas_pratico = models.IntegerField()
     ch_turmas_teorico = models.FloatField()

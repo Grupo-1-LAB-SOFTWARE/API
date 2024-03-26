@@ -112,6 +112,7 @@ class UsuarioSerializer(serializers.ModelSerializer):
 
 class AtividadeLetivaSerializer(serializers.ModelSerializer):
     ch_total = serializers.FloatField(read_only = True)
+    docentes_envolvidos_e_cargas_horarias = serializers.JSONField()
 
     class Meta:
         model = AtividadeLetiva
@@ -132,8 +133,31 @@ class AtividadeLetivaSerializer(serializers.ModelSerializer):
         if semestre > 2 or semestre < 1:
             raise ValidationError({'semestre': ['ERRO: O semestre pode ser apenas 1 ou 2']})
 
+        docentes_envolvidos_e_cargas_horarias = validated_data.get('docentes_envolvidos_e_cargas_horarias', None)
+    
+        relatorio = validated_data['relatorio_id']
+        usuario = relatorio.usuario_id
+
+        if 'Você' in docentes_envolvidos_e_cargas_horarias:
+            ch_usuario = docentes_envolvidos_e_cargas_horarias.pop('Você', None)
+            if ch_usuario:
+                docentes_envolvidos_e_cargas_horarias[usuario.nome_completo.upper()] = ch_usuario 
+        else:
+            raise ValidationError({'docentes_envolvidos_e_cargas_horarias': ['ERRO: O usuário precisa fazer parte da atividade_letiva para cadastrá-la. Inclua a chave "Você" para se referir à carga horária do docente usuário.']})
+        
         atividade_letiva = AtividadeLetiva.objects.create(
-            **validated_data,
+            relatorio_id = validated_data['relatorio_id'],
+            semestre = validated_data['semestre'],
+            codigo_disciplina = validated_data['codigo_disciplina'],
+            nome_disciplina = validated_data['nome_disciplina'],
+            ano_e_semestre = validated_data['ano_e_semestre'],
+            curso = validated_data['curso'],
+            nivel = validated_data['nivel'],
+            numero_turmas_teorico = validated_data['numero_turmas_teorico'],
+            numero_turmas_pratico = validated_data['numero_turmas_pratico'],
+            ch_turmas_teorico = validated_data['ch_turmas_teorico'],
+            ch_turmas_pratico = validated_data['ch_turmas_pratico'],
+            docentes_envolvidos_e_cargas_horarias = docentes_envolvidos_e_cargas_horarias,
             ch_total = ch_total
         )
         return atividade_letiva
@@ -174,7 +198,6 @@ class AtividadeLetivaSerializer(serializers.ModelSerializer):
 
 
 class CalculoCHSemanalAulasSerializer(serializers.ModelSerializer):
-    ch_semanal_total = serializers.FloatField(read_only = True)
     ch_semanal_total = serializers.FloatField(read_only = True)
 
     class Meta:
