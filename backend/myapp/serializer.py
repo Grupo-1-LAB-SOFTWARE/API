@@ -334,6 +334,50 @@ class SupervisaoAcademicaSerializer(serializers.ModelSerializer):
         model = SupervisaoAcademica
         fields = '__all__'
 
+    def create(self, validated_data):
+        ch_semanal_primeiro_semestre = validated_data['ch_semanal_primeiro_semestre']
+        ch_semanal_segundo_semestre = validated_data['ch_semanal_segundo_semestre']
+        
+        if ch_semanal_primeiro_semestre > 12.0:
+            raise ValidationError({'ch_semanal_primeiro_semestre': ['ERRO: A carga horária semanal de uma supervisao_academica não pode ser maior que 12 horas.']})
+        
+        if ch_semanal_segundo_semestre > 12.0:
+            raise ValidationError({'ch_semanal_segundo_semestre': ['ERRO: A carga horária semanal de uma supervisao_academica não pode ser maior que 12 horas.']})
+
+        supervisao_academica = SupervisaoAcademica.objects.create(
+            **validated_data
+        )
+        return supervisao_academica
+
+    def update(self, instance, validated_data):
+        ch_semanal_primeiro_semestre = validated_data.get('ch_semanal_primeiro_semestre', None)
+        if ch_semanal_primeiro_semestre:
+            if ch_semanal_primeiro_semestre > 12.0:
+                raise ValidationError({'ch_semanal_primeiro_semestre': ['ERRO: A carga horária semanal de uma supervisao_academica não pode ser maior que 12 horas.']})
+        
+        ch_semanal_segundo_semestre = validated_data.get('ch_semanal_segundo_semestre', None)
+        if ch_semanal_segundo_semestre:
+            if ch_semanal_segundo_semestre > 12.0:
+                raise ValidationError({'ch_semanal_segundo_semestre': ['ERRO: A carga horária semanal de uma supervisao_academica não pode ser maior que 12 horas.']})
+        
+
+        instance.ch_semanal_primeiro_semestre = validated_data.get('ch_semanal_primeiro_semestre', instance.ch_semanal_primeiro_semestre)
+
+        instance.ch_semanal_segundo_semestre = validated_data.get('ch_semanal_segundo_semestre', instance.ch_semanal_segundo_semestre)
+
+        instance.numero_doc = validated_data.get('numero_doc', instance.numero_doc)
+
+        instance.nome_e_ou_matricula_discente = validated_data.get('nome_e_ou_matricula_discente', instance.nome_e_ou_matricula_discente)
+
+        instance.curso = validated_data.get('curso', instance.curso)
+
+        instance.tipo = validated_data.get('tipo', instance.tipo)
+
+        instance.nivel = validated_data.get('nivel', instance.nivel)
+    
+        instance.save()
+        return instance
+
 class PreceptoriaTutoriaResidenciaSerializer(serializers.ModelSerializer):
 
     class Meta:
