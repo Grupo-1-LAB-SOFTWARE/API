@@ -1980,12 +1980,37 @@ class ExtrairDadosAtividadesLetivasPDFAPIView(APIView):
             return Response({'erro': 'Nenhum arquivo PDF enviado.'}, status=status.HTTP_400_BAD_REQUEST)
 
 class GerarRelatorioDocenteView(APIView):
-    def get(self, request):
-        id = request.data.get('id')
-        usurario_id = request.data.get('ususrio_id')
-        instance = RelatorioDocente.objects.get(pk=id, usurario_id=usurario_id)
-        instance_dict = model_to_dict(instance)
-        escrever_dados_no_pdf(instance_dict)
+    def get(self, request, relatorio_id, usuario_id):
+        id = relatorio_id
+        usuario_id = usuario_id
+        usuario_dicts = [model_to_dict(usuario_obj) for usuario_obj in Usuario.objects.filter(id=usuario_id)]
+        relatorio_docente_dicts = [model_to_dict(relatorio_obj) for relatorio_obj in RelatorioDocente.objects.filter(pk=id, usuario_id=usuario_id)]
+        atividade_letiva_dicts = [model_to_dict(atividade_obj) for atividade_obj in AtividadeLetiva.objects.filter(relatorio_id=id)]
+        calculo_ch_semanal_aulas_dicts = [model_to_dict(calculo_ch_obj) for calculo_ch_obj in CalculoCHSemanalAulas.objects.filter(relatorio_id=id)]
+        atividade_pedagogica_complementar_dicts = [model_to_dict(atividade_pedagogica_obj) for atividade_pedagogica_obj in AtividadePedagogicaComplementar.objects.filter(relatorio_id=id)]
+        atividade_orientacao_supervisao_preceptoria_tutoria_dicts = [model_to_dict(atividade_orientacao_obj) for atividade_orientacao_obj in AtividadeOrientacaoSupervisaoPreceptoriaTutoria.objects.filter(relatorio_id=id)]
+        descricao_orientacao_coorientacao_academica_dicts = [model_to_dict(descricao_orientacao_obj) for descricao_orientacao_obj in DescricaoOrientacaoCoorientacaoAcademica.objects.filter(relatorio_id=id)]
+        supervisao_academica_dicts = [model_to_dict(supervisao_academica_obj) for supervisao_academica_obj in SupervisaoAcademica.objects.filter(relatorio_id=id)]
+        preceptoria_tutoria_residencia_dicts = [model_to_dict(preceptoria_tutoria_obj) for preceptoria_tutoria_obj in PreceptoriaTutoriaResidencia.objects.filter(relatorio_id=id)]
+        banca_examinadora_dicts = [model_to_dict(banca_examinadora_obj) for banca_examinadora_obj in BancaExaminadora.objects.filter(relatorio_id=id)]
+        ch_semanal_atividade_ensino_dicts = [model_to_dict(ch_semanal_atividade_obj) for ch_semanal_atividade_obj in CHSemanalAtividadeEnsino.objects.filter(relatorio_id=id)]
+        avaliacao_discente_dicts = [model_to_dict(avaliacao_discente_obj) for avaliacao_discente_obj in AvaliacaoDiscente.objects.filter(relatorio_id=id)]
+
+        merged_data = {}
+        merged_data['usuario'] = usuario_dicts
+        merged_data['relatorio_docente'] = relatorio_docente_dicts
+        merged_data['atividade_letiva'] = atividade_letiva_dicts
+        merged_data['calculo_ch_semanal_aulas'] = calculo_ch_semanal_aulas_dicts
+        merged_data['atividade_pedagogica_complementar'] = atividade_pedagogica_complementar_dicts
+        merged_data['atividade_orientacao_supervisao_preceptoria_tutoria'] = atividade_orientacao_supervisao_preceptoria_tutoria_dicts
+        merged_data['descricao_orientacao_coorientacao_academica'] = descricao_orientacao_coorientacao_academica_dicts
+        merged_data['supervisao_academica'] = supervisao_academica_dicts
+        merged_data['preceptoria_tutoria_residencia'] = preceptoria_tutoria_residencia_dicts
+        merged_data['banca_examinadora'] = banca_examinadora_dicts
+        merged_data['ch_semanal_atividade_ensino'] = ch_semanal_atividade_ensino_dicts
+        merged_data['avaliacao_discente'] = avaliacao_discente_dicts
+
+        return Response({escrever_dados_no_pdf(merged_data)})
  
 class EndpointsView(APIView):
     def get(self, request):

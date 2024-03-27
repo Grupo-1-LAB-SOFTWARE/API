@@ -86,7 +86,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'sisradoc',
         'USER': 'postgres',
-        'PASSWORD': '',
+        'PASSWORD': 'admin',
         'HOST': 'localhost'
     }
 }
@@ -141,7 +141,6 @@ EMAIL_PORT = config('EMAIL_PORT', cast=int)
 EMAIL_HOST_USER = config('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
 
-print(EMAIL_BACKEND,EMAIL_HOST,EMAIL_PORT,EMAIL_HOST_PASSWORD,EMAIL_USE_TLS,EMAIL_HOST_USER)
 AUTH_USER_MODEL = "myapp.Usuario"
 CORS_ORIGIN_ALLOW_ALL = True
 CORS_ALLOW_CREDENTIALS = True
