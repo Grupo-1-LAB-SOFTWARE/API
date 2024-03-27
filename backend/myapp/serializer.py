@@ -4,6 +4,7 @@ from django.contrib.auth.hashers import make_password
 from rest_framework.exceptions import ValidationError
 from .utils import Util
 from django.forms.models import model_to_dict
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from myapp.models import ( 
                           Usuario,
                           RelatorioDocente,
@@ -36,6 +37,14 @@ from myapp.models import (
                           DocumentoComprobatorio
                           )
 
+
+class CustomizarTokenSerializer(TokenObtainPairSerializer):
+    @classmethod
+    def get_token(cls, user):
+        token = super().get_token(user)
+        #token['username'] = user.username
+
+        return token
 
 class UsuarioSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
@@ -103,6 +112,7 @@ class UsuarioSerializer(serializers.ModelSerializer):
 
 class AtividadeLetivaSerializer(serializers.ModelSerializer):
     ch_total = serializers.FloatField(read_only = True)
+    docentes_envolvidos_e_cargas_horarias = serializers.JSONField()
 
     class Meta:
         model = AtividadeLetiva
@@ -123,8 +133,31 @@ class AtividadeLetivaSerializer(serializers.ModelSerializer):
         if semestre > 2 or semestre < 1:
             raise ValidationError({'semestre': ['ERRO: O semestre pode ser apenas 1 ou 2']})
 
+        docentes_envolvidos_e_cargas_horarias = validated_data.get('docentes_envolvidos_e_cargas_horarias', None)
+    
+        relatorio = validated_data['relatorio_id']
+        usuario = relatorio.usuario_id
+
+        if 'Você' in docentes_envolvidos_e_cargas_horarias:
+            ch_usuario = docentes_envolvidos_e_cargas_horarias.pop('Você', None)
+            if ch_usuario:
+                docentes_envolvidos_e_cargas_horarias[usuario.nome_completo.upper()] = ch_usuario 
+        else:
+            raise ValidationError({'docentes_envolvidos_e_cargas_horarias': ['ERRO: O usuário precisa fazer parte da atividade_letiva para cadastrá-la. Inclua a chave "Você" para se referir à carga horária do docente usuário.']})
+        
         atividade_letiva = AtividadeLetiva.objects.create(
-            **validated_data,
+            relatorio_id = validated_data['relatorio_id'],
+            semestre = validated_data['semestre'],
+            codigo_disciplina = validated_data['codigo_disciplina'],
+            nome_disciplina = validated_data['nome_disciplina'],
+            ano_e_semestre = validated_data['ano_e_semestre'],
+            curso = validated_data['curso'],
+            nivel = validated_data['nivel'],
+            numero_turmas_teorico = validated_data['numero_turmas_teorico'],
+            numero_turmas_pratico = validated_data['numero_turmas_pratico'],
+            ch_turmas_teorico = validated_data['ch_turmas_teorico'],
+            ch_turmas_pratico = validated_data['ch_turmas_pratico'],
+            docentes_envolvidos_e_cargas_horarias = docentes_envolvidos_e_cargas_horarias,
             ch_total = ch_total
         )
         return atividade_letiva
@@ -165,7 +198,6 @@ class AtividadeLetivaSerializer(serializers.ModelSerializer):
 
 
 class CalculoCHSemanalAulasSerializer(serializers.ModelSerializer):
-    ch_semanal_total = serializers.FloatField(read_only = True)
     ch_semanal_total = serializers.FloatField(read_only = True)
 
     class Meta:
@@ -234,7 +266,7 @@ class AtividadePedagogicaComplementarSerializer(serializers.ModelSerializer):
                 raise ValidationError({'semestre': ['ERRO: O semestre pode ser apenas 1 ou 2']})
             instance.semestre = semestre
 
-        instance.ch_semanal_graduacao = validated_data.get('ch_semanal_graduacao', instance.ch_semanal_graducao)
+        instance.ch_semanal_graduacao = validated_data.get('ch_semanal_graduacao', instance.ch_semanal_graduacao)
         instance.ch_semanal_pos_graduacao = validated_data.get('ch_semanal_pos_graduacao', instance.ch_semanal_pos_graduacao)
 
         instance.ch_semanal_total = instance.ch_semanal_graduacao + instance.ch_semanal_pos_graduacao
@@ -301,6 +333,50 @@ class SupervisaoAcademicaSerializer(serializers.ModelSerializer):
     class Meta:
         model = SupervisaoAcademica
         fields = '__all__'
+
+    def create(self, validated_data):
+        ch_semanal_primeiro_semestre = validated_data['ch_semanal_primeiro_semestre']
+        ch_semanal_segundo_semestre = validated_data['ch_semanal_segundo_semestre']
+        
+        if ch_semanal_primeiro_semestre > 12.0:
+            raise ValidationError({'ch_semanal_primeiro_semestre': ['ERRO: A carga horária semanal de uma supervisao_academica não pode ser maior que 12 horas.']})
+        
+        if ch_semanal_segundo_semestre > 12.0:
+            raise ValidationError({'ch_semanal_segundo_semestre': ['ERRO: A carga horária semanal de uma supervisao_academica não pode ser maior que 12 horas.']})
+
+        supervisao_academica = SupervisaoAcademica.objects.create(
+            **validated_data
+        )
+        return supervisao_academica
+
+    def update(self, instance, validated_data):
+        ch_semanal_primeiro_semestre = validated_data.get('ch_semanal_primeiro_semestre', None)
+        if ch_semanal_primeiro_semestre:
+            if ch_semanal_primeiro_semestre > 12.0:
+                raise ValidationError({'ch_semanal_primeiro_semestre': ['ERRO: A carga horária semanal de uma supervisao_academica não pode ser maior que 12 horas.']})
+        
+        ch_semanal_segundo_semestre = validated_data.get('ch_semanal_segundo_semestre', None)
+        if ch_semanal_segundo_semestre:
+            if ch_semanal_segundo_semestre > 12.0:
+                raise ValidationError({'ch_semanal_segundo_semestre': ['ERRO: A carga horária semanal de uma supervisao_academica não pode ser maior que 12 horas.']})
+        
+
+        instance.ch_semanal_primeiro_semestre = validated_data.get('ch_semanal_primeiro_semestre', instance.ch_semanal_primeiro_semestre)
+
+        instance.ch_semanal_segundo_semestre = validated_data.get('ch_semanal_segundo_semestre', instance.ch_semanal_segundo_semestre)
+
+        instance.numero_doc = validated_data.get('numero_doc', instance.numero_doc)
+
+        instance.nome_e_ou_matricula_discente = validated_data.get('nome_e_ou_matricula_discente', instance.nome_e_ou_matricula_discente)
+
+        instance.curso = validated_data.get('curso', instance.curso)
+
+        instance.tipo = validated_data.get('tipo', instance.tipo)
+
+        instance.nivel = validated_data.get('nivel', instance.nivel)
+    
+        instance.save()
+        return instance
 
 class PreceptoriaTutoriaResidenciaSerializer(serializers.ModelSerializer):
 

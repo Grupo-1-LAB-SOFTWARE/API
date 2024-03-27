@@ -7,7 +7,7 @@ from django.http import HttpResponse
 from django.urls import get_resolver
 from django.forms.models import model_to_dict
 from myapp.extraction_strategy import PDFExtractionCoordinator
-from myapp.serializer import (UsuarioSerializer, RelatorioDocenteSerializer, AtividadeLetivaSerializer, CalculoCHSemanalAulasSerializer, AtividadePedagogicaComplementarSerializer, AtividadeOrientacaoSupervisaoPreceptoriaTutoriaSerializer, DescricaoOrientacaoCoorientacaoAcademicaSerializer, SupervisaoAcademicaSerializer, PreceptoriaTutoriaResidenciaSerializer, BancaExaminadoraSerializer, CHSemanalAtividadeEnsinoSerializer, AvaliacaoDiscenteSerializer, ProjetoPesquisaProducaoIntelectualSerializer, TrabalhoCompletoPublicadoPeriodicoBoletimTecnicoSerializer, LivroCapituloVerbetePublicadoSerializer, TrabalhoCompletoResumoPublicadoApresentadoCongressosSerializer, OutraAtividadePesquisaProducaoIntelectualSerializer, CHSemanalAtividadesPesquisaSerializer, ProjetoExtensaoSerializer, EstagioExtensaoSerializer, AtividadeEnsinoNaoFormalSerializer, OutraAtividadeExtensaoSerializer, CHSemanalAtividadesExtensaoSerializer, DistribuicaoCHSemanalSerializer, AtividadeGestaoRepresentacaoSerializer, QualificacaoDocenteAcademicaProfissionalSerializer, OutraInformacaoSerializer, AfastamentoSerializer, DocumentoComprobatorioSerializer)
+from myapp.serializer import (UsuarioSerializer, RelatorioDocenteSerializer, AtividadeLetivaSerializer, CalculoCHSemanalAulasSerializer, AtividadePedagogicaComplementarSerializer, AtividadeOrientacaoSupervisaoPreceptoriaTutoriaSerializer, DescricaoOrientacaoCoorientacaoAcademicaSerializer, SupervisaoAcademicaSerializer, PreceptoriaTutoriaResidenciaSerializer, BancaExaminadoraSerializer, CHSemanalAtividadeEnsinoSerializer, AvaliacaoDiscenteSerializer, ProjetoPesquisaProducaoIntelectualSerializer, TrabalhoCompletoPublicadoPeriodicoBoletimTecnicoSerializer, LivroCapituloVerbetePublicadoSerializer, TrabalhoCompletoResumoPublicadoApresentadoCongressosSerializer, OutraAtividadePesquisaProducaoIntelectualSerializer, CHSemanalAtividadesPesquisaSerializer, ProjetoExtensaoSerializer, EstagioExtensaoSerializer, AtividadeEnsinoNaoFormalSerializer, OutraAtividadeExtensaoSerializer, CHSemanalAtividadesExtensaoSerializer, DistribuicaoCHSemanalSerializer, AtividadeGestaoRepresentacaoSerializer, QualificacaoDocenteAcademicaProfissionalSerializer, OutraInformacaoSerializer, AfastamentoSerializer, DocumentoComprobatorioSerializer, CustomizarTokenSerializer)
 from .models import (Usuario, RelatorioDocente, AtividadeLetiva, CalculoCHSemanalAulas, AtividadePedagogicaComplementar, AtividadeOrientacaoSupervisaoPreceptoriaTutoria, DescricaoOrientacaoCoorientacaoAcademica, SupervisaoAcademica, PreceptoriaTutoriaResidencia, BancaExaminadora, CHSemanalAtividadeEnsino, AvaliacaoDiscente, ProjetoPesquisaProducaoIntelectual, TrabalhoCompletoPublicadoPeriodicoBoletimTecnico, LivroCapituloVerbetePublicado, TrabalhoCompletoResumoPublicadoApresentadoCongressos, OutraAtividadePesquisaProducaoIntelectual, CHSemanalAtividadesPesquisa, ProjetoExtensao, EstagioExtensao, AtividadeEnsinoNaoFormal, OutraAtividadeExtensao, CHSemanalAtividadesExtensao, DistribuicaoCHSemanal, AtividadeGestaoRepresentacao, QualificacaoDocenteAcademicaProfissional, OutraInformacao, Afastamento, DocumentoComprobatorio)
 from rest_framework import status
 from rest_framework.response import Response
@@ -15,7 +15,10 @@ from rest_framework.views import APIView
 from .utils import Util
 from rest_framework.authtoken.models import Token
 from django.contrib.auth.hashers import check_password
-from .services import escrever_dados_no_pdf, extrair_texto_do_pdf, extrair_dados_de_atividades_letivas
+from .services import extrair_texto_do_pdf, extrair_dados_de_atividades_letivas
+from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.views import TokenObtainPairView
+from rest_framework.permissions import IsAuthenticated
 
 class UsuarioView(APIView):
     def get(self, request, user_id=None):
@@ -149,8 +152,8 @@ class LoginView(APIView):
             if check_password(password, usuario.password):
                 usuario.last_login = timezone.now()
                 usuario.save(update_fields=['last_login'])
-                token, created = Token.objects.get_or_create(user=usuario)
-                return Util.response_ok_token(token.key)
+                token = CustomizarTokenSerializer.get_token(user=usuario)
+                return Util.response_ok_token(token)
             else:
                 return Util.response_unauthorized('Senha incorreta.')
         else:
@@ -171,6 +174,7 @@ class ActivateEmail(APIView):
 
 
 class AtividadeLetivaView(APIView):
+    permission_classes = [IsAuthenticated]
     def get(self, request, id=None):
         if id:
             return self.getById(request, id)
@@ -181,6 +185,75 @@ class AtividadeLetivaView(APIView):
         serializer = AtividadeLetivaSerializer(data=request.data)
         if serializer.is_valid():
             atividade_letiva = serializer.save()
+            relatorio_id = atividade_letiva.relatorio_id
+            atividades_letivas = AtividadeLetiva.objects.filter(relatorio_id=relatorio_id)
+
+            calculo_ch_semanal_aulas = CalculoCHSemanalAulas.objects.filter(relatorio_id=relatorio_id)
+            for instance in calculo_ch_semanal_aulas:
+                instance.ch_semanal_graduacao = 0.0
+                instance.ch_semanal_pos_graduacao = 0.0
+                instance.ch_semanal_total = 0.0
+                instance.save()
+
+            for instance in atividades_letivas:
+                ch_usuario = instance.docentes_envolvidos_e_cargas_horarias.pop(relatorio_id.usuario_id.nome_completo.upper(), None)
+                try:
+                    calculo_ch_semanal_aulas = CalculoCHSemanalAulas.objects.get(relatorio_id=relatorio_id, semestre=instance.semestre)
+
+                    if instance.nivel == 'GRA':
+                        if ch_usuario % 15 == 0:
+                            calculo_ch_semanal_aulas.ch_semanal_graduacao = calculo_ch_semanal_aulas.ch_semanal_graduacao + round(ch_usuario / 15, 1)
+                            
+                        else:
+                            calculo_ch_semanal_aulas.ch_semanal_graduacao = calculo_ch_semanal_aulas.ch_semanal_graduacao + round(ch_usuario / 17, 1)
+
+                    elif instance.nivel == 'POS':
+                        calculo_ch_semanal_aulas.ch_semanal_pos_graduacao = calculo_ch_semanal_aulas.ch_semanal_pos_graduacao + round(ch_usuario / 15, 1)
+
+                    calculo_ch_semanal_aulas.save()
+
+                except CalculoCHSemanalAulas.DoesNotExist:
+                    if instance.nivel == 'GRA':
+                        ch_semanal_graduacao = None
+
+                        if ch_usuario % 15 == 0:
+                            ch_semanal_graduacao = round(ch_usuario / 15, 1)
+                        else:
+                            ch_semanal_graduacao = round(ch_usuario / 17, 1)
+
+                        calculo_ch_semanal_aulas = CalculoCHSemanalAulas.objects.create(
+                            relatorio_id = relatorio_id,
+                            semestre = instance.semestre,
+                            ch_semanal_graduacao = ch_semanal_graduacao,
+                            ch_semanal_pos_graduacao = 0.0,
+                            ch_semanal_total = ch_semanal_graduacao
+                        )
+
+                    elif instance.nivel == 'POS':
+                        ch_semanal_pos_graduacao = round(ch_usuario / 15, 1)
+
+                        calculo_ch_semanal_aulas = CalculoCHSemanalAulas.objects.create(
+                            relatorio_id = relatorio_id,
+                            semestre = instance.semestre,
+                            ch_semanal_graduacao = 0.0,
+                            ch_semanal_pos_graduacao = ch_semanal_pos_graduacao,
+                            ch_semanal_total = ch_semanal_pos_graduacao
+                        )
+
+            calculos_ch_semanal_aulas = CalculoCHSemanalAulas.objects.filter(relatorio_id=relatorio_id)
+            for instance in calculos_ch_semanal_aulas:
+                if instance.ch_semanal_graduacao >= 16.0: instance.ch_semanal_graduacao = 16.0
+                elif instance.ch_semanal_pos_graduacao >= 16.0: instance.ch_semanal_pos_graduacao = 16.0
+                elif instance.ch_semanal_graduacao < 8.0: instance.ch_semanal_graduacao = 0.0
+                elif instance.ch_semanal_pos_graduacao < 8.0: instance.ch_semanal_pos_graduacao = 0.0
+
+                instance.ch_semanal_graduacao = round(instance.ch_semanal_graduacao, 1)
+                instance.ch_semanal_pos_graduacao = round(instance.ch_semanal_pos_graduacao, 1)
+
+                instance.ch_semanal_total = instance.ch_semanal_graduacao + instance.ch_semanal_pos_graduacao
+
+                instance.save()
+
             return Util.response_created(f'id: {atividade_letiva.pk}')
         return Util.response_bad_request(serializer.errors)
 
@@ -194,7 +267,76 @@ class AtividadeLetivaView(APIView):
 
                 serializer = AtividadeLetivaSerializer(atividade_letiva, data=data, partial=True)
                 if serializer.is_valid():
-                    serializer.save()
+                    atividade_letiva = serializer.save()
+                    relatorio_id = atividade_letiva.relatorio_id
+                    atividades_letivas = AtividadeLetiva.objects.filter(relatorio_id=relatorio_id)
+
+                    calculo_ch_semanal_aulas = CalculoCHSemanalAulas.objects.filter(relatorio_id=relatorio_id)
+                    for instance in calculo_ch_semanal_aulas:
+                        instance.ch_semanal_graduacao = 0.0
+                        instance.ch_semanal_pos_graduacao = 0.0
+                        instance.ch_semanal_total = 0.0
+                        instance.save()
+
+                    for instance in atividades_letivas:
+                        ch_usuario = instance.docentes_envolvidos_e_cargas_horarias.pop(relatorio_id.usuario_id.nome_completo.upper(), None)
+                        try:
+                            calculo_ch_semanal_aulas = CalculoCHSemanalAulas.objects.get(relatorio_id=relatorio_id, semestre=instance.semestre)
+
+                            if instance.nivel == 'GRA':
+                                if ch_usuario % 15 == 0:
+                                    calculo_ch_semanal_aulas.ch_semanal_graduacao = calculo_ch_semanal_aulas.ch_semanal_graduacao + round(ch_usuario / 15, 1)
+                            
+                                else:
+                                    calculo_ch_semanal_aulas.ch_semanal_graduacao = calculo_ch_semanal_aulas.ch_semanal_graduacao + round(ch_usuario / 17, 1)
+
+                            elif instance.nivel == 'POS':
+                                calculo_ch_semanal_aulas.ch_semanal_pos_graduacao = calculo_ch_semanal_aulas.ch_semanal_pos_graduacao + round(ch_usuario / 15, 1)
+
+                            calculo_ch_semanal_aulas.save()
+
+                        except CalculoCHSemanalAulas.DoesNotExist:
+                            if instance.nivel == 'GRA':
+                                ch_semanal_graduacao = None
+
+                                if ch_usuario % 15 == 0:
+                                    ch_semanal_graduacao = round(ch_usuario / 15, 1)
+                                else:
+                                        ch_semanal_graduacao = round(ch_usuario / 17, 1)
+
+                                calculo_ch_semanal_aulas = CalculoCHSemanalAulas.objects.create(
+                                    relatorio_id = relatorio_id,
+                                    semestre = instance.semestre,
+                                    ch_semanal_graduacao = ch_semanal_graduacao,
+                                    ch_semanal_pos_graduacao = 0.0,
+                                    ch_semanal_total = ch_semanal_graduacao
+                                )
+
+                            elif instance.nivel == 'POS':
+                                ch_semanal_pos_graduacao = round(ch_usuario / 15, 1)
+
+                                calculo_ch_semanal_aulas = CalculoCHSemanalAulas.objects.create(
+                                    relatorio_id = relatorio_id,
+                                    semestre = instance.semestre,
+                                    ch_semanal_graduacao = 0.0,
+                                    ch_semanal_pos_graduacao = ch_semanal_pos_graduacao,
+                                    ch_semanal_total = ch_semanal_pos_graduacao
+                                )
+
+                    calculos_ch_semanal_aulas = CalculoCHSemanalAulas.objects.filter(relatorio_id=relatorio_id)
+                    for instance in calculos_ch_semanal_aulas:
+                        if instance.ch_semanal_graduacao >= 16.0: instance.ch_semanal_graduacao = 16.0
+                        elif instance.ch_semanal_pos_graduacao >= 16.0: instance.ch_semanal_pos_graduacao = 16.0
+                        elif instance.ch_semanal_graduacao < 8.0: instance.ch_semanal_graduacao = 0.0
+                        elif instance.ch_semanal_pos_graduacao < 8.0: instance.ch_semanal_pos_graduacao = 0.0
+
+                        instance.ch_semanal_graduacao = round(instance.ch_semanal_graduacao, 1)
+                        instance.ch_semanal_pos_graduacao = round(instance.ch_semanal_pos_graduacao, 1)
+
+                        instance.ch_semanal_total = instance.ch_semanal_graduacao + instance.ch_semanal_pos_graduacao
+
+                        instance.save()
+
                     return Util.response_ok_no_message(serializer.data)
                 else:
                     return Util.response_bad_request(serializer.errors)
@@ -223,7 +365,81 @@ class AtividadeLetivaView(APIView):
         if id:
             try:
                 instance = AtividadeLetiva.objects.get(pk=id)
+                atividade_letiva = instance
+                relatorio_id = atividade_letiva.relatorio_id
+                atividades_letivas = AtividadeLetiva.objects.filter(relatorio_id=relatorio_id)
                 instance.delete()
+
+                calculo_ch_semanal_aulas = CalculoCHSemanalAulas.objects.filter(relatorio_id=relatorio_id)
+                for instance in calculo_ch_semanal_aulas:
+                    instance.ch_semanal_graduacao = 0.0
+                    instance.ch_semanal_pos_graduacao = 0.0
+                    instance.ch_semanal_total = 0.0
+                    instance.save()
+
+                for instance in atividades_letivas:
+                    ch_usuario = instance.docentes_envolvidos_e_cargas_horarias.pop(relatorio_id.usuario_id.nome_completo.upper(), None)
+                    try:
+                        calculo_ch_semanal_aulas = CalculoCHSemanalAulas.objects.get(relatorio_id=relatorio_id, semestre=instance.semestre)
+
+                        if instance.nivel == 'GRA':
+                            if ch_usuario % 15 == 0:
+                                calculo_ch_semanal_aulas.ch_semanal_graduacao = calculo_ch_semanal_aulas.ch_semanal_graduacao + round(ch_usuario / 15, 1)
+                            
+                            else:
+                                calculo_ch_semanal_aulas.ch_semanal_graduacao = calculo_ch_semanal_aulas.ch_semanal_graduacao + round(ch_usuario / 17, 1)
+
+                        elif instance.nivel == 'POS':
+                            calculo_ch_semanal_aulas.ch_semanal_pos_graduacao = calculo_ch_semanal_aulas.ch_semanal_pos_graduacao + round(ch_usuario / 15, 1)
+
+                        calculo_ch_semanal_aulas.save()
+
+                    except CalculoCHSemanalAulas.DoesNotExist:
+                        if instance.nivel == 'GRA':
+                            ch_semanal_graduacao = None
+
+                            if ch_usuario % 15 == 0:
+                                ch_semanal_graduacao = round(ch_usuario / 15, 1)
+                            else:
+                                    ch_semanal_graduacao = round(ch_usuario / 17, 1)
+
+                            calculo_ch_semanal_aulas = CalculoCHSemanalAulas.objects.create(
+                                relatorio_id = relatorio_id,
+                                semestre = instance.semestre,
+                                ch_semanal_graduacao = ch_semanal_graduacao,
+                                ch_semanal_pos_graduacao = 0.0,
+                                ch_semanal_total = ch_semanal_graduacao
+                            )
+
+                        elif instance.nivel == 'POS':
+                            ch_semanal_pos_graduacao = round(ch_usuario / 15, 1)
+
+                            calculo_ch_semanal_aulas = CalculoCHSemanalAulas.objects.create(
+                                relatorio_id = relatorio_id,
+                                semestre = instance.semestre,
+                                ch_semanal_graduacao = 0.0,
+                                ch_semanal_pos_graduacao = ch_semanal_pos_graduacao,
+                                ch_semanal_total = ch_semanal_pos_graduacao
+                            )
+
+                calculos_ch_semanal_aulas = CalculoCHSemanalAulas.objects.filter(relatorio_id=relatorio_id)
+                if atividades_letivas.count() == 0:
+                    for instance in calculo_ch_semanal_aulas:
+                        instance.delete()
+                else:
+                    for instance in calculos_ch_semanal_aulas:
+                        if instance.ch_semanal_graduacao >= 16.0: instance.ch_semanal_graduacao = 16.0
+                        elif instance.ch_semanal_pos_graduacao >= 16.0: instance.ch_semanal_pos_graduacao = 16.0
+                        elif instance.ch_semanal_graduacao < 8.0: instance.ch_semanal_graduacao = 0.0
+                        elif instance.ch_semanal_pos_graduacao < 8.0: instance.ch_semanal_pos_graduacao = 0.0
+
+                        instance.ch_semanal_graduacao = round(instance.ch_semanal_graduacao, 1)
+                        instance.ch_semanal_pos_graduacao = round(instance.ch_semanal_pos_graduacao, 1)
+
+                        instance.ch_semanal_total = instance.ch_semanal_graduacao + instance.ch_semanal_pos_graduacao
+
+                        instance.save()
+
                 return Util.response_ok_no_message('Objeto excluído com sucesso.')
             except AtividadeLetiva.DoesNotExist:
                 return Util.response_not_found('Não foi possível encontrar uma atividade_letiva com o id fornecido.')
@@ -246,10 +462,12 @@ class CalculoCHSemanalAulasView(APIView):
                 if instances.count() > 0:
                     if instances.count() == 2:
                         return Util.response_bad_request('Objeto não criado: só podem ser adicionados dois calculo_ch_semanal_aulas para cada relatorio_docente. Um para cada semestre.')
-                    if instances[0].semestre is 1 and serializer.validated_data.get('semestre') is 1:
-                        return Util.response_bad_request('Objeto não criado: só pode ser adicionado um calculo_ch_semanal_aulas por semestre para cada relatorio_docente.')
-                    if instances[0].semestre is 2 and serializer.validated_data.get('semestre') is 2:
-                        return Util.response_bad_request('Objeto não criado: só pode ser adicionado um calculo_ch_semanal_aulas por semestre para cada relatorio_docente.')
+                    
+                    for instance in instances:
+                        if instance.semestre is 1 and serializer.validated_data.get('semestre') is 1:
+                            return Util.response_bad_request('Objeto não criado: só pode ser adicionado um calculo_ch_semanal_aulas por semestre para cada relatorio_docente.')
+                        if instance.semestre is 2 and serializer.validated_data.get('semestre') is 2:
+                            return Util.response_bad_request('Objeto não criado: só pode ser adicionado um calculo_ch_semanal_aulas por semestre para cada relatorio_docente.')
                 
                 calculo_ch_semanal_aulas = serializer.save()
 
@@ -322,15 +540,31 @@ class AtividadePedagogicaComplementarView(APIView):
                 if instances.count() > 0:
                     if instances.count() == 2:
                         return Util.response_bad_request('Objeto não criado: só podem ser adicionadas duas atividade_pedagogica_complementar para cada relatorio_docente. Uma para cada semestre.')
-                    if instances[0].semestre is 1 and serializer.validated_data.get('semestre') is 1:
-                        return Util.response_bad_request('Objeto não criado: só pode ser adicionada uma atividade_pedagogica_complementar por semestre para cada relatorio_docente.')
-                    if instances[0].semestre is 2 and serializer.validated_data.get('semestre') is 2:
-                        return Util.response_bad_request('Objeto não criado: só pode ser adicionada uma atividade_pedagogica_complementar por semestre para cada relatorio_docente.')
-                
-                atividade_pedagogica_complementar = serializer.save()
+                    
+                    for instance in instances:
+                        if instance.semestre is 1 and serializer.validated_data.get('semestre') is 1:
+                            return Util.response_bad_request('Objeto não criado: só pode ser adicionada uma atividade_pedagogica_complementar por semestre para cada relatorio_docente.')
+                        if instance.semestre is 2 and serializer.validated_data.get('semestre') is 2:
+                            return Util.response_bad_request('Objeto não criado: só pode ser adicionada uma atividade_pedagogica_complementar por semestre para cada relatorio_docente.')
 
             except AtividadePedagogicaComplementar.DoesNotExist:
-                atividade_pedagogica_complementar = serializer.save()
+                pass
+                
+            try:
+                relatorio_id = serializer.validated_data.get('relatorio_id')
+                semestre = serializer.validated_data.get('semestre')
+
+                calculo_ch_semanal_aulas = CalculoCHSemanalAulas.objects.get(relatorio_id=relatorio_id, semestre=semestre)
+                
+                ch_semanal_total = serializer.validated_data.get('ch_semanal_graduacao') + serializer.validated_data.get('ch_semanal_pos_graduacao')
+
+                if ch_semanal_total > 2 * calculo_ch_semanal_aulas.ch_semanal_total:
+                    return Util.response_bad_request('ERRO: não é possível criar uma atividade_pedagogica_complementar em que a soma entre ch_semanal_graduacao e ch_semanal_pos_graduacao seja maior que o dobro do ch_semanal_total do seu calculo_ch_semanal_aulas correspondente')
+
+            except CalculoCHSemanalAulas.DoesNotExist:
+                return Util.response_bad_request('ERRO: não é possível criar uma atividade_pedagogica_complementar para um semestre em específico sem antes criar um calculo_ch_semanal_aulas para o mesmo semestre.')
+            
+            atividade_pedagogica_complementar = serializer.save()
 
             return Util.response_created(f'id: {atividade_pedagogica_complementar.pk}')
         return Util.response_bad_request(serializer.errors)
@@ -338,13 +572,44 @@ class AtividadePedagogicaComplementarView(APIView):
     def put(self, request, id=None):
         if id is not None:
             try:
-                ativiade_pedagogica_complementar = AtividadePedagogicaComplementar.objects.get(pk=id)
+                atividade_pedagogica_complementar = AtividadePedagogicaComplementar.objects.get(pk=id)
                 data = request.data.copy()
                 if 'id' in data or 'relatorio_id' in data:
                     return Util.response_unauthorized('Não é permitido atualizar nenhum id ou relatorio_id')
 
-                serializer = AtividadePedagogicaComplementarSerializer(ativiade_pedagogica_complementar, data=data, partial=True)
+                serializer = AtividadePedagogicaComplementarSerializer(atividade_pedagogica_complementar, data=data, partial=True)
+
                 if serializer.is_valid():
+                    relatorio_id = serializer.validated_data.get('relatorio_id')
+                    try:
+                        instances = AtividadePedagogicaComplementar.objects.filter(relatorio_id=relatorio_id)
+                        if instances.count() > 0:
+                            if instances.count() == 2:
+                                return Util.response_bad_request('Objeto não criado: só podem ser adicionadas duas atividade_pedagogica_complementar para cada relatorio_docente. Uma para cada semestre.')
+                    
+                            for instance in instances:
+                                if instance.semestre is 1 and serializer.validated_data.get('semestre', 2) is 1:
+                                    return Util.response_bad_request('Objeto não criado: só pode ser adicionada uma atividade_pedagogica_complementar por semestre para cada relatorio_docente.')
+                                if instance.semestre is 2 and serializer.validated_data.get('semestre', 1) is 2:
+                                    return Util.response_bad_request('Objeto não criado: só pode ser adicionada uma atividade_pedagogica_complementar por semestre para cada relatorio_docente.')
+
+                    except AtividadePedagogicaComplementar.DoesNotExist:
+                        return Util.response_bad_request('ERRO: Não foi possível encontrar uma atividade_pedagogica_complementar que faça referência ao mesmo relatorio_docente.')
+                    
+                    try:
+                        relatorio_id = serializer.validated_data.get('relatorio_id', atividade_pedagogica_complementar.relatorio_id)
+                        semestre = serializer.validated_data.get('semestre', atividade_pedagogica_complementar.semestre)
+
+                        calculo_ch_semanal_aulas = CalculoCHSemanalAulas.objects.get(relatorio_id=relatorio_id, semestre=semestre)
+                
+                        ch_semanal_total = serializer.validated_data.get('ch_semanal_graduacao', atividade_pedagogica_complementar.ch_semanal_graduacao) + serializer.validated_data.get('ch_semanal_pos_graduacao', atividade_pedagogica_complementar.ch_semanal_pos_graduacao)
+
+                        if ch_semanal_total > 2 * calculo_ch_semanal_aulas.ch_semanal_total:
+                            return Util.response_bad_request('ERRO: não é possível criar uma atividade_pedagogica_complementar em que a soma entre ch_semanal_graduacao e ch_semanal_pos_graduacao seja maior que o dobro do ch_semanal_total do seu calculo_ch_semanal_aulas correspondente')
+
+                    except CalculoCHSemanalAulas.DoesNotExist:
+                        return Util.response_bad_request('ERRO: não é possível atualizar uma atividade_pedagogica_complementar para um semestre em específico sem antes criar um calculo_ch_semanal_aulas para o mesmo semestre.')
+
                     serializer.save()
                     return Util.response_ok_no_message(serializer.data)
                 else:
@@ -397,10 +662,12 @@ class AtividadeOrientacaoSupervisaoPreceptoriaTutoriaView(APIView):
                 if instances.count() > 0:
                     if instances.count() == 2:
                         return Util.response_bad_request('Objeto não criado: só podem ser adicionadas duas atividade_orientacao_supervisao_preceptoria_tutoria para cada relatorio_docente. Uma para cada semestre.')
-                    if instances[0].semestre is 1 and serializer.validated_data.get('semestre') is 1:
-                        return Util.response_bad_request('Objeto não criado: só pode ser adicionada uma atividade_orientacao_supervisao_preceptoria_tutoria por semestre para cada relatorio_docente.')
-                    if instances[0].semestre is 2 and serializer.validated_data.get('semestre') is 2:
-                        return Util.response_bad_request('Objeto não criado: só pode ser adicionada uma atividade_orientacao_supervisao_preceptoria_tutoria por semestre para cada relatorio_docente.')
+                    
+                    for instance in instances:
+                        if instance.semestre is 1 and serializer.validated_data.get('semestre') is 1:
+                            return Util.response_bad_request('Objeto não criado: só pode ser adicionada uma atividade_orientacao_supervisao_preceptoria_tutoria por semestre para cada relatorio_docente.')
+                        if instance.semestre is 2 and serializer.validated_data.get('semestre') is 2:
+                            return Util.response_bad_request('Objeto não criado: só pode ser adicionada uma atividade_orientacao_supervisao_preceptoria_tutoria por semestre para cada relatorio_docente.')
                 
                 instance = serializer.save()
 
@@ -1515,16 +1782,18 @@ class DistribuicaoCHSemanalView(APIView):
                 if instances.count() > 0:
                     if instances.count() == 2:
                         return Util.response_bad_request('Objeto não criado: só podem ser adicionadas duas distribuicao_ch_semanal para cada relatorio_docente. Uma para cada semestre.')
-                    if instances[0].semestre is 1 and serializer.validated_data.get('semestre') is 1:
-                        return Util.response_bad_request('Objeto não criado: só pode ser adicionada uma distribuicao_ch_semanal por semestre para cada relatorio_docente.')
-                    if instances[0].semestre is 2 and serializer.validated_data.get('semestre') is 2:
-                        return Util.response_bad_request('Objeto não criado: só pode ser adicionada uma distribuicao_ch_semanal por semestre para cada relatorio_docente.')
+                    
+                    for instance in instances:
+                        if instance.semestre is 1 and serializer.validated_data.get('semestre') is 1:
+                            return Util.response_bad_request('Objeto não criado: só pode ser adicionada uma distribuicao_ch_semanal por semestre para cada relatorio_docente.')
+                        if instance.semestre is 2 and serializer.validated_data.get('semestre') is 2:
+                            return Util.response_bad_request('Objeto não criado: só pode ser adicionada uma distribuicao_ch_semanal por semestre para cada relatorio_docente.')
                 
                 instance = serializer.save()
 
             except DistribuicaoCHSemanal.DoesNotExist:
                 instance = serializer.save()
-                
+
             return Util.response_created(f'id: {instance.pk}')
         return Util.response_bad_request(serializer.errors)
 

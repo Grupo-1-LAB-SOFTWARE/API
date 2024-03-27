@@ -42,8 +42,21 @@ INSTALLED_APPS = [
     'rest_framework',
     'corsheaders',
     'rest_framework.authtoken',
+    'rest_framework_simplejwt',
 ]
 
+#JWT Authentication
+#https://pyjwt.readthedocs.io/en/latest/
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ],
+}
+
+SIMPLE_JWT = {
+    'AUTH_HEADER_TYPES': ('Bearer',),
+}
+    
 CORS_ORIGIN_ALLOW_ALL = True
 
 MIDDLEWARE = [
