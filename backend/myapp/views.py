@@ -173,7 +173,7 @@ class ActivateEmail(APIView):
 
 
 class AtividadeLetivaView(APIView):
-    permission_classes = [IsAuthenticated]
+    #permission_classes = [IsAuthenticated]
     def get(self, request, id=None):
         if id:
             return self.getById(request, id)
@@ -184,75 +184,6 @@ class AtividadeLetivaView(APIView):
         serializer = AtividadeLetivaSerializer(data=request.data)
         if serializer.is_valid():
             atividade_letiva = serializer.save()
-            relatorio_id = atividade_letiva.relatorio_id
-            atividades_letivas = AtividadeLetiva.objects.filter(relatorio_id=relatorio_id)
-
-            calculo_ch_semanal_aulas = CalculoCHSemanalAulas.objects.filter(relatorio_id=relatorio_id)
-            for instance in calculo_ch_semanal_aulas:
-                instance.ch_semanal_graduacao = 0.0
-                instance.ch_semanal_pos_graduacao = 0.0
-                instance.ch_semanal_total = 0.0
-                instance.save()
-
-            for instance in atividades_letivas:
-                ch_usuario = instance.docentes_envolvidos_e_cargas_horarias.pop(relatorio_id.usuario_id.nome_completo.upper(), None)
-                try:
-                    calculo_ch_semanal_aulas = CalculoCHSemanalAulas.objects.get(relatorio_id=relatorio_id, semestre=instance.semestre)
-
-                    if instance.nivel == 'GRA':
-                        if ch_usuario % 15 == 0:
-                            calculo_ch_semanal_aulas.ch_semanal_graduacao = calculo_ch_semanal_aulas.ch_semanal_graduacao + round(ch_usuario / 15, 1)
-                            
-                        else:
-                            calculo_ch_semanal_aulas.ch_semanal_graduacao = calculo_ch_semanal_aulas.ch_semanal_graduacao + round(ch_usuario / 17, 1)
-
-                    elif instance.nivel == 'POS':
-                        calculo_ch_semanal_aulas.ch_semanal_pos_graduacao = calculo_ch_semanal_aulas.ch_semanal_pos_graduacao + round(ch_usuario / 15, 1)
-
-                    calculo_ch_semanal_aulas.save()
-
-                except CalculoCHSemanalAulas.DoesNotExist:
-                    if instance.nivel == 'GRA':
-                        ch_semanal_graduacao = None
-
-                        if ch_usuario % 15 == 0:
-                            ch_semanal_graduacao = round(ch_usuario / 15, 1)
-                        else:
-                            ch_semanal_graduacao = round(ch_usuario / 17, 1)
-
-                        calculo_ch_semanal_aulas = CalculoCHSemanalAulas.objects.create(
-                            relatorio_id = relatorio_id,
-                            semestre = instance.semestre,
-                            ch_semanal_graduacao = ch_semanal_graduacao,
-                            ch_semanal_pos_graduacao = 0.0,
-                            ch_semanal_total = ch_semanal_graduacao
-                        )
-
-                    elif instance.nivel == 'POS':
-                        ch_semanal_pos_graduacao = round(ch_usuario / 15, 1)
-
-                        calculo_ch_semanal_aulas = CalculoCHSemanalAulas.objects.create(
-                            relatorio_id = relatorio_id,
-                            semestre = instance.semestre,
-                            ch_semanal_graduacao = 0.0,
-                            ch_semanal_pos_graduacao = ch_semanal_pos_graduacao,
-                            ch_semanal_total = ch_semanal_pos_graduacao
-                        )
-
-            calculos_ch_semanal_aulas = CalculoCHSemanalAulas.objects.filter(relatorio_id=relatorio_id)
-            for instance in calculos_ch_semanal_aulas:
-                if instance.ch_semanal_graduacao >= 16.0: instance.ch_semanal_graduacao = 16.0
-                elif instance.ch_semanal_pos_graduacao >= 16.0: instance.ch_semanal_pos_graduacao = 16.0
-                elif instance.ch_semanal_graduacao < 8.0: instance.ch_semanal_graduacao = 0.0
-                elif instance.ch_semanal_pos_graduacao < 8.0: instance.ch_semanal_pos_graduacao = 0.0
-
-                instance.ch_semanal_graduacao = round(instance.ch_semanal_graduacao, 1)
-                instance.ch_semanal_pos_graduacao = round(instance.ch_semanal_pos_graduacao, 1)
-
-                instance.ch_semanal_total = instance.ch_semanal_graduacao + instance.ch_semanal_pos_graduacao
-
-                instance.save()
-
             return Util.response_created(f'id: {atividade_letiva.pk}')
         return Util.response_bad_request(serializer.errors)
 
@@ -267,75 +198,6 @@ class AtividadeLetivaView(APIView):
                 serializer = AtividadeLetivaSerializer(atividade_letiva, data=data, partial=True)
                 if serializer.is_valid():
                     atividade_letiva = serializer.save()
-                    relatorio_id = atividade_letiva.relatorio_id
-                    atividades_letivas = AtividadeLetiva.objects.filter(relatorio_id=relatorio_id)
-
-                    calculo_ch_semanal_aulas = CalculoCHSemanalAulas.objects.filter(relatorio_id=relatorio_id)
-                    for instance in calculo_ch_semanal_aulas:
-                        instance.ch_semanal_graduacao = 0.0
-                        instance.ch_semanal_pos_graduacao = 0.0
-                        instance.ch_semanal_total = 0.0
-                        instance.save()
-
-                    for instance in atividades_letivas:
-                        ch_usuario = instance.docentes_envolvidos_e_cargas_horarias.pop(relatorio_id.usuario_id.nome_completo.upper(), None)
-                        try:
-                            calculo_ch_semanal_aulas = CalculoCHSemanalAulas.objects.get(relatorio_id=relatorio_id, semestre=instance.semestre)
-
-                            if instance.nivel == 'GRA':
-                                if ch_usuario % 15 == 0:
-                                    calculo_ch_semanal_aulas.ch_semanal_graduacao = calculo_ch_semanal_aulas.ch_semanal_graduacao + round(ch_usuario / 15, 1)
-                            
-                                else:
-                                    calculo_ch_semanal_aulas.ch_semanal_graduacao = calculo_ch_semanal_aulas.ch_semanal_graduacao + round(ch_usuario / 17, 1)
-
-                            elif instance.nivel == 'POS':
-                                calculo_ch_semanal_aulas.ch_semanal_pos_graduacao = calculo_ch_semanal_aulas.ch_semanal_pos_graduacao + round(ch_usuario / 15, 1)
-
-                            calculo_ch_semanal_aulas.save()
-
-                        except CalculoCHSemanalAulas.DoesNotExist:
-                            if instance.nivel == 'GRA':
-                                ch_semanal_graduacao = None
-
-                                if ch_usuario % 15 == 0:
-                                    ch_semanal_graduacao = round(ch_usuario / 15, 1)
-                                else:
-                                        ch_semanal_graduacao = round(ch_usuario / 17, 1)
-
-                                calculo_ch_semanal_aulas = CalculoCHSemanalAulas.objects.create(
-                                    relatorio_id = relatorio_id,
-                                    semestre = instance.semestre,
-                                    ch_semanal_graduacao = ch_semanal_graduacao,
-                                    ch_semanal_pos_graduacao = 0.0,
-                                    ch_semanal_total = ch_semanal_graduacao
-                                )
-
-                            elif instance.nivel == 'POS':
-                                ch_semanal_pos_graduacao = round(ch_usuario / 15, 1)
-
-                                calculo_ch_semanal_aulas = CalculoCHSemanalAulas.objects.create(
-                                    relatorio_id = relatorio_id,
-                                    semestre = instance.semestre,
-                                    ch_semanal_graduacao = 0.0,
-                                    ch_semanal_pos_graduacao = ch_semanal_pos_graduacao,
-                                    ch_semanal_total = ch_semanal_pos_graduacao
-                                )
-
-                    calculos_ch_semanal_aulas = CalculoCHSemanalAulas.objects.filter(relatorio_id=relatorio_id)
-                    for instance in calculos_ch_semanal_aulas:
-                        if instance.ch_semanal_graduacao >= 16.0: instance.ch_semanal_graduacao = 16.0
-                        elif instance.ch_semanal_pos_graduacao >= 16.0: instance.ch_semanal_pos_graduacao = 16.0
-                        elif instance.ch_semanal_graduacao < 8.0: instance.ch_semanal_graduacao = 0.0
-                        elif instance.ch_semanal_pos_graduacao < 8.0: instance.ch_semanal_pos_graduacao = 0.0
-
-                        instance.ch_semanal_graduacao = round(instance.ch_semanal_graduacao, 1)
-                        instance.ch_semanal_pos_graduacao = round(instance.ch_semanal_pos_graduacao, 1)
-
-                        instance.ch_semanal_total = instance.ch_semanal_graduacao + instance.ch_semanal_pos_graduacao
-
-                        instance.save()
-
                     return Util.response_ok_no_message(serializer.data)
                 else:
                     return Util.response_bad_request(serializer.errors)
@@ -366,8 +228,45 @@ class AtividadeLetivaView(APIView):
                 instance = AtividadeLetiva.objects.get(pk=id)
                 atividade_letiva = instance
                 relatorio_id = atividade_letiva.relatorio_id
+                usuario = relatorio_id.usuario_id
                 atividades_letivas = AtividadeLetiva.objects.filter(relatorio_id=relatorio_id)
-                instance.delete()
+
+                try:
+                    atividade_pedagogica_complementar = AtividadePedagogicaComplementar.objects.get(relatorio_id=relatorio_id, semestre=atividade_letiva.semestre)
+
+                    ch_total_atividades_letivas = 0.0
+                    calculo_ch_semanal_aulas_soma = 0.0
+
+                    if atividade_letiva.nivel == 'GRA':
+                        atividades_letivas = AtividadeLetiva.objects.filter(relatorio_id=relatorio_id, semestre=atividade_letiva.semestre, nivel='GRA')
+                        for instance in atividades_letivas:
+                            ch_total_atividades_letivas = instance.docentes_envolvidos_e_cargas_horarias.pop(usuario.nome_completo.upper(), None) + ch_total_atividades_letivas
+
+                        ch_total_atividades_letivas = round(ch_total_atividades_letivas, 1)
+
+                        if ch_usuario % 15 == 0:
+                            calculo_ch_semanal_aulas_soma = ch_total_atividades_letivas + round(ch_usuario / 15, 1)
+                                
+                        else:
+                            calculo_ch_semanal_aulas_soma = ch_total_atividades_letivas + round(ch_usuario / 17, 1)
+
+                    elif atividade_letiva.nivel == 'POS':
+                        atividades_letivas = AtividadeLetiva.objects.filter(relatorio_id=relatorio_id, semestre=atividade_letiva.semestre, nivel='POS')
+                        for instance in atividades_letivas:
+                            ch_total_atividades_letivas = instance.docentes_envolvidos_e_cargas_horarias.pop(usuario.nome_completo.upper(), None) + ch_total_atividades_letivas
+
+                        ch_total_atividades_letivas = round(ch_total_atividades_letivas, 1)
+
+                        calculo_ch_semanal_aulas_soma = ch_total_atividades_letivas + round(ch_usuario / 15, 1)
+
+                    if atividade_pedagogica_complementar:
+                        if atividade_pedagogica_complementar.ch_semanal_total > 2 * calculo_ch_semanal_aulas_soma or atividade_pedagogica_complementar.ch_semanal_total > 32:
+                            return Util.response_bad_request('ERRO: não é possível criar uma nova atividade_letiva para esse nível e semestre sem antes atualizar o ch_semanal_total da sua atividade_pedagogica_complementar do mesmo nível e semestre.')
+        
+                except AtividadePedagogicaComplementar.DoesNotExist:
+                    pass
+    
+                atividade_letiva.delete()
 
                 calculo_ch_semanal_aulas = CalculoCHSemanalAulas.objects.filter(relatorio_id=relatorio_id)
                 for instance in calculo_ch_semanal_aulas:
@@ -451,51 +350,6 @@ class CalculoCHSemanalAulasView(APIView):
         else:
             return self.getAll(request)
 
-    def post(self, request):
-        calculo_ch_semanal_aulas = None
-        serializer = CalculoCHSemanalAulasSerializer(data=request.data)
-        if serializer.is_valid():
-            relatorio_id = serializer.validated_data.get('relatorio_id')
-            try:
-                instances = CalculoCHSemanalAulas.objects.filter(relatorio_id=relatorio_id)
-                if instances.count() > 0:
-                    if instances.count() == 2:
-                        return Util.response_bad_request('Objeto não criado: só podem ser adicionados dois calculo_ch_semanal_aulas para cada relatorio_docente. Um para cada semestre.')
-                    
-                    for instance in instances:
-                        if instance.semestre is 1 and serializer.validated_data.get('semestre') is 1:
-                            return Util.response_bad_request('Objeto não criado: só pode ser adicionado um calculo_ch_semanal_aulas por semestre para cada relatorio_docente.')
-                        if instance.semestre is 2 and serializer.validated_data.get('semestre') is 2:
-                            return Util.response_bad_request('Objeto não criado: só pode ser adicionado um calculo_ch_semanal_aulas por semestre para cada relatorio_docente.')
-                
-                calculo_ch_semanal_aulas = serializer.save()
-
-            except CalculoCHSemanalAulas.DoesNotExist:
-                calculo_ch_semanal_aulas = serializer.save()
-            return Util.response_created(f'id: {calculo_ch_semanal_aulas.pk}')
-        return Util.response_bad_request(serializer.errors)
-
-    def put(self, request, id=None):
-        if id is not None:
-            try:
-                calculo_ch_semanal_aulas = CalculoCHSemanalAulas.objects.get(pk=id)
-                data = request.data.copy()
-                if 'id' in data or 'relatorio_id' in data:
-                    return Util.response_unauthorized('Não é permitido atualizar nenhum id ou relatorio_id')
-
-                serializer = CalculoCHSemanalAulasSerializer(calculo_ch_semanal_aulas, data=data, partial=True)
-                if serializer.is_valid():
-                    serializer.save()
-                    return Util.response_ok_no_message(serializer.data)
-                else:
-                    return Util.response_bad_request(serializer.errors)
-
-            except CalculoCHSemanalAulas.DoesNotExist:
-                return Util.response_not_found('Não foi possível encontrar um calculo_ch_semanal_aulas com o id fornecido.')
-
-        return Util.response_bad_request('É necessário fornecer o id da calculo_ch_semanal_aulas que você deseja atualizar em calculo_ch_semanal_aulas/{id}/')
-
-
     def getAll(self, request):
         calculos_ch_semanal_aulas = CalculoCHSemanalAulas.objects.all()
         serializer = CalculoCHSemanalAulasSerializer(calculos_ch_semanal_aulas, many=True)
@@ -520,7 +374,7 @@ class CalculoCHSemanalAulasView(APIView):
             except CalculoCHSemanalAulas.DoesNotExist:
                 return Util.response_not_found('Não foi possível encontrar um calculo_ch_semanal_aulas com o id fornecido.')
         return Util.response_bad_request('É necessário fornecer o id do objeto que você deseja excluir em calculo_ch_semanal_aulas/{id}/')
-
+    
 
 class AtividadePedagogicaComplementarView(APIView):
     def get(self, request, id=None):
