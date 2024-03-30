@@ -6,6 +6,7 @@ from rest_framework.exceptions import ValidationError
 from .utils import Util
 from django.forms.models import model_to_dict
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from rest_framework_simplejwt.tokens import RefreshToken
 from myapp.models import ( 
                           Usuario,
                           RelatorioDocente,
@@ -43,7 +44,13 @@ class CustomizarTokenSerializer(TokenObtainPairSerializer):
     @classmethod
     def get_token(cls, user):
         token = super().get_token(user)
-        #token['username'] = user.username
+    
+        refresh = RefreshToken.for_user(user)
+        token = {
+            #'refresh': str(refresh),
+            'access': str(refresh.access_token),
+            'username': user.username
+        }
 
         return token
 
