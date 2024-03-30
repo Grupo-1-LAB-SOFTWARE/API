@@ -1,3 +1,4 @@
+import json
 from django.utils import timezone
 import tempfile
 import os
@@ -186,6 +187,7 @@ class AtividadeLetivaView(APIView):
             atividade_letiva = serializer.save()
             return Util.response_created(f'id: {atividade_letiva.pk}')
         return Util.response_bad_request(serializer.errors)
+    
 
     def put(self, request, id=None):
         if id is not None:
@@ -1877,6 +1879,7 @@ class DocumentoComprobatorioView(APIView):
         return Util.response_bad_request('É necessário fornecer o id do objeto que você deseja excluir em documento_comprobatorio/{id}/')
 
 class RelatorioDocenteView(APIView):
+    permission_classes = [IsAuthenticated]
     def post(self, request):
         serializer = RelatorioDocenteSerializer(data=request.data)
         if serializer.is_valid():
