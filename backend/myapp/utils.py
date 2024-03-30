@@ -37,7 +37,7 @@ class Util:
 
     @staticmethod
     def response_ok_token(chave_token):
-        return Response({"token": f"{chave_token}"}, status=status.HTTP_200_OK)
+        return Response(chave_token, status=status.HTTP_200_OK)
 
     @staticmethod
     def response_created(mensagem_personalizada):

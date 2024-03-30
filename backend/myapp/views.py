@@ -20,7 +20,44 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.permissions import IsAuthenticated
 
+class CriarUsuarioView(APIView):
+    def post(self, request):
+        username = request.data.get('username')
+        email = request.data.get('email')
+            
+        if self.is_username_disponivel(username) == False:
+            return Util.response_bad_request('Já existe um usuário cadastrado com esse username.')
+        if self.is_email_disponivel(email) == False:
+            return Util.response_bad_request('Já existe um usuário cadastrado com esse e-mail.')
+
+        serializer = UsuarioSerializer(data=request.data)
+        if serializer.is_valid():
+            user = serializer.save()
+            user_dict = model_to_dict(user)
+            user_login = user_dict.get('username', None)
+            user_email = user_dict.get('email', None)
+            if (user_login, user_email) is not None:
+                Util.send_verification_email(user_login, user_email, request)
+                return Response({'id': f'{user.pk}'}, status=status.HTTP_201_CREATED)
+        return Util.response_bad_request(serializer.errors)
+
+    def is_username_disponivel(self, username):
+        try:
+            Usuario.objects.get(username=username)
+            return False
+        except Usuario.DoesNotExist:
+            return True
+
+    def is_email_disponivel(self, email):
+        try:
+            Usuario.objects.get(email=email)
+            return False
+        except Usuario.DoesNotExist:
+            return True
+
 class UsuarioView(APIView):
+    permission_classes = [IsAuthenticated]
+
     def get(self, request, user_id=None):
         if user_id:
             return self.getById(request, user_id)
@@ -59,9 +96,11 @@ class UsuarioView(APIView):
 
         return Util.response_bad_request('É necessário fornecer o id do usuário que você deseja atualizar em usuarios/{id}')
 
-
     #Pra pegar todos os usuários, sem especificar id
     def getAll(self, request):
+        usuario_autenticado = Usuario.objects.get(pk = request.user.id)
+        if usuario_autenticado.perfil != "Administrador":
+            return Util.response_unauthorized("Apenas usuários administradores podem realizar essa requisição!")
         user = Usuario.objects.all()
         serializer = UsuarioSerializer(user, many=True)
         return Util.response_ok_no_message(serializer.data)
@@ -75,40 +114,6 @@ class UsuarioView(APIView):
             except Usuario.DoesNotExist:
                 return Util.response_not_found('Não foi possível encontrar um usuário com o id fornecido')
         return Util.response_bad_request('É necessário fornecer o id do objeto que você deseja ler em usuarios/{id}/')
-    
-    def post(self, request):
-            username = request.data.get('username')
-            email = request.data.get('email')
-            
-            if self.is_username_disponivel(username) == False:
-                return Util.response_bad_request('Já existe um usuário cadastrado com esse username.')
-            if self.is_email_disponivel(email) == False:
-                return Util.response_bad_request('Já existe um usuário cadastrado com esse e-mail.')
-
-            serializer = UsuarioSerializer(data=request.data)
-            if serializer.is_valid():
-                user = serializer.save()
-                user_dict = model_to_dict(user)
-                user_login = user_dict.get('username', None)
-                user_email = user_dict.get('email', None)
-                if (user_login, user_email) is not None:
-                    Util.send_verification_email(user_login, user_email, request)
-                    return Response({'id': f'{user.pk}'}, status=status.HTTP_201_CREATED)
-            return Util.response_bad_request(serializer.errors)
-
-    def is_username_disponivel(self, username):
-        try:
-            Usuario.objects.get(username=username)
-            return False
-        except Usuario.DoesNotExist:
-            return True
-
-    def is_email_disponivel(self, email):
-        try:
-            Usuario.objects.get(email=email)
-            return False
-        except Usuario.DoesNotExist:
-            return True
         
     def delete(self, request, user_id=None):
         if user_id:
@@ -174,7 +179,7 @@ class ActivateEmail(APIView):
 
 
 class AtividadeLetivaView(APIView):
-    #permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated]
 
     def get(self, request, id=None):
         if id:
@@ -302,6 +307,7 @@ class AtividadeLetivaView(APIView):
 
 class CalculoCHSemanalAulasView(APIView):
     permission_classes = [IsAuthenticated]
+
     def get(self, request, id=None):
         if id:
             return self.getById(request, id)
@@ -336,6 +342,7 @@ class CalculoCHSemanalAulasView(APIView):
 
 class AtividadePedagogicaComplementarView(APIView):
     permission_classes = [IsAuthenticated]
+
     def get(self, request, id=None):
         if id:
             return self.getById(request, id)
@@ -459,6 +466,7 @@ class AtividadePedagogicaComplementarView(APIView):
 
 class AtividadeOrientacaoSupervisaoPreceptoriaTutoriaView(APIView):
     permission_classes = [IsAuthenticated]
+
     def get(self, request, id=None):
         if id:
             return self.getById(request, id)
@@ -537,6 +545,7 @@ class AtividadeOrientacaoSupervisaoPreceptoriaTutoriaView(APIView):
 
 class DescricaoOrientacaoCoorientacaoAcademicaView(APIView):
     permission_classes = [IsAuthenticated]
+
     def get(self, request, id=None):
         if id:
             return self.getById(request, id)
@@ -597,6 +606,7 @@ class DescricaoOrientacaoCoorientacaoAcademicaView(APIView):
     
 class SupervisaoAcademicaView(APIView):
     permission_classes = [IsAuthenticated]
+
     def get(self, request, id=None):
         if id:
             return self.getById(request, id)
@@ -657,6 +667,7 @@ class SupervisaoAcademicaView(APIView):
 
 class PreceptoriaTutoriaResidenciaView(APIView):
     permission_classes = [IsAuthenticated]
+
     def get(self, request, id=None):
         if id:
             return self.getById(request, id)
@@ -717,6 +728,7 @@ class PreceptoriaTutoriaResidenciaView(APIView):
 
 class BancaExaminadoraView(APIView):
     permission_classes = [IsAuthenticated]
+
     def get(self, request, id=None):
         if id:
             return self.getById(request, id)
@@ -777,6 +789,7 @@ class BancaExaminadoraView(APIView):
 
 class CHSemanalAtividadeEnsinoView(APIView):
     permission_classes = [IsAuthenticated]
+
     def get(self, request, id=None):
         if id:
             return self.getById(request, id)
@@ -848,6 +861,7 @@ class CHSemanalAtividadeEnsinoView(APIView):
 
 class AvaliacaoDiscenteView(APIView):
     permission_classes = [IsAuthenticated]
+
     def get(self, request, id=None):
         if id:
             return self.getById(request, id)
@@ -908,6 +922,7 @@ class AvaliacaoDiscenteView(APIView):
 
 class ProjetoPesquisaProducaoIntelectualView(APIView):
     permission_classes = [IsAuthenticated]
+
     def get(self, request, id=None):
         if id:
             return self.getById(request, id)
@@ -969,6 +984,7 @@ class ProjetoPesquisaProducaoIntelectualView(APIView):
 
 class TrabalhoCompletoPublicadoPeriodicoBoletimTecnicoView(APIView):
     permission_classes = [IsAuthenticated]
+
     def get(self, request, id=None):
         if id:
             return self.getById(request, id)
@@ -1029,6 +1045,7 @@ class TrabalhoCompletoPublicadoPeriodicoBoletimTecnicoView(APIView):
 
 class LivroCapituloVerbetePublicadoView(APIView):
     permission_classes = [IsAuthenticated]
+
     def get(self, request, id=None):
         if id:
             return self.getById(request, id)
@@ -1089,6 +1106,7 @@ class LivroCapituloVerbetePublicadoView(APIView):
 
 class TrabalhoCompletoResumoPublicadoApresentadoCongressosView(APIView):
     permission_classes = [IsAuthenticated]
+
     def get(self, request, id=None):
         if id:
             return self.getById(request, id)
@@ -1150,6 +1168,7 @@ class TrabalhoCompletoResumoPublicadoApresentadoCongressosView(APIView):
 
 class OutraAtividadePesquisaProducaoIntelectualView(APIView):
     permission_classes = [IsAuthenticated]
+
     def get(self, request, id=None):
         if id:
             return self.getById(request, id)
@@ -1211,6 +1230,7 @@ class OutraAtividadePesquisaProducaoIntelectualView(APIView):
 
 class CHSemanalAtividadesPesquisaView(APIView):
     permission_classes = [IsAuthenticated]
+
     def get(self, request, id=None):
         if id:
             return self.getById(request, id)
@@ -1284,6 +1304,7 @@ class CHSemanalAtividadesPesquisaView(APIView):
         
 class ProjetoExtensaoView(APIView):
     permission_classes = [IsAuthenticated]
+
     def get(self, request, id=None):
         if id:
             return self.getById(request, id)
@@ -1345,6 +1366,7 @@ class ProjetoExtensaoView(APIView):
         
 class EstagioExtensaoView(APIView):
     permission_classes = [IsAuthenticated]
+
     def get(self, request, id=None):
         if id:
             return self.getById(request, id)
@@ -1405,6 +1427,7 @@ class EstagioExtensaoView(APIView):
         
 class AtividadeEnsinoNaoFormalView(APIView):
     permission_classes = [IsAuthenticated]
+
     def get(self, request, id=None):
         if id:
             return self.getById(request, id)
@@ -1466,6 +1489,7 @@ class AtividadeEnsinoNaoFormalView(APIView):
 
 class OutraAtividadeExtensaoView(APIView):
     permission_classes = [IsAuthenticated]
+
     def get(self, request, id=None):
         if id:
             return self.getById(request, id)
@@ -1526,6 +1550,7 @@ class OutraAtividadeExtensaoView(APIView):
     
 class CHSemanalAtividadesExtensaoView(APIView):
     permission_classes = [IsAuthenticated]
+
     def get(self, request, id=None):
         if id:
             return self.getById(request, id)
@@ -1597,6 +1622,7 @@ class CHSemanalAtividadesExtensaoView(APIView):
     
 class DistribuicaoCHSemanalView(APIView):
     permission_classes = [IsAuthenticated]
+
     def get(self, request, id=None):
         if id:
             return self.getById(request, id)
@@ -1675,6 +1701,7 @@ class DistribuicaoCHSemanalView(APIView):
     
 class AtividadeGestaoRepresentacaoView(APIView):
     permission_classes = [IsAuthenticated]
+
     def get(self, request, id=None):
         if id:
             return self.getById(request, id)
@@ -1735,6 +1762,7 @@ class AtividadeGestaoRepresentacaoView(APIView):
     
 class QualificacaoDocenteAcademicaProfissionalView(APIView):
     permission_classes = [IsAuthenticated]
+
     def get(self, request, id=None):
         if id:
             return self.getById(request, id)
@@ -1796,6 +1824,7 @@ class QualificacaoDocenteAcademicaProfissionalView(APIView):
 
 class OutraInformacaoView(APIView):
     permission_classes = [IsAuthenticated]
+
     def get(self, request, id=None):
         if id:
             return self.getById(request, id)
@@ -1856,6 +1885,7 @@ class OutraInformacaoView(APIView):
     
 class AfastamentoView(APIView):
     permission_classes = [IsAuthenticated]
+
     def get(self, request, id=None):
         if id:
             return self.getById(request, id)
@@ -1916,6 +1946,7 @@ class AfastamentoView(APIView):
     
 class DocumentoComprobatorioView(APIView):
     permission_classes = [IsAuthenticated]
+
     def get(self, request, id=None):
         if id:
             return self.getById(request, id)
@@ -1980,6 +2011,7 @@ class DocumentoComprobatorioView(APIView):
 
 class RelatorioDocenteView(APIView):
     permission_classes = [IsAuthenticated]
+
     def post(self, request):
         serializer = RelatorioDocenteSerializer(data=request.data)
         if serializer.is_valid():
@@ -2020,6 +2052,7 @@ class RelatorioDocenteView(APIView):
     
 class DownloadRelatorioDocenteView(APIView):
     permission_classes = [IsAuthenticated]
+
     def is_pdf(self, file_path):
         try:
             doc = fitz.open(file_path)  # Tente abrir o arquivo como um PDF
@@ -2071,6 +2104,7 @@ class DownloadRelatorioDocenteView(APIView):
 
 class ExtrairDadosAtividadesLetivasPDFAPIView(APIView):
     permission_classes = [IsAuthenticated]
+
     def post(self, request):
         arquivo_pdf = request.FILES.get('pdf')
 

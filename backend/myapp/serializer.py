@@ -48,8 +48,8 @@ class CustomizarTokenSerializer(TokenObtainPairSerializer):
         refresh = RefreshToken.for_user(user)
         token = {
             #'refresh': str(refresh),
-            'access': str(refresh.access_token),
-            'username': user.username
+            'token': str(refresh.access_token),
+            'id_usuario': user.pk
         }
 
         return token
@@ -88,7 +88,8 @@ class UsuarioSerializer(serializers.ModelSerializer):
             titulacao = validated_data['titulacao'],
             campus = validated_data['campus'],
             instituto = validated_data['instituto'],
-            password = make_password(validated_data['password'])
+            password = make_password(validated_data['password']),
+            is_active = False
         )
         return usuario
 
