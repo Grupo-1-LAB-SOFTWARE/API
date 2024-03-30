@@ -1,3 +1,4 @@
+import json
 from django.utils import timezone
 import tempfile
 import os
@@ -186,6 +187,7 @@ class AtividadeLetivaView(APIView):
             atividade_letiva = serializer.save()
             return Util.response_created(f'id: {atividade_letiva.pk}')
         return Util.response_bad_request(serializer.errors)
+    
 
     def put(self, request, id=None):
         if id is not None:
@@ -344,6 +346,7 @@ class AtividadeLetivaView(APIView):
         return Util.response_bad_request('É necessário fornecer o id do objeto que você deseja excluir em atividade_letiva/{id}/')
 
 class CalculoCHSemanalAulasView(APIView):
+    permission_classes = [IsAuthenticated]
     def get(self, request, id=None):
         if id:
             return self.getById(request, id)
@@ -377,6 +380,7 @@ class CalculoCHSemanalAulasView(APIView):
     
 
 class AtividadePedagogicaComplementarView(APIView):
+    permission_classes = [IsAuthenticated]
     def get(self, request, id=None):
         if id:
             return self.getById(request, id)
@@ -499,6 +503,7 @@ class AtividadePedagogicaComplementarView(APIView):
         return Util.response_bad_request('É necessário fornecer o id do objeto que você deseja excluir em atividade_pedagogica_complementar/{id}/')
 
 class AtividadeOrientacaoSupervisaoPreceptoriaTutoriaView(APIView):
+    permission_classes = [IsAuthenticated]
     def get(self, request, id=None):
         if id:
             return self.getById(request, id)
@@ -576,6 +581,7 @@ class AtividadeOrientacaoSupervisaoPreceptoriaTutoriaView(APIView):
         return Util.response_bad_request('É necessário fornecer o id do objeto que você deseja excluir em atividade_orientacao_supervisao_preceptoria_tutoria/{id}/')
 
 class DescricaoOrientacaoCoorientacaoAcademicaView(APIView):
+    permission_classes = [IsAuthenticated]
     def get(self, request, id=None):
         if id:
             return self.getById(request, id)
@@ -635,6 +641,7 @@ class DescricaoOrientacaoCoorientacaoAcademicaView(APIView):
         return Util.response_bad_request('É necessário fornecer o id do objeto que você deseja excluir em descricao_orientacao_coorientacao_academica/{id}/')
     
 class SupervisaoAcademicaView(APIView):
+    permission_classes = [IsAuthenticated]
     def get(self, request, id=None):
         if id:
             return self.getById(request, id)
@@ -694,6 +701,7 @@ class SupervisaoAcademicaView(APIView):
         return Util.response_bad_request('É necessário fornecer o id do objeto que você deseja excluir em supervisao_academica/{id}/')
 
 class PreceptoriaTutoriaResidenciaView(APIView):
+    permission_classes = [IsAuthenticated]
     def get(self, request, id=None):
         if id:
             return self.getById(request, id)
@@ -753,6 +761,7 @@ class PreceptoriaTutoriaResidenciaView(APIView):
         return Util.response_bad_request('É necessário fornecer o id do objeto que você deseja excluir em preceptoria_tutoria_residencia/{id}/')
 
 class BancaExaminadoraView(APIView):
+    permission_classes = [IsAuthenticated]
     def get(self, request, id=None):
         if id:
             return self.getById(request, id)
@@ -812,6 +821,7 @@ class BancaExaminadoraView(APIView):
         return Util.response_bad_request('É necessário fornecer o id do objeto que você deseja excluir em banca_examinadora/{id}/')
 
 class CHSemanalAtividadeEnsinoView(APIView):
+    permission_classes = [IsAuthenticated]
     def get(self, request, id=None):
         if id:
             return self.getById(request, id)
@@ -882,6 +892,7 @@ class CHSemanalAtividadeEnsinoView(APIView):
         return Util.response_bad_request('É necessário fornecer o id do objeto que você deseja excluir em ch_semanal_atividade_ensino/{id}/')
 
 class AvaliacaoDiscenteView(APIView):
+    permission_classes = [IsAuthenticated]
     def get(self, request, id=None):
         if id:
             return self.getById(request, id)
@@ -941,6 +952,7 @@ class AvaliacaoDiscenteView(APIView):
         return Util.response_bad_request('É necessário fornecer o id do objeto que você deseja excluir em avaliacao_discente/{id}/')
 
 class ProjetoPesquisaProducaoIntelectualView(APIView):
+    permission_classes = [IsAuthenticated]
     def get(self, request, id=None):
         if id:
             return self.getById(request, id)
@@ -1001,6 +1013,7 @@ class ProjetoPesquisaProducaoIntelectualView(APIView):
 
 
 class TrabalhoCompletoPublicadoPeriodicoBoletimTecnicoView(APIView):
+    permission_classes = [IsAuthenticated]
     def get(self, request, id=None):
         if id:
             return self.getById(request, id)
@@ -1060,6 +1073,7 @@ class TrabalhoCompletoPublicadoPeriodicoBoletimTecnicoView(APIView):
         return Util.response_bad_request('É necessário fornecer o id do objeto que você deseja excluir em trabalho_completo_publicado_periodico_boletim_tecnico/{id}/')
 
 class LivroCapituloVerbetePublicadoView(APIView):
+    permission_classes = [IsAuthenticated]
     def get(self, request, id=None):
         if id:
             return self.getById(request, id)
@@ -1119,6 +1133,7 @@ class LivroCapituloVerbetePublicadoView(APIView):
         return Util.response_bad_request('É necessário fornecer o id do objeto que você deseja excluir em livro_capitulo_verbete_publicado/{id}/')
 
 class TrabalhoCompletoResumoPublicadoApresentadoCongressosView(APIView):
+    permission_classes = [IsAuthenticated]
     def get(self, request, id=None):
         if id:
             return self.getById(request, id)
@@ -1179,6 +1194,7 @@ class TrabalhoCompletoResumoPublicadoApresentadoCongressosView(APIView):
     
 
 class OutraAtividadePesquisaProducaoIntelectualView(APIView):
+    permission_classes = [IsAuthenticated]
     def get(self, request, id=None):
         if id:
             return self.getById(request, id)
@@ -1239,6 +1255,7 @@ class OutraAtividadePesquisaProducaoIntelectualView(APIView):
 
 
 class CHSemanalAtividadesPesquisaView(APIView):
+    permission_classes = [IsAuthenticated]
     def get(self, request, id=None):
         if id:
             return self.getById(request, id)
@@ -1311,6 +1328,7 @@ class CHSemanalAtividadesPesquisaView(APIView):
         
         
 class ProjetoExtensaoView(APIView):
+    permission_classes = [IsAuthenticated]
     def get(self, request, id=None):
         if id:
             return self.getById(request, id)
@@ -1371,6 +1389,7 @@ class ProjetoExtensaoView(APIView):
     
         
 class EstagioExtensaoView(APIView):
+    permission_classes = [IsAuthenticated]
     def get(self, request, id=None):
         if id:
             return self.getById(request, id)
@@ -1430,6 +1449,7 @@ class EstagioExtensaoView(APIView):
         return Util.response_bad_request('É necessário fornecer o id do objeto que você deseja excluir em estagio_extensao/{id}/')
         
 class AtividadeEnsinoNaoFormalView(APIView):
+    permission_classes = [IsAuthenticated]
     def get(self, request, id=None):
         if id:
             return self.getById(request, id)
@@ -1490,6 +1510,7 @@ class AtividadeEnsinoNaoFormalView(APIView):
     
 
 class OutraAtividadeExtensaoView(APIView):
+    permission_classes = [IsAuthenticated]
     def get(self, request, id=None):
         if id:
             return self.getById(request, id)
@@ -1549,6 +1570,7 @@ class OutraAtividadeExtensaoView(APIView):
         return Util.response_bad_request('É necessário fornecer o id do objeto que você deseja excluir em outra_atividade_extensao/{id}/')
     
 class CHSemanalAtividadesExtensaoView(APIView):
+    permission_classes = [IsAuthenticated]
     def get(self, request, id=None):
         if id:
             return self.getById(request, id)
@@ -1619,6 +1641,7 @@ class CHSemanalAtividadesExtensaoView(APIView):
         return Util.response_bad_request('É necessário fornecer o id do objeto que você deseja excluir em ch_semanal_atividades_extensao/{id}/')
     
 class DistribuicaoCHSemanalView(APIView):
+    permission_classes = [IsAuthenticated]
     def get(self, request, id=None):
         if id:
             return self.getById(request, id)
@@ -1696,6 +1719,7 @@ class DistribuicaoCHSemanalView(APIView):
         return Util.response_bad_request('É necessário fornecer o id do objeto que você deseja excluir em distribuicao_ch_semanal/{id}/')
     
 class AtividadeGestaoRepresentacaoView(APIView):
+    permission_classes = [IsAuthenticated]
     def get(self, request, id=None):
         if id:
             return self.getById(request, id)
@@ -1755,6 +1779,7 @@ class AtividadeGestaoRepresentacaoView(APIView):
         return Util.response_bad_request('É necessário fornecer o id do objeto que você deseja excluir em atividade_gestao_representacao/{id}/')
     
 class QualificacaoDocenteAcademicaProfissionalView(APIView):
+    permission_classes = [IsAuthenticated]
     def get(self, request, id=None):
         if id:
             return self.getById(request, id)
@@ -1815,6 +1840,7 @@ class QualificacaoDocenteAcademicaProfissionalView(APIView):
     
 
 class OutraInformacaoView(APIView):
+    permission_classes = [IsAuthenticated]
     def get(self, request, id=None):
         if id:
             return self.getById(request, id)
@@ -1874,6 +1900,7 @@ class OutraInformacaoView(APIView):
         return Util.response_bad_request('É necessário fornecer o id do objeto que você deseja excluir em outra_informacao/{id}/')
     
 class AfastamentoView(APIView):
+    permission_classes = [IsAuthenticated]
     def get(self, request, id=None):
         if id:
             return self.getById(request, id)
@@ -1933,6 +1960,7 @@ class AfastamentoView(APIView):
         return Util.response_bad_request('É necessário fornecer o id do objeto que você deseja excluir em afastamento/{id}/')
     
 class DocumentoComprobatorioView(APIView):
+    permission_classes = [IsAuthenticated]
     def get(self, request, id=None):
         if id:
             return self.getById(request, id)
@@ -1996,6 +2024,7 @@ class DocumentoComprobatorioView(APIView):
         return Util.response_bad_request('É necessário fornecer o id do objeto que você deseja excluir em documento_comprobatorio/{id}/')
 
 class RelatorioDocenteView(APIView):
+    permission_classes = [IsAuthenticated]
     def post(self, request):
         serializer = RelatorioDocenteSerializer(data=request.data)
         if serializer.is_valid():
@@ -2035,6 +2064,7 @@ class RelatorioDocenteView(APIView):
         return Util.response_bad_request('É necessário fornecer o id do objeto que você deseja excluir em relatorio_docente/{id}/')
     
 class DownloadRelatorioDocenteView(APIView):
+    permission_classes = [IsAuthenticated]
     def is_pdf(self, file_path):
         try:
             doc = fitz.open(file_path)  # Tente abrir o arquivo como um PDF
@@ -2085,6 +2115,7 @@ class DownloadRelatorioDocenteView(APIView):
         return Util.response_bad_request('É necessário fornecer o id do objeto que você deseja ler em download_relatorio/{id}/')
 
 class ExtrairDadosAtividadesLetivasPDFAPIView(APIView):
+    permission_classes = [IsAuthenticated]
     def post(self, request):
         arquivo_pdf = request.FILES.get('pdf')
 
