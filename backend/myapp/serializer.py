@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from django.utils import timezone
+from .utils import Util
 from django.contrib.auth.hashers import make_password
 from rest_framework.exceptions import ValidationError
 from .utils import Util
@@ -126,8 +127,7 @@ class AtividadeLetivaSerializer(serializers.ModelSerializer):
         ch_total = (numero_turmas_teorico * ch_turmas_teorico) + (numero_turmas_pratico * ch_turmas_pratico)
 
         semestre = int(validated_data['semestre'])
-        if semestre > 2 or semestre < 1:
-            raise ValidationError({'semestre': ['ERRO: O semestre pode ser apenas 1 ou 2']})
+        Util.validar_semestre(semestre = semestre)
 
         docentes_envolvidos_e_cargas_horarias = validated_data.get('docentes_envolvidos_e_cargas_horarias', None)
     
@@ -138,44 +138,51 @@ class AtividadeLetivaSerializer(serializers.ModelSerializer):
         if nome_usuario in docentes_envolvidos_e_cargas_horarias:
             ch_usuario = docentes_envolvidos_e_cargas_horarias.pop(nome_usuario, None)
             if ch_usuario:
-                docentes_envolvidos_e_cargas_horarias[nome_usuario] = ch_usuario 
+                docentes_envolvidos_e_cargas_horarias[nome_usuario] = ch_usuario
         else:
-            raise ValidationError({'docentes_envolvidos_e_cargas_horarias': ['ERRO: O usuário precisa fazer parte da atividade_letiva para cadastrá-la. Inclua a chave "Você" para se referir à carga horária do docente usuário.']})
+            raise ValidationError({'docentes_envolvidos_e_cargas_horarias': ['ERRO: O usuário precisa fazer parte da atividade_letiva para cadastrá-la. Inclua uma chave igual ao "[nome do usuário em letras maiúsculas]" para se referir à carga horária do docente usuário.']})
         
-        try:
-            atividade_pedagogica_complementar = AtividadePedagogicaComplementar.objects.get(relatorio_id=relatorio, semestre=semestre)
+        # try:
+        #     atividade_pedagogica_complementar = AtividadePedagogicaComplementar.objects.get(relatorio_id=relatorio, semestre=semestre)
 
-            ch_total_atividades_letivas = 0.0
-            calculo_ch_semanal_aulas_soma = 0.0
+        #     ch_total_atividades_letivas = 0.0
+        #     calculo_ch_semanal_aulas_soma = 0.0
 
-            if validated_data['nivel'] == 'GRA':
-                atividades_letivas = AtividadeLetiva.objects.filter(relatorio_id=relatorio, semestre=semestre, nivel='GRA')
-                for instance in atividades_letivas:
-                    ch_total_atividades_letivas = instance.docentes_envolvidos_e_cargas_horarias.pop(usuario.nome_completo.upper(), None) + ch_total_atividades_letivas
+        #     if validated_data['nivel'] == 'GRA':
+        #         atividades_letivas = AtividadeLetiva.objects.filter(relatorio_id=relatorio, semestre=semestre, nivel='GRA')
+        #         for instance in atividades_letivas:
+        #             ch_total_atividades_letivas = instance.docentes_envolvidos_e_cargas_horarias[nome_usuario] + ch_total_atividades_letivas
 
-                ch_total_atividades_letivas = round(ch_total_atividades_letivas, 1)
+        #         ch_total_atividades_letivas = round(ch_total_atividades_letivas, 1)
+        #         print(ch_total_atividades_letivas)
 
-                if ch_usuario % 15 == 0:
-                    calculo_ch_semanal_aulas_soma = ch_total_atividades_letivas + round(ch_usuario / 15, 1)
+        #         if ch_usuario % 15 == 0:
+        #             calculo_ch_semanal_aulas_soma = ch_total_atividades_letivas + round(ch_usuario / 15, 1)
                             
-                else:
-                    calculo_ch_semanal_aulas_soma = ch_total_atividades_letivas + round(ch_usuario / 17, 1)
+        #         else:
+        #             calculo_ch_semanal_aulas_soma = ch_total_atividades_letivas + round(ch_usuario / 17, 1)
 
-            elif validated_data['nivel'] == 'POS':
-                atividades_letivas = AtividadeLetiva.objects.filter(relatorio_id=relatorio, semestre=semestre, nivel='POS')
-                for instance in atividades_letivas:
-                    ch_total_atividades_letivas = instance.docentes_envolvidos_e_cargas_horarias.pop(usuario.nome_completo.upper(), None) + ch_total_atividades_letivas
+        #     elif validated_data['nivel'] == 'POS':
+        #         atividades_letivas = AtividadeLetiva.objects.filter(relatorio_id=relatorio, semestre=semestre, nivel='POS')
+        #         for instance in atividades_letivas:
+        #             ch_total_atividades_letivas = instance.docentes_envolvidos_e_cargas_horarias.pop(usuario.nome_completo.upper(), None) + ch_total_atividades_letivas
 
-                ch_total_atividades_letivas = round(ch_total_atividades_letivas, 1)
+        #         ch_total_atividades_letivas = round(ch_total_atividades_letivas, 1)
 
-                calculo_ch_semanal_aulas_soma = ch_total_atividades_letivas + round(ch_usuario / 15, 1)
+        #         calculo_ch_semanal_aulas_soma = ch_total_atividades_letivas + round(ch_usuario / 15, 1)
 
-            if atividade_pedagogica_complementar:
-                if atividade_pedagogica_complementar.ch_semanal_total > 2 * calculo_ch_semanal_aulas_soma or atividade_pedagogica_complementar.ch_semanal_total > 32:
-                    return Util.response_bad_request('ERRO: não é possível criar uma nova atividade_letiva para esse nível e semestre sem antes atualizar o ch_semanal_total da sua atividade_pedagogica_complementar do mesmo nível e semestre.')
+        #     if atividade_pedagogica_complementar:
+        #         calculo_ch_semanal_aulas_soma = 2 * calculo_ch_semanal_aulas_soma
+
+        #         if atividade_pedagogica_complementar.ch_semanal_total > calculo_ch_semanal_aulas_soma:
+        #                 return Util.response_bad_request(f'ERRO: não é possível criar uma atividade_letiva para esse nível e semestre sem antes atualizar a ch_semanal_total da sua atividade_pedagogica_complementar do mesmo nível e semestre para um valor menor ou igual a {calculo_ch_semanal_aulas_soma}.')
+                    
+        #         if atividade_pedagogica_complementar.ch_semanal_total > 32.0:
+        #                 return Util.response_bad_request('ERRO: não é possível criar uma atividade_letiva para esse nível e semestre sem antes atualizar a ch_semanal_total da sua atividade_pedagogica_complementar do mesmo nível e semestre para um valor menor ou igual a 32.0.')
         
-        except AtividadePedagogicaComplementar.DoesNotExist:
-            pass
+        # except AtividadePedagogicaComplementar.DoesNotExist:
+        #     pass
+
         
         atividade_letiva = AtividadeLetiva.objects.create(
             relatorio_id = validated_data['relatorio_id'],
@@ -195,223 +202,118 @@ class AtividadeLetivaSerializer(serializers.ModelSerializer):
 
         relatorio_id = atividade_letiva.relatorio_id
 
-        calculo_ch_semanal_aulas = CalculoCHSemanalAulas.objects.filter(relatorio_id=relatorio_id)
-        for instance in calculo_ch_semanal_aulas:
-            instance.ch_semanal_graduacao = 0.0
-            instance.ch_semanal_pos_graduacao = 0.0
-            instance.ch_semanal_total = 0.0
-            instance.save()
+        Util.resetar_valores_calculos_ch_semanal_aulas(relatorio_id = relatorio_id)
 
-        atividades_letivas = AtividadeLetiva.objects.filter(relatorio_id=relatorio_id)
+        Util.recriar_calculos_ch_semanal_aulas(relatorio_id = relatorio_id)
 
-        for instance in atividades_letivas:
-            ch_usuario = instance.docentes_envolvidos_e_cargas_horarias.pop(relatorio_id.usuario_id.nome_completo.upper(), None)
-            try:
-                calculo_ch_semanal_aulas = CalculoCHSemanalAulas.objects.get(relatorio_id=relatorio_id, semestre=instance.semestre)
-
-                if instance.nivel == 'GRA':
-                    if ch_usuario % 15 == 0:
-                        calculo_ch_semanal_aulas.ch_semanal_graduacao = calculo_ch_semanal_aulas.ch_semanal_graduacao + round(ch_usuario / 15, 1)
-                            
-                    else:
-                        calculo_ch_semanal_aulas.ch_semanal_graduacao = calculo_ch_semanal_aulas.ch_semanal_graduacao + round(ch_usuario / 17, 1)
-
-                elif instance.nivel == 'POS':
-                    calculo_ch_semanal_aulas.ch_semanal_pos_graduacao = calculo_ch_semanal_aulas.ch_semanal_pos_graduacao + round(ch_usuario / 15, 1)
-
-                calculo_ch_semanal_aulas.save()
-
-            except CalculoCHSemanalAulas.DoesNotExist:
-                if instance.nivel == 'GRA':
-                    ch_semanal_graduacao = None
-
-                    if ch_usuario % 15 == 0:
-                        ch_semanal_graduacao = round(ch_usuario / 15, 1)
-                    else:
-                        ch_semanal_graduacao = round(ch_usuario / 17, 1)
-
-                    calculo_ch_semanal_aulas = CalculoCHSemanalAulas.objects.create(
-                        relatorio_id = relatorio_id,
-                        semestre = instance.semestre,
-                        ch_semanal_graduacao = ch_semanal_graduacao,
-                        ch_semanal_pos_graduacao = 0.0,
-                        ch_semanal_total = ch_semanal_graduacao
-                    )
-
-                elif instance.nivel == 'POS':
-                    ch_semanal_pos_graduacao = round(ch_usuario / 15, 1)
-
-                    calculo_ch_semanal_aulas = CalculoCHSemanalAulas.objects.create(
-                        relatorio_id = relatorio_id,
-                        semestre = instance.semestre,
-                        ch_semanal_graduacao = 0.0,
-                        ch_semanal_pos_graduacao = ch_semanal_pos_graduacao,
-                        ch_semanal_total = ch_semanal_pos_graduacao
-                    )
-
-        calculos_ch_semanal_aulas = CalculoCHSemanalAulas.objects.filter(relatorio_id=relatorio_id)
-        for instance in calculos_ch_semanal_aulas:
-            if instance.ch_semanal_graduacao >= 16.0: instance.ch_semanal_graduacao = 16.0
-            if instance.ch_semanal_pos_graduacao >= 16.0: instance.ch_semanal_pos_graduacao = 16.0
-            if instance.ch_semanal_graduacao < 8.0: instance.ch_semanal_graduacao = 0.0
-            if instance.ch_semanal_pos_graduacao < 8.0: instance.ch_semanal_pos_graduacao = 0.0
-
-            instance.ch_semanal_graduacao = round(instance.ch_semanal_graduacao, 1)
-            instance.ch_semanal_pos_graduacao = round(instance.ch_semanal_pos_graduacao, 1)
-
-            instance.ch_semanal_total = instance.ch_semanal_graduacao + instance.ch_semanal_pos_graduacao
-
-            instance.save()
+        Util.aplicar_maximos_e_minimos_calculos_ch_semanal_aulas(relatorio_id = relatorio_id)
 
         return atividade_letiva
 
-    def update(self, instance, validated_data):
-        relatorio = instance.relatorio_id
+    def update(self, atividade_letiva_instance, validated_data):
+        atividade_letiva_id = atividade_letiva_instance.id
+        relatorio = atividade_letiva_instance.relatorio_id
         usuario = relatorio.usuario_id
         nome_usuario = usuario.nome_completo.upper()
 
         semestre = validated_data.get('semestre', None)
         if semestre:
-            if semestre > 2 or semestre < 1:
-                raise ValidationError({'semestre': ['ERRO: O semestre pode ser apenas 1 ou 2']})
+            Util.validar_semestre(semestre = semestre)
         else:
-            semestre = instance.semestre
+            semestre = atividade_letiva_instance.semestre
 
         docentes_envolvidos_e_cargas_horarias = validated_data.get('docentes_envolvidos_e_cargas_horarias', None)
+
         ch_usuario = None
 
         if docentes_envolvidos_e_cargas_horarias:
             if nome_usuario in docentes_envolvidos_e_cargas_horarias:
-                ch_usuario = docentes_envolvidos_e_cargas_horarias.pop(nome_usuario, None)
-                if ch_usuario:
-                    docentes_envolvidos_e_cargas_horarias[nome_usuario] = ch_usuario
-                    instance.docentes_envolvidos_e_cargas_horarias = docentes_envolvidos_e_cargas_horarias
+                ch_usuario = docentes_envolvidos_e_cargas_horarias[nome_usuario]
+                atividade_letiva_instance.docentes_envolvidos_e_cargas_horarias = docentes_envolvidos_e_cargas_horarias
             else:
-                raise ValidationError({'docentes_envolvidos_e_cargas_horarias': ['ERRO: O usuário precisa fazer parte da atividade_letiva para cadastrá-la. Inclua a chave "[nome do usuário em letras maiúsculas]" para se referir à carga horária do docente usuário.']})
+                raise ValidationError({'docentes_envolvidos_e_cargas_horarias': ['ERRO: O usuário precisa fazer parte da atividade_letiva para cadastrá-la. Inclua uma chave igual ao "[nome do usuário em letras maiúsculas]" para se referir à carga horária do docente usuário.']})
         else:
-            docentes_envolvidos_e_cargas_horarias = instance.docentes_envolvidos_e_cargas_horarias
-            ch_usuario = docentes_envolvidos_e_cargas_horarias.pop(nome_usuario, None)
+            docentes_envolvidos_e_cargas_horarias = atividade_letiva_instance.docentes_envolvidos_e_cargas_horarias
+            ch_usuario = docentes_envolvidos_e_cargas_horarias[nome_usuario]
 
-        try:
-            atividade_pedagogica_complementar = AtividadePedagogicaComplementar.objects.get(relatorio_id=relatorio, semestre=semestre)
+        # try:
+        #     atividade_pedagogica_complementar = AtividadePedagogicaComplementar.objects.get(relatorio_id=relatorio, semestre=semestre)
 
-            ch_total_atividades_letivas = 0.0
-            calculo_ch_semanal_aulas_soma = 0.0
-
-            if validated_data.get('nivel', instance.nivel) == 'GRA':
-                atividades_letivas = AtividadeLetiva.objects.filter(relatorio_id=relatorio, semestre=semestre, nivel='GRA')
-                for instance in atividades_letivas:
-                    ch_total_atividades_letivas = instance.docentes_envolvidos_e_cargas_horarias.pop(usuario.nome_completo.upper(), None) + ch_total_atividades_letivas
-
-                ch_total_atividades_letivas = round(ch_total_atividades_letivas, 1)
-
-                if ch_usuario % 15 == 0:
-                    calculo_ch_semanal_aulas_soma = ch_total_atividades_letivas + round(ch_usuario / 15, 1)
-                            
-                else:
-                    calculo_ch_semanal_aulas_soma = ch_total_atividades_letivas + round(ch_usuario / 17, 1)
-
-            elif validated_data.get('nivel', instance.nivel) == 'POS':
-                atividades_letivas = AtividadeLetiva.objects.filter(relatorio_id=relatorio, semestre=semestre, nivel='POS')
-                for instance in atividades_letivas:
-                    ch_total_atividades_letivas = instance.docentes_envolvidos_e_cargas_horarias.pop(usuario.nome_completo.upper(), None) + ch_total_atividades_letivas
-
-                ch_total_atividades_letivas = round(ch_total_atividades_letivas, 1)
-
-                calculo_ch_semanal_aulas_soma = ch_total_atividades_letivas + round(ch_usuario / 15, 1)
-
-            if atividade_pedagogica_complementar:
-                if atividade_pedagogica_complementar.ch_semanal_total > 2 * calculo_ch_semanal_aulas_soma or atividade_pedagogica_complementar.ch_semanal_total > 32:
-                    return Util.response_bad_request('ERRO: não é possível criar uma nova atividade_letiva para esse nível e semestre sem antes atualizar o ch_semanal_total da sua atividade_pedagogica_complementar do mesmo nível e semestre.')
-        
-        except AtividadePedagogicaComplementar.DoesNotExist:
-            pass
+        #     ch_total_atividades_letivas = 0.0
+        #     calculo_ch_semanal_aulas_soma = 0.0
             
-        instance.semestre = semestre
-        instance.codigo_disciplina = validated_data.get('codigo_disciplina', instance.codigo_disciplina)
-        instance.nome_disciplina = validated_data.get('nome_disciplina', instance.nome_disciplina)
-        instance.ano_e_semestre = validated_data.get('ano_e_semestre', instance.ano_e_semestre)
-        instance.curso = validated_data.get('curso', instance.curso)
-        instance.nivel = validated_data.get('nivel', instance.nivel)
-        instance.numero_turmas_teorico = validated_data.get('numero_turmas_teorico', instance.numero_turmas_teorico)
-        instance.numero_turmas_pratico = validated_data.get('numero_turmas_pratico', instance.numero_turmas_pratico)
-        instance.ch_turmas_teorico = validated_data.get('ch_turmas_teorico', instance.ch_turmas_teorico)
-        instance.ch_turmas_pratico = validated_data.get('ch_turmas_pratico', instance.ch_turmas_pratico)
+        #     if validated_data.get('nivel', atividade_letiva_instance.nivel) == 'GRA':
+        #         atividades_letivas = AtividadeLetiva.objects.filter(relatorio_id=relatorio, semestre=semestre, nivel='GRA')
+        #         for instance in atividades_letivas:
+        #             if instance.pk == atividade_letiva_id:
+        #                 ch_total_atividades_letivas = docentes_envolvidos_e_cargas_horarias[nome_usuario] + ch_total_atividades_letivas
+        #             else:
+        #                 ch_total_atividades_letivas = instance.docentes_envolvidos_e_cargas_horarias[nome_usuario] + ch_total_atividades_letivas
 
-        instance.ch_total = (instance.numero_turmas_teorico * instance.ch_turmas_teorico) + (instance.numero_turmas_pratico * instance.ch_turmas_pratico)
-    
-        instance.save()
+        #         ch_total_atividades_letivas = round(ch_total_atividades_letivas, 1)
 
-        relatorio_id = instance.relatorio_id
-        atividades_letivas = AtividadeLetiva.objects.filter(relatorio_id=relatorio_id)
+        #         if ch_usuario % 15 == 0:
+        #             calculo_ch_semanal_aulas_soma = ch_total_atividades_letivas + round(ch_usuario / 15, 1)
+                            
+        #         else:
+        #             calculo_ch_semanal_aulas_soma = ch_total_atividades_letivas + round(ch_usuario / 17, 1)
 
-        calculos_ch_semanal_aulas = CalculoCHSemanalAulas.objects.filter(relatorio_id=relatorio_id)
-        for calculo_ch_semanal_aulas in calculos_ch_semanal_aulas:
-            calculo_ch_semanal_aulas.ch_semanal_graduacao = 0.0
-            calculo_ch_semanal_aulas.ch_semanal_pos_graduacao = 0.0
-            calculo_ch_semanal_aulas.ch_semanal_total = 0.0
-            calculo_ch_semanal_aulas.save()
+        #     elif validated_data.get('nivel', atividade_letiva_instance.nivel) == 'POS':
+        #         atividades_letivas = AtividadeLetiva.objects.filter(relatorio_id=relatorio, semestre=semestre, nivel='POS')
+        #         for instance in atividades_letivas:
+        #             if instance.pk == atividade_letiva_id:
+        #                 ch_total_atividades_letivas = docentes_envolvidos_e_cargas_horarias[nome_usuario] + ch_total_atividades_letivas
+        #             else:
+        #                 ch_total_atividades_letivas = instance.docentes_envolvidos_e_cargas_horarias[nome_usuario] + ch_total_atividades_letivas
 
-        for atividade_letiva in atividades_letivas:
-            ch_usuario = atividade_letiva.docentes_envolvidos_e_cargas_horarias.pop(relatorio_id.usuario_id.nome_completo.upper(), None)
-                
-            try:
-                calculo_ch_semanal_aulas = CalculoCHSemanalAulas.objects.get(relatorio_id=relatorio_id, semestre=atividade_letiva.semestre)
-                
-                if atividade_letiva.nivel == 'GRA':
-                    if ch_usuario % 15 == 0:
-                        calculo_ch_semanal_aulas.ch_semanal_graduacao = calculo_ch_semanal_aulas.ch_semanal_graduacao + round(ch_usuario / 15, 1)
-                    else:
-                        calculo_ch_semanal_aulas.ch_semanal_graduacao = calculo_ch_semanal_aulas.ch_semanal_graduacao + round(ch_usuario / 17, 1)
+        #         ch_total_atividades_letivas = round(ch_total_atividades_letivas, 1)
 
-                elif atividade_letiva.nivel == 'POS':
-                    calculo_ch_semanal_aulas.ch_semanal_pos_graduacao = calculo_ch_semanal_aulas.ch_semanal_pos_graduacao + round(ch_usuario / 15, 1)
+        #         calculo_ch_semanal_aulas_soma = ch_total_atividades_letivas + round(ch_usuario / 15, 1)
+            
+        #     if atividade_pedagogica_complementar:
+        #         calculo_ch_semanal_aulas_soma = 2 * calculo_ch_semanal_aulas_soma
+        #         print(calculo_ch_semanal_aulas_soma)
 
-                calculo_ch_semanal_aulas.save()
+        #         if atividade_pedagogica_complementar.ch_semanal_total > calculo_ch_semanal_aulas_soma:
+        #                 return Util.response_bad_request(f'ERRO: não é possível atualizar uma atividade_letiva para esse nível e semestre sem antes atualizar a ch_semanal_total da sua atividade_pedagogica_complementar do mesmo nível e semestre para um valor menor ou igual a {calculo_ch_semanal_aulas_soma}.')
+                    
+        #         if atividade_pedagogica_complementar.ch_semanal_total > 32.0:
+        #                 return Util.response_bad_request('ERRO: não é possível atualizar uma atividade_letiva para esse nível e semestre sem antes atualizar a ch_semanal_total da sua atividade_pedagogica_complementar do mesmo nível e semestre para um valor menor ou igual a 32.0.')
+        
+        # except AtividadePedagogicaComplementar.DoesNotExist:
+        #     pass
+        
+        atividade_letiva_instance.semestre = semestre
 
-            except CalculoCHSemanalAulas.DoesNotExist:
-                if atividade_letiva.nivel == 'GRA':
-                    ch_semanal_graduacao = None
+        atividade_letiva_instance.codigo_disciplina = validated_data.get('codigo_disciplina', atividade_letiva_instance.codigo_disciplina)
 
-                    if ch_usuario % 15 == 0:
-                        ch_semanal_graduacao = round(ch_usuario / 15, 1)
-                    else:
-                        ch_semanal_graduacao = round(ch_usuario / 17, 1)
+        atividade_letiva_instance.nome_disciplina = validated_data.get('nome_disciplina', atividade_letiva_instance.nome_disciplina)
 
-                    calculo_ch_semanal_aulas = CalculoCHSemanalAulas.objects.create(
-                        relatorio_id = relatorio_id,
-                        semestre = atividade_letiva.semestre,
-                        ch_semanal_graduacao = ch_semanal_graduacao,
-                        ch_semanal_pos_graduacao = 0.0,
-                        ch_semanal_total = ch_semanal_graduacao
-                    )
+        atividade_letiva_instance.ano_e_semestre = validated_data.get('ano_e_semestre', atividade_letiva_instance.ano_e_semestre)
 
-                elif atividade_letiva.nivel == 'POS':
-                    ch_semanal_pos_graduacao = round(ch_usuario / 15, 1)
+        atividade_letiva_instance.curso = validated_data.get('curso', atividade_letiva_instance.curso)
 
-                    calculo_ch_semanal_aulas = CalculoCHSemanalAulas.objects.create(
-                        relatorio_id = relatorio_id,
-                        semestre = atividade_letiva.semestre,
-                        ch_semanal_graduacao = 0.0,
-                        ch_semanal_pos_graduacao = ch_semanal_pos_graduacao,
-                        ch_semanal_total = ch_semanal_pos_graduacao
-                    )
+        atividade_letiva_instance.nivel = validated_data.get('nivel', atividade_letiva_instance.nivel)
 
-        calculos_ch_semanal_aulas = CalculoCHSemanalAulas.objects.filter(relatorio_id=relatorio_id)
-        for calculo_ch_semanal_aulas in calculos_ch_semanal_aulas:
-            if calculo_ch_semanal_aulas.ch_semanal_graduacao >= 16.0: calculo_ch_semanal_aulas.ch_semanal_graduacao = 16.0
-            if calculo_ch_semanal_aulas.ch_semanal_pos_graduacao >= 16.0: calculo_ch_semanal_aulas.ch_semanal_pos_graduacao = 16.0
-            if calculo_ch_semanal_aulas.ch_semanal_graduacao < 8.0: calculo_ch_semanal_aulas.ch_semanal_graduacao = 0.0
-            if calculo_ch_semanal_aulas.ch_semanal_pos_graduacao < 8.0: calculo_ch_semanal_aulas.ch_semanal_pos_graduacao = 0.0
+        atividade_letiva_instance.numero_turmas_teorico = validated_data.get('numero_turmas_teorico', atividade_letiva_instance.numero_turmas_teorico)
 
-            calculo_ch_semanal_aulas.ch_semanal_graduacao = round(calculo_ch_semanal_aulas.ch_semanal_graduacao, 1)
-            calculo_ch_semanal_aulas.ch_semanal_pos_graduacao = round(calculo_ch_semanal_aulas.ch_semanal_pos_graduacao, 1)
+        atividade_letiva_instance.numero_turmas_pratico = validated_data.get('numero_turmas_pratico', atividade_letiva_instance.numero_turmas_pratico)
 
-            calculo_ch_semanal_aulas.ch_semanal_total = calculo_ch_semanal_aulas.ch_semanal_graduacao + calculo_ch_semanal_aulas.ch_semanal_pos_graduacao
+        atividade_letiva_instance.ch_turmas_teorico = validated_data.get('ch_turmas_teorico', atividade_letiva_instance.ch_turmas_teorico)
 
-            calculo_ch_semanal_aulas.save()
+        atividade_letiva_instance.ch_turmas_pratico = validated_data.get('ch_turmas_pratico', atividade_letiva_instance.ch_turmas_pratico)
 
-        return instance
+        atividade_letiva_instance.ch_total = (atividade_letiva_instance.numero_turmas_teorico * atividade_letiva_instance.ch_turmas_teorico) + (atividade_letiva_instance.numero_turmas_pratico * atividade_letiva_instance.ch_turmas_pratico)
+
+        atividade_letiva_instance.save()
+        
+        Util.resetar_valores_calculos_ch_semanal_aulas(relatorio_id = relatorio)
+
+        Util.recriar_calculos_ch_semanal_aulas(relatorio_id = relatorio)
+
+        Util.aplicar_maximos_e_minimos_calculos_ch_semanal_aulas(relatorio_id=relatorio)
+
+        return atividade_letiva_instance
 
 
 class CalculoCHSemanalAulasSerializer(serializers.ModelSerializer):
@@ -428,8 +330,7 @@ class CalculoCHSemanalAulasSerializer(serializers.ModelSerializer):
         ch_semanal_total = ch_semanal_graduacao + ch_semanal_pos_graduacao
 
         semestre = int(validated_data['semestre'])
-        if semestre > 2 or semestre < 1:
-            raise ValidationError({'semestre': ['ERRO: O semestre pode ser apenas 1 ou 2']})
+        Util.validar_semestre(semestre = semestre)
 
         calculo_ch_semanal_aulas = CalculoCHSemanalAulas.objects.create(
             **validated_data,
@@ -440,8 +341,7 @@ class CalculoCHSemanalAulasSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         semestre = validated_data.get('semestre', None)
         if semestre:
-            if semestre > 2 or semestre < 1:
-                raise ValidationError({'semestre': ['ERRO: O semestre pode ser apenas 1 ou 2']})
+            Util.validar_semestre(semestre = semestre)
             instance.semestre = semestre
 
         instance.ch_semanal_graduacao = validated_data.get('ch_semanal_graduacao', instance.ch_semanal_graducao)
@@ -467,8 +367,7 @@ class AtividadePedagogicaComplementarSerializer(serializers.ModelSerializer):
         ch_semanal_total = ch_semanal_graduacao + ch_semanal_pos_graduacao
 
         semestre = int(validated_data['semestre'])
-        if semestre > 2 or semestre < 1:
-            raise ValidationError({'semestre': ['ERRO: O semestre pode ser apenas 1 ou 2']})
+        Util.validar_semestre(semestre = semestre)
 
         atividade_pedagogica_complementar = AtividadePedagogicaComplementar.objects.create(
             **validated_data,
@@ -479,8 +378,7 @@ class AtividadePedagogicaComplementarSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         semestre = validated_data.get('semestre', None)
         if semestre:
-            if semestre > 2 or semestre < 1:
-                raise ValidationError({'semestre': ['ERRO: O semestre pode ser apenas 1 ou 2']})
+            Util.validar_semestre(semestre = semestre)
             instance.semestre = semestre
 
         instance.ch_semanal_graduacao = validated_data.get('ch_semanal_graduacao', instance.ch_semanal_graduacao)
@@ -509,8 +407,7 @@ class AtividadeOrientacaoSupervisaoPreceptoriaTutoriaSerializer(serializers.Mode
         ch_semanal_total = ch_semanal_orientacao + ch_semanal_coorientacao + ch_semanal_supervisao + ch_semanal_preceptoria_e_ou_tutoria
 
         semestre = int(validated_data['semestre'])
-        if semestre > 2 or semestre < 1:
-            raise ValidationError({'semestre': ['ERRO: O semestre pode ser apenas 1 ou 2']})
+        Util.validar_semestre(semestre = semestre)
 
         atividades_orientacao_supervisao_preceptoria_tutoria = AtividadeOrientacaoSupervisaoPreceptoriaTutoria.objects.create(
             **validated_data,
@@ -521,8 +418,7 @@ class AtividadeOrientacaoSupervisaoPreceptoriaTutoriaSerializer(serializers.Mode
     def update(self, instance, validated_data):
         semestre = validated_data.get('semestre', None)
         if semestre:
-            if semestre > 2 or semestre < 1:
-                raise ValidationError({'semestre': ['ERRO: O semestre pode ser apenas 1 ou 2']})
+            Util.validar_semestre(semestre = semestre)
             instance.semestre = semestre
 
         instance.ch_semanal_orientacao = validated_data.get('ch_semanal_orientacao', instance.ch_semanal_orientacao)
@@ -766,8 +662,7 @@ class DistribuicaoCHSemanalSerializer(serializers.ModelSerializer):
             raise ValidationError({'ch_semanal_total': ['A carga horária semanal total não pode ultrapassar 40 horas.']})
         
         semestre = int(validated_data['semestre'])
-        if semestre > 2 or semestre < 1:
-            raise ValidationError({'semestre': ['ERRO: O semestre pode ser apenas 1 ou 2']})
+        Util.validar_semestre(semestre = semestre)
 
         distribuicao_ch_semanal = DistribuicaoCHSemanal.objects.create(
             **validated_data,
@@ -778,8 +673,7 @@ class DistribuicaoCHSemanalSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         semestre = validated_data.get('semestre', None)
         if semestre:
-            if semestre > 2 or semestre < 1:
-                raise ValidationError({'semestre': ['ERRO: O semestre pode ser apenas 1 ou 2']})
+            Util.validar_semestre(semestre = semestre)
             instance.semestre = semestre
         
         instance.ch_semanal_atividade_didatica = validated_data.get('ch_semanal_atividade_didatica', instance.ch_semanal_atividade_didatica)
@@ -815,8 +709,7 @@ class AtividadeGestaoRepresentacaoSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         semestre = int(validated_data['semestre'])
-        if semestre > 2 or semestre < 1:
-            raise ValidationError({'semestre': ['ERRO: O semestre pode ser apenas 1 ou 2']})
+        Util.validar_semestre(semestre = semestre)
 
         atividade_gestao_representacao = AtividadeGestaoRepresentacao.objects.create(
             **validated_data
@@ -826,8 +719,7 @@ class AtividadeGestaoRepresentacaoSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         semestre = validated_data.get('semestre', None)
         if semestre:
-            if semestre > 2 or semestre < 1:
-                raise ValidationError({'semestre': ['ERRO: O semestre pode ser apenas 1 ou 2']})
+            Util.validar_semestre(semestre = semestre)
             instance.semestre = semestre
         
         instance.numero_doc = validated_data.get('numero_doc', instance.numero_doc)

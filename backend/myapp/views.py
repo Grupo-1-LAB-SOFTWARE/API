@@ -174,6 +174,7 @@ class ActivateEmail(APIView):
 
 class AtividadeLetivaView(APIView):
     #permission_classes = [IsAuthenticated]
+
     def get(self, request, id=None):
         if id:
             return self.getById(request, id)
@@ -230,113 +231,67 @@ class AtividadeLetivaView(APIView):
                 relatorio_id = atividade_letiva.relatorio_id
                 usuario = relatorio_id.usuario_id
                 atividades_letivas = AtividadeLetiva.objects.filter(relatorio_id=relatorio_id)
+                
+                atividades_letivas_semestre = AtividadeLetiva.objects.filter(relatorio_id=relatorio_id, semestre = atividade_letiva.semestre)
 
-                try:
-                    atividade_pedagogica_complementar = AtividadePedagogicaComplementar.objects.get(relatorio_id=relatorio_id, semestre=atividade_letiva.semestre)
+                # if atividades_letivas_semestre.count() == 1:
+                #     atividades_pedagogicas_complementares = AtividadePedagogicaComplementar.objects.filter(relatorio_id=relatorio_id, semestre=atividade_letiva.semestre)
 
-                    ch_total_atividades_letivas = 0.0
-                    calculo_ch_semanal_aulas_soma = 0.0
+                #     for instance in atividades_pedagogicas_complementares:
+                #         if instance.ch_semanal_total > 0.0:
+                #             return Util.response_bad_request('ERRO: Para deletar a atividade_letiva desejada será necessário deletar todas as atividades_pedagogicas_complementares desse mesmo semestre no radoc em questão ou atualizá-las para terem sua ch_semanal_total igual a zero.')
 
-                    if atividade_letiva.nivel == 'GRA':
-                        atividades_letivas = AtividadeLetiva.objects.filter(relatorio_id=relatorio_id, semestre=atividade_letiva.semestre, nivel='GRA')
-                        for instance in atividades_letivas:
-                            ch_total_atividades_letivas = instance.docentes_envolvidos_e_cargas_horarias.pop(usuario.nome_completo.upper(), None) + ch_total_atividades_letivas
+                # calculo_ch_semanal_aulas_soma = 0.0
+                
+                # for instance in atividades_letivas_semestre:
+                #     if instance == atividade_letiva:
+                #         continue
 
-                        ch_total_atividades_letivas = round(ch_total_atividades_letivas, 1)
+                #     ch_usuario = instance.docentes_envolvidos_e_cargas_horarias.pop(relatorio_id.usuario_id.nome_completo.upper(), None)
 
-                        if ch_usuario % 15 == 0:
-                            calculo_ch_semanal_aulas_soma = ch_total_atividades_letivas + round(ch_usuario / 15, 1)
-                                
-                        else:
-                            calculo_ch_semanal_aulas_soma = ch_total_atividades_letivas + round(ch_usuario / 17, 1)
+                #     if instance.nivel == 'GRA':
+                #         if ch_usuario % 15 == 0:
+                #             calculo_ch_semanal_aulas_soma = calculo_ch_semanal_aulas_soma + round(ch_usuario / 15, 1)
+                            
+                #         else:
+                #             calculo_ch_semanal_aulas_soma = calculo_ch_semanal_aulas_soma + round(ch_usuario / 17, 1)
 
-                    elif atividade_letiva.nivel == 'POS':
-                        atividades_letivas = AtividadeLetiva.objects.filter(relatorio_id=relatorio_id, semestre=atividade_letiva.semestre, nivel='POS')
-                        for instance in atividades_letivas:
-                            ch_total_atividades_letivas = instance.docentes_envolvidos_e_cargas_horarias.pop(usuario.nome_completo.upper(), None) + ch_total_atividades_letivas
+                #     elif instance.nivel == 'POS':
+                #         calculo_ch_semanal_aulas_soma = calculo_ch_semanal_aulas_soma + round(ch_usuario / 15, 1)
 
-                        ch_total_atividades_letivas = round(ch_total_atividades_letivas, 1)
+                # try:
+                #     atividade_pedagogica_complementar = AtividadePedagogicaComplementar.objects.get(relatorio_id=relatorio_id, semestre=atividade_letiva.semestre)
+                    
+                #     calculo_ch_semanal_aulas_soma = 2 * calculo_ch_semanal_aulas_soma
 
-                        calculo_ch_semanal_aulas_soma = ch_total_atividades_letivas + round(ch_usuario / 15, 1)
+                #     if atividade_pedagogica_complementar.ch_semanal_total > calculo_ch_semanal_aulas_soma:
+                #         return Util.response_bad_request(f'ERRO: não é possível deletar uma atividade_letiva para esse nível e semestre sem antes atualizar a ch_semanal_total da sua atividade_pedagogica_complementar do mesmo nível e semestre para um valor menor ou igual a {calculo_ch_semanal_aulas_soma}.')
+                    
+                #     if atividade_pedagogica_complementar.ch_semanal_total > 32.0:
+                #         return Util.response_bad_request('ERRO: não é possível deletar uma atividade_letiva para esse nível e semestre sem antes atualizar a ch_semanal_total da sua atividade_pedagogica_complementar do mesmo nível e semestre para um valor menor ou igual a 32.0.')
+                        
+                
+                # except AtividadePedagogicaComplementar.DoesNotExist:
+                #     pass
+                        
+                if atividades_letivas_semestre.count() == 1:
+                    calculo_ch_semanal_aulas = CalculoCHSemanalAulas.objects.get(relatorio_id=relatorio_id, semestre=atividade_letiva.semestre)
 
-                    if atividade_pedagogica_complementar:
-                        if atividade_pedagogica_complementar.ch_semanal_total > 2 * calculo_ch_semanal_aulas_soma or atividade_pedagogica_complementar.ch_semanal_total > 32:
-                            return Util.response_bad_request('ERRO: não é possível criar uma nova atividade_letiva para esse nível e semestre sem antes atualizar o ch_semanal_total da sua atividade_pedagogica_complementar do mesmo nível e semestre.')
-        
-                except AtividadePedagogicaComplementar.DoesNotExist:
-                    pass
+                    calculo_ch_semanal_aulas.delete()
     
                 atividade_letiva.delete()
 
-                calculo_ch_semanal_aulas = CalculoCHSemanalAulas.objects.filter(relatorio_id=relatorio_id)
-                for instance in calculo_ch_semanal_aulas:
-                    instance.ch_semanal_graduacao = 0.0
-                    instance.ch_semanal_pos_graduacao = 0.0
-                    instance.ch_semanal_total = 0.0
-                    instance.save()
+                Util.resetar_valores_calculos_ch_semanal_aulas(relatorio_id = relatorio_id)
 
-                for instance in atividades_letivas:
-                    ch_usuario = instance.docentes_envolvidos_e_cargas_horarias.pop(relatorio_id.usuario_id.nome_completo.upper(), None)
-                    try:
-                        calculo_ch_semanal_aulas = CalculoCHSemanalAulas.objects.get(relatorio_id=relatorio_id, semestre=instance.semestre)
+                Util.recriar_calculos_ch_semanal_aulas(relatorio_id = relatorio_id)
 
-                        if instance.nivel == 'GRA':
-                            if ch_usuario % 15 == 0:
-                                calculo_ch_semanal_aulas.ch_semanal_graduacao = calculo_ch_semanal_aulas.ch_semanal_graduacao + round(ch_usuario / 15, 1)
-                            
-                            else:
-                                calculo_ch_semanal_aulas.ch_semanal_graduacao = calculo_ch_semanal_aulas.ch_semanal_graduacao + round(ch_usuario / 17, 1)
-
-                        elif instance.nivel == 'POS':
-                            calculo_ch_semanal_aulas.ch_semanal_pos_graduacao = calculo_ch_semanal_aulas.ch_semanal_pos_graduacao + round(ch_usuario / 15, 1)
-
-                        calculo_ch_semanal_aulas.save()
-
-                    except CalculoCHSemanalAulas.DoesNotExist:
-                        if instance.nivel == 'GRA':
-                            ch_semanal_graduacao = None
-
-                            if ch_usuario % 15 == 0:
-                                ch_semanal_graduacao = round(ch_usuario / 15, 1)
-                            else:
-                                    ch_semanal_graduacao = round(ch_usuario / 17, 1)
-
-                            calculo_ch_semanal_aulas = CalculoCHSemanalAulas.objects.create(
-                                relatorio_id = relatorio_id,
-                                semestre = instance.semestre,
-                                ch_semanal_graduacao = ch_semanal_graduacao,
-                                ch_semanal_pos_graduacao = 0.0,
-                                ch_semanal_total = ch_semanal_graduacao
-                            )
-
-                        elif instance.nivel == 'POS':
-                            ch_semanal_pos_graduacao = round(ch_usuario / 15, 1)
-
-                            calculo_ch_semanal_aulas = CalculoCHSemanalAulas.objects.create(
-                                relatorio_id = relatorio_id,
-                                semestre = instance.semestre,
-                                ch_semanal_graduacao = 0.0,
-                                ch_semanal_pos_graduacao = ch_semanal_pos_graduacao,
-                                ch_semanal_total = ch_semanal_pos_graduacao
-                            )
-
-                calculos_ch_semanal_aulas = CalculoCHSemanalAulas.objects.filter(relatorio_id=relatorio_id)
                 if atividades_letivas.count() == 0:
-                    for instance in calculo_ch_semanal_aulas:
+                    calculos_ch_semanal_aulas = CalculoCHSemanalAulas.objects.filter(relatorio_id=relatorio_id)
+
+                    for instance in calculos_ch_semanal_aulas:
                         instance.delete()
                 else:
-                    for instance in calculos_ch_semanal_aulas:
-                        if instance.ch_semanal_graduacao >= 16.0: instance.ch_semanal_graduacao = 16.0
-                        elif instance.ch_semanal_pos_graduacao >= 16.0: instance.ch_semanal_pos_graduacao = 16.0
-                        elif instance.ch_semanal_graduacao < 8.0: instance.ch_semanal_graduacao = 0.0
-                        elif instance.ch_semanal_pos_graduacao < 8.0: instance.ch_semanal_pos_graduacao = 0.0
-
-                        instance.ch_semanal_graduacao = round(instance.ch_semanal_graduacao, 1)
-                        instance.ch_semanal_pos_graduacao = round(instance.ch_semanal_pos_graduacao, 1)
-
-                        instance.ch_semanal_total = instance.ch_semanal_graduacao + instance.ch_semanal_pos_graduacao
-
-                        instance.save()
+                    Util.aplicar_maximos_e_minimos_calculos_ch_semanal_aulas(relatorio_id=relatorio_id)
 
                 return Util.response_ok_no_message('Objeto excluído com sucesso.')
             except AtividadeLetiva.DoesNotExist:
@@ -415,7 +370,7 @@ class AtividadePedagogicaComplementarView(APIView):
                     return Util.response_bad_request('ERRO: não é possível criar uma atividade_pedagogica_complementar em que a soma entre ch_semanal_graduacao e ch_semanal_pos_graduacao seja maior que o dobro do ch_semanal_total do seu calculo_ch_semanal_aulas correspondente')
 
             except CalculoCHSemanalAulas.DoesNotExist:
-                return Util.response_bad_request('ERRO: não é possível criar uma atividade_pedagogica_complementar para um semestre em específico sem antes criar um calculo_ch_semanal_aulas para o mesmo semestre.')
+                return Util.response_bad_request('ERRO: não é possível criar uma atividade_pedagogica_complementar para um semestre em específico sem antes criar uma atividade_letiva para o mesmo semestre.')
             
             atividade_pedagogica_complementar = serializer.save()
 
@@ -458,10 +413,10 @@ class AtividadePedagogicaComplementarView(APIView):
                         ch_semanal_total = serializer.validated_data.get('ch_semanal_graduacao', atividade_pedagogica_complementar.ch_semanal_graduacao) + serializer.validated_data.get('ch_semanal_pos_graduacao', atividade_pedagogica_complementar.ch_semanal_pos_graduacao)
 
                         if ch_semanal_total > 2 * calculo_ch_semanal_aulas.ch_semanal_total:
-                            return Util.response_bad_request('ERRO: não é possível criar uma atividade_pedagogica_complementar em que a soma entre ch_semanal_graduacao e ch_semanal_pos_graduacao seja maior que o dobro do ch_semanal_total do seu calculo_ch_semanal_aulas correspondente')
+                            return Util.response_bad_request('ERRO: não é possível atualizar uma atividade_pedagogica_complementar em que a soma entre ch_semanal_graduacao e ch_semanal_pos_graduacao seja maior que o dobro do ch_semanal_total do seu calculo_ch_semanal_aulas correspondente')
 
                     except CalculoCHSemanalAulas.DoesNotExist:
-                        return Util.response_bad_request('ERRO: não é possível atualizar uma atividade_pedagogica_complementar para um semestre em específico sem antes criar um calculo_ch_semanal_aulas para o mesmo semestre.')
+                        return Util.response_bad_request('ERRO: não é possível atualizar uma atividade_pedagogica_complementar para um semestre em específico sem antes criar uma atividade_letiva para o mesmo semestre.')
 
                     serializer.save()
                     return Util.response_ok_no_message(serializer.data)
