@@ -2039,9 +2039,6 @@ class RelatorioDocenteView(APIView):
     
     def getByUser(self, request, user_id=None):
         if user_id:
-            usuario_autenticado = Usuario.objects.get(pk = request.user.id)
-            if usuario_autenticado.perfil != "Administrador":
-                return Util.response_unauthorized("Apenas usuários administradores podem realizar essa requisição!")
             try:
                 Usuario.objects.get(pk=user_id)
             except Usuario.DoesNotExist:
