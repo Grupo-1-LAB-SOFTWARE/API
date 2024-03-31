@@ -2014,11 +2014,57 @@ class RelatorioDocenteView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
+        usuario_id = request.user.id
+        request.data['usuario_id'] = usuario_id
+        try:
+            relatorio_docente_existente = RelatorioDocente.objects.get(usuario_id=usuario_id, nome=request.data['nome'])
+            if relatorio_docente_existente:
+                return Util.response_bad_request('Já existe um relatorio_docente pertencente ao seu usuário com esse nome.')
+        except RelatorioDocente.DoesNotExist:
+            pass
+
         serializer = RelatorioDocenteSerializer(data=request.data)
         if serializer.is_valid():
             relatorio_docente = serializer.save()
             return Util.response_created({'id': f'{relatorio_docente.pk}'})
         return Util.response_bad_request(serializer.errors)
+    
+    def get(self, request, nome=None):
+        if nome:
+            return self.getOneByUser(request, nome)
+        else:
+            return self.getAllByUser(request)
+        
+    def getAllByUser(self, request):
+        instances = RelatorioDocente.objects.filter(usuario_id = request.user.id)
+        serializer = RelatorioDocenteSerializer(instances, many=True)
+        return Util.response_ok_no_message(serializer.data)
+    
+    def getOneByUser(self, request, nome=None):
+        if nome:
+            try:
+                instance = RelatorioDocente.objects.get(usuario_id = request.user.id, nome=nome)
+                if instance:
+                    serializer = RelatorioDocenteSerializer(instance, many=True)
+                    return Util.response_ok_no_message(serializer.data)
+            except RelatorioDocente.DoesNotExist:
+                return Util.response_not_found('O usuário não possui nenhum relatorio_docente com esse nome.')
+        return Util.response_bad_request('É necessário fornecer o nome do relatorio_docente que você deseja ler.')
+    
+    def delete(self, request, nome=None):
+        if nome:
+            try:
+                instance = RelatorioDocente.objects.get(usuario_id = request.user.id, nome=nome)
+                if instance:
+                    instance.delete()
+                    return Util.response_ok_no_message('RADOC excluído com sucesso.')
+            except RelatorioDocente.DoesNotExist:
+                return Util.response_not_found('Não foi possível encontrar uma relatorio_docente pertencente ao usuário que tenha o nome fornecido.')
+            
+        return Util.response_bad_request('É necessário fornecer o nome do relatorio_docente que você deseja deletar.')
+    
+class RelatorioDocenteAdminView(APIView):
+    permission_classes = [IsAuthenticated]
 
     def get(self, request, id=None, user_id=None):
         if id:
@@ -2048,27 +2094,33 @@ class RelatorioDocenteView(APIView):
             serializer = RelatorioDocenteSerializer(instances, many=True)
             return Util.response_ok_no_message(serializer.data)
         
-        return Util.response_bad_request('É necessário fornecer o id do usuário o qual você deseja obter os radocs criados em relatorio_docente/usuario/{id}/')
+        return Util.response_bad_request('É necessário fornecer o id do usuário o qual você deseja obter os radocs criados em relatorio_docente/admin/usuario/{id}/')
     
     def getById(self, request, id=None):
         if id:
+            usuario_autenticado = Usuario.objects.get(pk = request.user.id)
+            if usuario_autenticado.perfil != "Administrador":
+                return Util.response_unauthorized("Apenas usuários administradores podem realizar essa requisição!")
             try:
                 instance = RelatorioDocente.objects.get(pk=id)
                 serializer = RelatorioDocenteSerializer(instance)
                 return Util.response_ok_no_message(serializer.data)
             except RelatorioDocente.DoesNotExist:
                 return Util.response_not_found('Não foi possível encontrar um relatorio_docente com o id fornecido')
-        return Util.response_bad_request('É necessário fornecer o id do objeto que você deseja ler em relatorio_docente/{id}/')
+        return Util.response_bad_request('É necessário fornecer o id do objeto que você deseja ler em relatorio_docente/admin/{id}/')
         
     def delete(self, request, id=None):
         if id:
+            usuario_autenticado = Usuario.objects.get(pk = request.user.id)
+            if usuario_autenticado.perfil != "Administrador":
+                return Util.response_unauthorized("Apenas usuários administradores podem realizar essa requisição!")
             try:
                 instance = RelatorioDocente.objects.get(pk=id)
                 instance.delete()
                 return Util.response_ok_no_message('RADOC excluído com sucesso.')
             except RelatorioDocente.DoesNotExist:
                 return Util.response_not_found('Não foi possível encontrar uma relatorio_docente com o id fornecido.')
-        return Util.response_bad_request('É necessário fornecer o id do objeto que você deseja excluir em relatorio_docente/{id}/')
+        return Util.response_bad_request('É necessário fornecer o id do objeto que você deseja excluir em relatorio_docente/admin/{id}/')
     
 class DownloadRelatorioDocenteView(APIView):
     permission_classes = [IsAuthenticated]

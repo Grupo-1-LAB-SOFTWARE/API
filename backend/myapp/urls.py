@@ -1,7 +1,7 @@
 from django.urls import path
 
 from .views import (UsuarioView, ActivateEmail, LoginView, EndpointsView,
-                    RelatorioDocenteView, AtividadeLetivaView, CalculoCHSemanalAulasView, AtividadePedagogicaComplementarView, AtividadeOrientacaoSupervisaoPreceptoriaTutoriaView, DescricaoOrientacaoCoorientacaoAcademicaView, SupervisaoAcademicaView, PreceptoriaTutoriaResidenciaView, BancaExaminadoraView, CHSemanalAtividadeEnsinoView, AvaliacaoDiscenteView, ProjetoPesquisaProducaoIntelectualView, TrabalhoCompletoPublicadoPeriodicoBoletimTecnicoView, LivroCapituloVerbetePublicadoView, TrabalhoCompletoResumoPublicadoApresentadoCongressosView, OutraAtividadePesquisaProducaoIntelectualView, CHSemanalAtividadesPesquisaView, ProjetoExtensaoView, EstagioExtensaoView, AtividadeEnsinoNaoFormalView, OutraAtividadeExtensaoView, CHSemanalAtividadesExtensaoView, DistribuicaoCHSemanalView, AtividadeGestaoRepresentacaoView, QualificacaoDocenteAcademicaProfissionalView, OutraInformacaoView, AfastamentoView, DocumentoComprobatorioView, DownloadRelatorioDocenteView, CriarUsuarioView, ExtrairDadosAtividadesLetivasPDFAPIView)
+                    RelatorioDocenteAdminView, RelatorioDocenteView, AtividadeLetivaView, CalculoCHSemanalAulasView, AtividadePedagogicaComplementarView, AtividadeOrientacaoSupervisaoPreceptoriaTutoriaView, DescricaoOrientacaoCoorientacaoAcademicaView, SupervisaoAcademicaView, PreceptoriaTutoriaResidenciaView, BancaExaminadoraView, CHSemanalAtividadeEnsinoView, AvaliacaoDiscenteView, ProjetoPesquisaProducaoIntelectualView, TrabalhoCompletoPublicadoPeriodicoBoletimTecnicoView, LivroCapituloVerbetePublicadoView, TrabalhoCompletoResumoPublicadoApresentadoCongressosView, OutraAtividadePesquisaProducaoIntelectualView, CHSemanalAtividadesPesquisaView, ProjetoExtensaoView, EstagioExtensaoView, AtividadeEnsinoNaoFormalView, OutraAtividadeExtensaoView, CHSemanalAtividadesExtensaoView, DistribuicaoCHSemanalView, AtividadeGestaoRepresentacaoView, QualificacaoDocenteAcademicaProfissionalView, OutraInformacaoView, AfastamentoView, DocumentoComprobatorioView, DownloadRelatorioDocenteView, CriarUsuarioView, ExtrairDadosAtividadesLetivasPDFAPIView)
 
 
 urlpatterns = [
@@ -27,13 +27,19 @@ urlpatterns = [
 
     path('atividade_letiva/', AtividadeLetivaView.as_view(), name='atividade_letiva/'),
 
+    path('relatorio_docente/admin', RelatorioDocenteAdminView.as_view(), name='relatorio_docente/admin'),
+
+    path('relatorio_docente/admin/', RelatorioDocenteAdminView.as_view(), name='relatorio_docente/admin/'),
+
+    path('relatorio_docente/admin/<int:id>/', RelatorioDocenteAdminView.as_view(), name='relatorio_docente/admin/id/'),
+
+    path('relatorio_docente/admin/usuario/<int:user_id>/', RelatorioDocenteAdminView.as_view(), name='relatorio_docente/admin/usuario/id/'),
+
     path('relatorio_docente', RelatorioDocenteView.as_view(), name='relatorio_docente'),
 
     path('relatorio_docente/', RelatorioDocenteView.as_view(), name='relatorio_docente/'),
 
-    path('relatorio_docente/<int:id>/', RelatorioDocenteView.as_view(), name='relatorio_docente/id/'),
-
-    path('relatorio_docente/usuario/<int:user_id>/', RelatorioDocenteView.as_view(), name='relatorio_docente/usuario/id/'),
+    path('relatorio_docente/<str:nome>/', RelatorioDocenteView.as_view(), name='relatorio_docente/nome/'),
 
     path('calculo_ch_semanal_aulas/', CalculoCHSemanalAulasView.as_view(), name='calculo_ch_semanal_aulas/'),
 
