@@ -94,7 +94,7 @@ class UsuarioView(APIView):
             except Usuario.DoesNotExist:
                 return Util.response_not_found('Não foi possível encontrar um usuário com o id fornecido.')
 
-        return Util.response_bad_request('É necessário fornecer o id do usuário que você deseja atualizar em usuarios/{id}')
+        return Util.response_bad_request('É necessário fornecer o id do usuário que você deseja atualizar em usuarios/{id}/')
 
     #Pra pegar todos os usuários, sem especificar id
     def getAll(self, request):
@@ -117,6 +117,10 @@ class UsuarioView(APIView):
         
     def delete(self, request, user_id=None):
         if user_id:
+            usuario_autenticado = Usuario.objects.get(pk = request.user.id)
+            if usuario_autenticado.perfil != "Administrador":
+                return Util.response_unauthorized("Apenas usuários administradores podem realizar essa requisição!")
+            
             try:
                 instance = Usuario.objects.get(pk=user_id)
                 instance.delete()
@@ -164,8 +168,6 @@ class LoginView(APIView):
         else:
             return Util.response_not_found('Ocorreu algum erro desconhecido')
 
-
-
 class ActivateEmail(APIView):
     def get(self, request, username):
         try:
@@ -176,7 +178,6 @@ class ActivateEmail(APIView):
             return Util.response_not_found('Usuário não encontrado')
 
         return Util.response_ok('Ativação do usuário bem-sucedida')
-
 
 class AtividadeLetivaView(APIView):
     permission_classes = [IsAuthenticated]
@@ -2019,16 +2020,38 @@ class RelatorioDocenteView(APIView):
             return Util.response_created({'id': f'{relatorio_docente.pk}'})
         return Util.response_bad_request(serializer.errors)
 
-    def get(self, request, id=None):
+    def get(self, request, id=None, user_id=None):
         if id:
             return self.getById(request, id)
+        elif user_id:
+            return self.getByUser(request, user_id)
         else:
             return self.getAll(request)
         
     def getAll(self, request):
+        usuario_autenticado = Usuario.objects.get(pk = request.user.id)
+        if usuario_autenticado.perfil != "Administrador":
+            return Util.response_unauthorized("Apenas usuários administradores podem realizar essa requisição!")
+        
         instances = RelatorioDocente.objects.all()
         serializer = RelatorioDocenteSerializer(instances, many=True)
         return Util.response_ok_no_message(serializer.data)
+    
+    def getByUser(self, request, user_id=None):
+        if user_id:
+            usuario_autenticado = Usuario.objects.get(pk = request.user.id)
+            if usuario_autenticado.perfil != "Administrador":
+                return Util.response_unauthorized("Apenas usuários administradores podem realizar essa requisição!")
+            try:
+                Usuario.objects.get(pk=user_id)
+            except Usuario.DoesNotExist:
+                return Util.response_not_found('Não existe nenhum usuário que possua esse id.')
+                
+            instances = RelatorioDocente.objects.filter(usuario_id = user_id)
+            serializer = RelatorioDocenteSerializer(instances, many=True)
+            return Util.response_ok_no_message(serializer.data)
+        
+        return Util.response_bad_request('É necessário fornecer o id do usuário o qual você deseja obter os radocs criados em relatorio_docente/usuario/{id}/')
     
     def getById(self, request, id=None):
         if id:

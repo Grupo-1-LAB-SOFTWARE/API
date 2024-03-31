@@ -33,6 +33,8 @@ urlpatterns = [
 
     path('relatorio_docente/<int:id>/', RelatorioDocenteView.as_view(), name='relatorio_docente/id/'),
 
+    path('relatorio_docente/usuario/<int:user_id>/', RelatorioDocenteView.as_view(), name='relatorio_docente/usuario/id/'),
+
     path('calculo_ch_semanal_aulas/', CalculoCHSemanalAulasView.as_view(), name='calculo_ch_semanal_aulas/'),
 
     path('calculo_ch_semanal_aulas', CalculoCHSemanalAulasView.as_view(), name='calculo_ch_semanal_aulas'),
