@@ -20,7 +20,44 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.permissions import IsAuthenticated
 
+class CriarUsuarioView(APIView):
+    def post(self, request):
+        username = request.data.get('username')
+        email = request.data.get('email')
+            
+        if self.is_username_disponivel(username) == False:
+            return Util.response_bad_request('Já existe um usuário cadastrado com esse username.')
+        if self.is_email_disponivel(email) == False:
+            return Util.response_bad_request('Já existe um usuário cadastrado com esse e-mail.')
+
+        serializer = UsuarioSerializer(data=request.data)
+        if serializer.is_valid():
+            user = serializer.save()
+            user_dict = model_to_dict(user)
+            user_login = user_dict.get('username', None)
+            user_email = user_dict.get('email', None)
+            if (user_login, user_email) is not None:
+                Util.send_verification_email(user_login, user_email, request)
+                return Response({'id': f'{user.pk}'}, status=status.HTTP_201_CREATED)
+        return Util.response_bad_request(serializer.errors)
+
+    def is_username_disponivel(self, username):
+        try:
+            Usuario.objects.get(username=username)
+            return False
+        except Usuario.DoesNotExist:
+            return True
+
+    def is_email_disponivel(self, email):
+        try:
+            Usuario.objects.get(email=email)
+            return False
+        except Usuario.DoesNotExist:
+            return True
+
 class UsuarioView(APIView):
+    permission_classes = [IsAuthenticated]
+
     def get(self, request, user_id=None):
         if user_id:
             return self.getById(request, user_id)
@@ -57,11 +94,13 @@ class UsuarioView(APIView):
             except Usuario.DoesNotExist:
                 return Util.response_not_found('Não foi possível encontrar um usuário com o id fornecido.')
 
-        return Util.response_bad_request('É necessário fornecer o id do usuário que você deseja atualizar em usuarios/{id}')
-
+        return Util.response_bad_request('É necessário fornecer o id do usuário que você deseja atualizar em usuarios/{id}/')
 
     #Pra pegar todos os usuários, sem especificar id
     def getAll(self, request):
+        usuario_autenticado = Usuario.objects.get(pk = request.user.id)
+        if usuario_autenticado.perfil != "Administrador":
+            return Util.response_unauthorized("Apenas usuários administradores podem realizar essa requisição!")
         user = Usuario.objects.all()
         serializer = UsuarioSerializer(user, many=True)
         return Util.response_ok_no_message(serializer.data)
@@ -75,43 +114,13 @@ class UsuarioView(APIView):
             except Usuario.DoesNotExist:
                 return Util.response_not_found('Não foi possível encontrar um usuário com o id fornecido')
         return Util.response_bad_request('É necessário fornecer o id do objeto que você deseja ler em usuarios/{id}/')
-    
-    def post(self, request):
-            username = request.data.get('username')
-            email = request.data.get('email')
-            
-            if self.is_username_disponivel(username) == False:
-                return Util.response_bad_request('Já existe um usuário cadastrado com esse username.')
-            if self.is_email_disponivel(email) == False:
-                return Util.response_bad_request('Já existe um usuário cadastrado com esse e-mail.')
-
-            serializer = UsuarioSerializer(data=request.data)
-            if serializer.is_valid():
-                user = serializer.save()
-                user_dict = model_to_dict(user)
-                user_login = user_dict.get('username', None)
-                user_email = user_dict.get('email', None)
-                if (user_login, user_email) is not None:
-                    Util.send_verification_email(user_login, user_email, request)
-                    return Response({'id': f'{user.pk}'}, status=status.HTTP_201_CREATED)
-            return Util.response_bad_request(serializer.errors)
-
-    def is_username_disponivel(self, username):
-        try:
-            Usuario.objects.get(username=username)
-            return False
-        except Usuario.DoesNotExist:
-            return True
-
-    def is_email_disponivel(self, email):
-        try:
-            Usuario.objects.get(email=email)
-            return False
-        except Usuario.DoesNotExist:
-            return True
         
     def delete(self, request, user_id=None):
         if user_id:
+            usuario_autenticado = Usuario.objects.get(pk = request.user.id)
+            if usuario_autenticado.perfil != "Administrador":
+                return Util.response_unauthorized("Apenas usuários administradores podem realizar essa requisição!")
+            
             try:
                 instance = Usuario.objects.get(pk=user_id)
                 instance.delete()
@@ -159,8 +168,6 @@ class LoginView(APIView):
         else:
             return Util.response_not_found('Ocorreu algum erro desconhecido')
 
-
-
 class ActivateEmail(APIView):
     def get(self, request, username):
         try:
@@ -172,9 +179,9 @@ class ActivateEmail(APIView):
 
         return Util.response_ok('Ativação do usuário bem-sucedida')
 
-
 class AtividadeLetivaView(APIView):
-    #permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated]
+
     def get(self, request, id=None):
         if id:
             return self.getById(request, id)
@@ -232,113 +239,67 @@ class AtividadeLetivaView(APIView):
                 relatorio_id = atividade_letiva.relatorio_id
                 usuario = relatorio_id.usuario_id
                 atividades_letivas = AtividadeLetiva.objects.filter(relatorio_id=relatorio_id)
+                
+                atividades_letivas_semestre = AtividadeLetiva.objects.filter(relatorio_id=relatorio_id, semestre = atividade_letiva.semestre)
 
-                try:
-                    atividade_pedagogica_complementar = AtividadePedagogicaComplementar.objects.get(relatorio_id=relatorio_id, semestre=atividade_letiva.semestre)
+                # if atividades_letivas_semestre.count() == 1:
+                #     atividades_pedagogicas_complementares = AtividadePedagogicaComplementar.objects.filter(relatorio_id=relatorio_id, semestre=atividade_letiva.semestre)
 
-                    ch_total_atividades_letivas = 0.0
-                    calculo_ch_semanal_aulas_soma = 0.0
+                #     for instance in atividades_pedagogicas_complementares:
+                #         if instance.ch_semanal_total > 0.0:
+                #             return Util.response_bad_request('ERRO: Para deletar a atividade_letiva desejada será necessário deletar todas as atividades_pedagogicas_complementares desse mesmo semestre no radoc em questão ou atualizá-las para terem sua ch_semanal_total igual a zero.')
 
-                    if atividade_letiva.nivel == 'GRA':
-                        atividades_letivas = AtividadeLetiva.objects.filter(relatorio_id=relatorio_id, semestre=atividade_letiva.semestre, nivel='GRA')
-                        for instance in atividades_letivas:
-                            ch_total_atividades_letivas = instance.docentes_envolvidos_e_cargas_horarias.pop(usuario.nome_completo.upper(), None) + ch_total_atividades_letivas
+                # calculo_ch_semanal_aulas_soma = 0.0
+                
+                # for instance in atividades_letivas_semestre:
+                #     if instance == atividade_letiva:
+                #         continue
 
-                        ch_total_atividades_letivas = round(ch_total_atividades_letivas, 1)
+                #     ch_usuario = instance.docentes_envolvidos_e_cargas_horarias.pop(relatorio_id.usuario_id.nome_completo.upper(), None)
 
-                        if ch_usuario % 15 == 0:
-                            calculo_ch_semanal_aulas_soma = ch_total_atividades_letivas + round(ch_usuario / 15, 1)
-                                
-                        else:
-                            calculo_ch_semanal_aulas_soma = ch_total_atividades_letivas + round(ch_usuario / 17, 1)
+                #     if instance.nivel == 'GRA':
+                #         if ch_usuario % 15 == 0:
+                #             calculo_ch_semanal_aulas_soma = calculo_ch_semanal_aulas_soma + round(ch_usuario / 15, 1)
+                            
+                #         else:
+                #             calculo_ch_semanal_aulas_soma = calculo_ch_semanal_aulas_soma + round(ch_usuario / 17, 1)
 
-                    elif atividade_letiva.nivel == 'POS':
-                        atividades_letivas = AtividadeLetiva.objects.filter(relatorio_id=relatorio_id, semestre=atividade_letiva.semestre, nivel='POS')
-                        for instance in atividades_letivas:
-                            ch_total_atividades_letivas = instance.docentes_envolvidos_e_cargas_horarias.pop(usuario.nome_completo.upper(), None) + ch_total_atividades_letivas
+                #     elif instance.nivel == 'POS':
+                #         calculo_ch_semanal_aulas_soma = calculo_ch_semanal_aulas_soma + round(ch_usuario / 15, 1)
 
-                        ch_total_atividades_letivas = round(ch_total_atividades_letivas, 1)
+                # try:
+                #     atividade_pedagogica_complementar = AtividadePedagogicaComplementar.objects.get(relatorio_id=relatorio_id, semestre=atividade_letiva.semestre)
+                    
+                #     calculo_ch_semanal_aulas_soma = 2 * calculo_ch_semanal_aulas_soma
 
-                        calculo_ch_semanal_aulas_soma = ch_total_atividades_letivas + round(ch_usuario / 15, 1)
+                #     if atividade_pedagogica_complementar.ch_semanal_total > calculo_ch_semanal_aulas_soma:
+                #         return Util.response_bad_request(f'ERRO: não é possível deletar uma atividade_letiva para esse nível e semestre sem antes atualizar a ch_semanal_total da sua atividade_pedagogica_complementar do mesmo nível e semestre para um valor menor ou igual a {calculo_ch_semanal_aulas_soma}.')
+                    
+                #     if atividade_pedagogica_complementar.ch_semanal_total > 32.0:
+                #         return Util.response_bad_request('ERRO: não é possível deletar uma atividade_letiva para esse nível e semestre sem antes atualizar a ch_semanal_total da sua atividade_pedagogica_complementar do mesmo nível e semestre para um valor menor ou igual a 32.0.')
+                        
+                
+                # except AtividadePedagogicaComplementar.DoesNotExist:
+                #     pass
+                        
+                if atividades_letivas_semestre.count() == 1:
+                    calculo_ch_semanal_aulas = CalculoCHSemanalAulas.objects.get(relatorio_id=relatorio_id, semestre=atividade_letiva.semestre)
 
-                    if atividade_pedagogica_complementar:
-                        if atividade_pedagogica_complementar.ch_semanal_total > 2 * calculo_ch_semanal_aulas_soma or atividade_pedagogica_complementar.ch_semanal_total > 32:
-                            return Util.response_bad_request('ERRO: não é possível criar uma nova atividade_letiva para esse nível e semestre sem antes atualizar o ch_semanal_total da sua atividade_pedagogica_complementar do mesmo nível e semestre.')
-        
-                except AtividadePedagogicaComplementar.DoesNotExist:
-                    pass
+                    calculo_ch_semanal_aulas.delete()
     
                 atividade_letiva.delete()
 
-                calculo_ch_semanal_aulas = CalculoCHSemanalAulas.objects.filter(relatorio_id=relatorio_id)
-                for instance in calculo_ch_semanal_aulas:
-                    instance.ch_semanal_graduacao = 0.0
-                    instance.ch_semanal_pos_graduacao = 0.0
-                    instance.ch_semanal_total = 0.0
-                    instance.save()
+                Util.resetar_valores_calculos_ch_semanal_aulas(relatorio_id = relatorio_id)
 
-                for instance in atividades_letivas:
-                    ch_usuario = instance.docentes_envolvidos_e_cargas_horarias.pop(relatorio_id.usuario_id.nome_completo.upper(), None)
-                    try:
-                        calculo_ch_semanal_aulas = CalculoCHSemanalAulas.objects.get(relatorio_id=relatorio_id, semestre=instance.semestre)
+                Util.recriar_calculos_ch_semanal_aulas(relatorio_id = relatorio_id)
 
-                        if instance.nivel == 'GRA':
-                            if ch_usuario % 15 == 0:
-                                calculo_ch_semanal_aulas.ch_semanal_graduacao = calculo_ch_semanal_aulas.ch_semanal_graduacao + round(ch_usuario / 15, 1)
-                            
-                            else:
-                                calculo_ch_semanal_aulas.ch_semanal_graduacao = calculo_ch_semanal_aulas.ch_semanal_graduacao + round(ch_usuario / 17, 1)
-
-                        elif instance.nivel == 'POS':
-                            calculo_ch_semanal_aulas.ch_semanal_pos_graduacao = calculo_ch_semanal_aulas.ch_semanal_pos_graduacao + round(ch_usuario / 15, 1)
-
-                        calculo_ch_semanal_aulas.save()
-
-                    except CalculoCHSemanalAulas.DoesNotExist:
-                        if instance.nivel == 'GRA':
-                            ch_semanal_graduacao = None
-
-                            if ch_usuario % 15 == 0:
-                                ch_semanal_graduacao = round(ch_usuario / 15, 1)
-                            else:
-                                    ch_semanal_graduacao = round(ch_usuario / 17, 1)
-
-                            calculo_ch_semanal_aulas = CalculoCHSemanalAulas.objects.create(
-                                relatorio_id = relatorio_id,
-                                semestre = instance.semestre,
-                                ch_semanal_graduacao = ch_semanal_graduacao,
-                                ch_semanal_pos_graduacao = 0.0,
-                                ch_semanal_total = ch_semanal_graduacao
-                            )
-
-                        elif instance.nivel == 'POS':
-                            ch_semanal_pos_graduacao = round(ch_usuario / 15, 1)
-
-                            calculo_ch_semanal_aulas = CalculoCHSemanalAulas.objects.create(
-                                relatorio_id = relatorio_id,
-                                semestre = instance.semestre,
-                                ch_semanal_graduacao = 0.0,
-                                ch_semanal_pos_graduacao = ch_semanal_pos_graduacao,
-                                ch_semanal_total = ch_semanal_pos_graduacao
-                            )
-
-                calculos_ch_semanal_aulas = CalculoCHSemanalAulas.objects.filter(relatorio_id=relatorio_id)
                 if atividades_letivas.count() == 0:
-                    for instance in calculo_ch_semanal_aulas:
+                    calculos_ch_semanal_aulas = CalculoCHSemanalAulas.objects.filter(relatorio_id=relatorio_id)
+
+                    for instance in calculos_ch_semanal_aulas:
                         instance.delete()
                 else:
-                    for instance in calculos_ch_semanal_aulas:
-                        if instance.ch_semanal_graduacao >= 16.0: instance.ch_semanal_graduacao = 16.0
-                        elif instance.ch_semanal_pos_graduacao >= 16.0: instance.ch_semanal_pos_graduacao = 16.0
-                        elif instance.ch_semanal_graduacao < 8.0: instance.ch_semanal_graduacao = 0.0
-                        elif instance.ch_semanal_pos_graduacao < 8.0: instance.ch_semanal_pos_graduacao = 0.0
-
-                        instance.ch_semanal_graduacao = round(instance.ch_semanal_graduacao, 1)
-                        instance.ch_semanal_pos_graduacao = round(instance.ch_semanal_pos_graduacao, 1)
-
-                        instance.ch_semanal_total = instance.ch_semanal_graduacao + instance.ch_semanal_pos_graduacao
-
-                        instance.save()
+                    Util.aplicar_maximos_e_minimos_calculos_ch_semanal_aulas(relatorio_id=relatorio_id)
 
                 return Util.response_ok_no_message('Objeto excluído com sucesso.')
             except AtividadeLetiva.DoesNotExist:
@@ -347,6 +308,7 @@ class AtividadeLetivaView(APIView):
 
 class CalculoCHSemanalAulasView(APIView):
     permission_classes = [IsAuthenticated]
+
     def get(self, request, id=None):
         if id:
             return self.getById(request, id)
@@ -381,6 +343,7 @@ class CalculoCHSemanalAulasView(APIView):
 
 class AtividadePedagogicaComplementarView(APIView):
     permission_classes = [IsAuthenticated]
+
     def get(self, request, id=None):
         if id:
             return self.getById(request, id)
@@ -419,7 +382,7 @@ class AtividadePedagogicaComplementarView(APIView):
                     return Util.response_bad_request('ERRO: não é possível criar uma atividade_pedagogica_complementar em que a soma entre ch_semanal_graduacao e ch_semanal_pos_graduacao seja maior que o dobro do ch_semanal_total do seu calculo_ch_semanal_aulas correspondente')
 
             except CalculoCHSemanalAulas.DoesNotExist:
-                return Util.response_bad_request('ERRO: não é possível criar uma atividade_pedagogica_complementar para um semestre em específico sem antes criar um calculo_ch_semanal_aulas para o mesmo semestre.')
+                return Util.response_bad_request('ERRO: não é possível criar uma atividade_pedagogica_complementar para um semestre em específico sem antes criar uma atividade_letiva para o mesmo semestre.')
             
             atividade_pedagogica_complementar = serializer.save()
 
@@ -462,10 +425,10 @@ class AtividadePedagogicaComplementarView(APIView):
                         ch_semanal_total = serializer.validated_data.get('ch_semanal_graduacao', atividade_pedagogica_complementar.ch_semanal_graduacao) + serializer.validated_data.get('ch_semanal_pos_graduacao', atividade_pedagogica_complementar.ch_semanal_pos_graduacao)
 
                         if ch_semanal_total > 2 * calculo_ch_semanal_aulas.ch_semanal_total:
-                            return Util.response_bad_request('ERRO: não é possível criar uma atividade_pedagogica_complementar em que a soma entre ch_semanal_graduacao e ch_semanal_pos_graduacao seja maior que o dobro do ch_semanal_total do seu calculo_ch_semanal_aulas correspondente')
+                            return Util.response_bad_request('ERRO: não é possível atualizar uma atividade_pedagogica_complementar em que a soma entre ch_semanal_graduacao e ch_semanal_pos_graduacao seja maior que o dobro do ch_semanal_total do seu calculo_ch_semanal_aulas correspondente')
 
                     except CalculoCHSemanalAulas.DoesNotExist:
-                        return Util.response_bad_request('ERRO: não é possível atualizar uma atividade_pedagogica_complementar para um semestre em específico sem antes criar um calculo_ch_semanal_aulas para o mesmo semestre.')
+                        return Util.response_bad_request('ERRO: não é possível atualizar uma atividade_pedagogica_complementar para um semestre em específico sem antes criar uma atividade_letiva para o mesmo semestre.')
 
                     serializer.save()
                     return Util.response_ok_no_message(serializer.data)
@@ -504,6 +467,7 @@ class AtividadePedagogicaComplementarView(APIView):
 
 class AtividadeOrientacaoSupervisaoPreceptoriaTutoriaView(APIView):
     permission_classes = [IsAuthenticated]
+
     def get(self, request, id=None):
         if id:
             return self.getById(request, id)
@@ -582,6 +546,7 @@ class AtividadeOrientacaoSupervisaoPreceptoriaTutoriaView(APIView):
 
 class DescricaoOrientacaoCoorientacaoAcademicaView(APIView):
     permission_classes = [IsAuthenticated]
+
     def get(self, request, id=None):
         if id:
             return self.getById(request, id)
@@ -642,6 +607,7 @@ class DescricaoOrientacaoCoorientacaoAcademicaView(APIView):
     
 class SupervisaoAcademicaView(APIView):
     permission_classes = [IsAuthenticated]
+
     def get(self, request, id=None):
         if id:
             return self.getById(request, id)
@@ -702,6 +668,7 @@ class SupervisaoAcademicaView(APIView):
 
 class PreceptoriaTutoriaResidenciaView(APIView):
     permission_classes = [IsAuthenticated]
+
     def get(self, request, id=None):
         if id:
             return self.getById(request, id)
@@ -762,6 +729,7 @@ class PreceptoriaTutoriaResidenciaView(APIView):
 
 class BancaExaminadoraView(APIView):
     permission_classes = [IsAuthenticated]
+
     def get(self, request, id=None):
         if id:
             return self.getById(request, id)
@@ -822,6 +790,7 @@ class BancaExaminadoraView(APIView):
 
 class CHSemanalAtividadeEnsinoView(APIView):
     permission_classes = [IsAuthenticated]
+
     def get(self, request, id=None):
         if id:
             return self.getById(request, id)
@@ -893,6 +862,7 @@ class CHSemanalAtividadeEnsinoView(APIView):
 
 class AvaliacaoDiscenteView(APIView):
     permission_classes = [IsAuthenticated]
+
     def get(self, request, id=None):
         if id:
             return self.getById(request, id)
@@ -953,6 +923,7 @@ class AvaliacaoDiscenteView(APIView):
 
 class ProjetoPesquisaProducaoIntelectualView(APIView):
     permission_classes = [IsAuthenticated]
+
     def get(self, request, id=None):
         if id:
             return self.getById(request, id)
@@ -1014,6 +985,7 @@ class ProjetoPesquisaProducaoIntelectualView(APIView):
 
 class TrabalhoCompletoPublicadoPeriodicoBoletimTecnicoView(APIView):
     permission_classes = [IsAuthenticated]
+
     def get(self, request, id=None):
         if id:
             return self.getById(request, id)
@@ -1074,6 +1046,7 @@ class TrabalhoCompletoPublicadoPeriodicoBoletimTecnicoView(APIView):
 
 class LivroCapituloVerbetePublicadoView(APIView):
     permission_classes = [IsAuthenticated]
+
     def get(self, request, id=None):
         if id:
             return self.getById(request, id)
@@ -1134,6 +1107,7 @@ class LivroCapituloVerbetePublicadoView(APIView):
 
 class TrabalhoCompletoResumoPublicadoApresentadoCongressosView(APIView):
     permission_classes = [IsAuthenticated]
+
     def get(self, request, id=None):
         if id:
             return self.getById(request, id)
@@ -1195,6 +1169,7 @@ class TrabalhoCompletoResumoPublicadoApresentadoCongressosView(APIView):
 
 class OutraAtividadePesquisaProducaoIntelectualView(APIView):
     permission_classes = [IsAuthenticated]
+
     def get(self, request, id=None):
         if id:
             return self.getById(request, id)
@@ -1256,6 +1231,7 @@ class OutraAtividadePesquisaProducaoIntelectualView(APIView):
 
 class CHSemanalAtividadesPesquisaView(APIView):
     permission_classes = [IsAuthenticated]
+
     def get(self, request, id=None):
         if id:
             return self.getById(request, id)
@@ -1329,6 +1305,7 @@ class CHSemanalAtividadesPesquisaView(APIView):
         
 class ProjetoExtensaoView(APIView):
     permission_classes = [IsAuthenticated]
+
     def get(self, request, id=None):
         if id:
             return self.getById(request, id)
@@ -1390,6 +1367,7 @@ class ProjetoExtensaoView(APIView):
         
 class EstagioExtensaoView(APIView):
     permission_classes = [IsAuthenticated]
+
     def get(self, request, id=None):
         if id:
             return self.getById(request, id)
@@ -1450,6 +1428,7 @@ class EstagioExtensaoView(APIView):
         
 class AtividadeEnsinoNaoFormalView(APIView):
     permission_classes = [IsAuthenticated]
+
     def get(self, request, id=None):
         if id:
             return self.getById(request, id)
@@ -1511,6 +1490,7 @@ class AtividadeEnsinoNaoFormalView(APIView):
 
 class OutraAtividadeExtensaoView(APIView):
     permission_classes = [IsAuthenticated]
+
     def get(self, request, id=None):
         if id:
             return self.getById(request, id)
@@ -1571,6 +1551,7 @@ class OutraAtividadeExtensaoView(APIView):
     
 class CHSemanalAtividadesExtensaoView(APIView):
     permission_classes = [IsAuthenticated]
+
     def get(self, request, id=None):
         if id:
             return self.getById(request, id)
@@ -1642,6 +1623,7 @@ class CHSemanalAtividadesExtensaoView(APIView):
     
 class DistribuicaoCHSemanalView(APIView):
     permission_classes = [IsAuthenticated]
+
     def get(self, request, id=None):
         if id:
             return self.getById(request, id)
@@ -1720,6 +1702,7 @@ class DistribuicaoCHSemanalView(APIView):
     
 class AtividadeGestaoRepresentacaoView(APIView):
     permission_classes = [IsAuthenticated]
+
     def get(self, request, id=None):
         if id:
             return self.getById(request, id)
@@ -1780,6 +1763,7 @@ class AtividadeGestaoRepresentacaoView(APIView):
     
 class QualificacaoDocenteAcademicaProfissionalView(APIView):
     permission_classes = [IsAuthenticated]
+
     def get(self, request, id=None):
         if id:
             return self.getById(request, id)
@@ -1841,6 +1825,7 @@ class QualificacaoDocenteAcademicaProfissionalView(APIView):
 
 class OutraInformacaoView(APIView):
     permission_classes = [IsAuthenticated]
+
     def get(self, request, id=None):
         if id:
             return self.getById(request, id)
@@ -1901,6 +1886,7 @@ class OutraInformacaoView(APIView):
     
 class AfastamentoView(APIView):
     permission_classes = [IsAuthenticated]
+
     def get(self, request, id=None):
         if id:
             return self.getById(request, id)
@@ -1961,6 +1947,7 @@ class AfastamentoView(APIView):
     
 class DocumentoComprobatorioView(APIView):
     permission_classes = [IsAuthenticated]
+
     def get(self, request, id=None):
         if id:
             return self.getById(request, id)
@@ -2025,6 +2012,7 @@ class DocumentoComprobatorioView(APIView):
 
 class RelatorioDocenteView(APIView):
     permission_classes = [IsAuthenticated]
+
     def post(self, request):
         serializer = RelatorioDocenteSerializer(data=request.data)
         if serializer.is_valid():
@@ -2032,16 +2020,38 @@ class RelatorioDocenteView(APIView):
             return Util.response_created({'id': f'{relatorio_docente.pk}'})
         return Util.response_bad_request(serializer.errors)
 
-    def get(self, request, id=None):
+    def get(self, request, id=None, user_id=None):
         if id:
             return self.getById(request, id)
+        elif user_id:
+            return self.getByUser(request, user_id)
         else:
             return self.getAll(request)
         
     def getAll(self, request):
+        usuario_autenticado = Usuario.objects.get(pk = request.user.id)
+        if usuario_autenticado.perfil != "Administrador":
+            return Util.response_unauthorized("Apenas usuários administradores podem realizar essa requisição!")
+        
         instances = RelatorioDocente.objects.all()
         serializer = RelatorioDocenteSerializer(instances, many=True)
         return Util.response_ok_no_message(serializer.data)
+    
+    def getByUser(self, request, user_id=None):
+        if user_id:
+            usuario_autenticado = Usuario.objects.get(pk = request.user.id)
+            if usuario_autenticado.perfil != "Administrador":
+                return Util.response_unauthorized("Apenas usuários administradores podem realizar essa requisição!")
+            try:
+                Usuario.objects.get(pk=user_id)
+            except Usuario.DoesNotExist:
+                return Util.response_not_found('Não existe nenhum usuário que possua esse id.')
+                
+            instances = RelatorioDocente.objects.filter(usuario_id = user_id)
+            serializer = RelatorioDocenteSerializer(instances, many=True)
+            return Util.response_ok_no_message(serializer.data)
+        
+        return Util.response_bad_request('É necessário fornecer o id do usuário o qual você deseja obter os radocs criados em relatorio_docente/usuario/{id}/')
     
     def getById(self, request, id=None):
         if id:
@@ -2065,6 +2075,7 @@ class RelatorioDocenteView(APIView):
     
 class DownloadRelatorioDocenteView(APIView):
     permission_classes = [IsAuthenticated]
+
     def is_pdf(self, file_path):
         try:
             doc = fitz.open(file_path)  # Tente abrir o arquivo como um PDF
@@ -2116,6 +2127,7 @@ class DownloadRelatorioDocenteView(APIView):
 
 class ExtrairDadosAtividadesLetivasPDFAPIView(APIView):
     permission_classes = [IsAuthenticated]
+
     def post(self, request):
         arquivo_pdf = request.FILES.get('pdf')
 

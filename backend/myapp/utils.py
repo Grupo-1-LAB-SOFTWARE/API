@@ -1,12 +1,13 @@
 from django.core.mail import send_mail, EmailMessage, get_connection
 from django.contrib.sites.shortcuts import get_current_site
 from django.urls import reverse
-from .models import Usuario
+from .models import Usuario, CalculoCHSemanalAulas, AtividadeLetiva
 from django.contrib.auth.models import User
 from django.conf import settings
 from decouple import config
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.exceptions import ValidationError
 
 class Util:
     @staticmethod
@@ -36,7 +37,7 @@ class Util:
 
     @staticmethod
     def response_ok_token(chave_token):
-        return Response({"token": f"{chave_token}"}, status=status.HTTP_200_OK)
+        return Response(chave_token, status=status.HTTP_200_OK)
 
     @staticmethod
     def response_created(mensagem_personalizada):
@@ -57,3 +58,82 @@ class Util:
     @staticmethod
     def response_forbidden(mensagem_personalizada):
         return Response({"forbidden": f"{mensagem_personalizada}"}, status=status.HTTP_403_FORBIDDEN)
+    
+    @staticmethod
+    def validar_semestre(semestre):
+        if semestre > 2 or semestre < 1:
+            raise ValidationError({'semestre': ['ERRO: O semestre pode ser apenas 1 ou 2']})
+    
+    @staticmethod
+    def resetar_valores_calculos_ch_semanal_aulas(relatorio_id):
+        calculos_ch_semanal_aulas = CalculoCHSemanalAulas.objects.filter(relatorio_id=relatorio_id)
+        for calculo_ch_semanal_aulas in calculos_ch_semanal_aulas:
+            calculo_ch_semanal_aulas.ch_semanal_graduacao = 0.0
+            calculo_ch_semanal_aulas.ch_semanal_pos_graduacao = 0.0
+            calculo_ch_semanal_aulas.ch_semanal_total = 0.0
+            calculo_ch_semanal_aulas.save()
+
+
+    @staticmethod
+    def recriar_calculos_ch_semanal_aulas(relatorio_id):
+        atividades_letivas = AtividadeLetiva.objects.filter(relatorio_id=relatorio_id)
+        for instance in atividades_letivas:
+                ch_usuario = instance.docentes_envolvidos_e_cargas_horarias.pop(relatorio_id.usuario_id.nome_completo.upper(), None)
+                try:
+                    calculo_ch_semanal_aulas = CalculoCHSemanalAulas.objects.get(relatorio_id=relatorio_id, semestre=instance.semestre)
+
+                    if instance.nivel == 'GRA':
+                        if ch_usuario % 15 == 0:
+                            calculo_ch_semanal_aulas.ch_semanal_graduacao = calculo_ch_semanal_aulas.ch_semanal_graduacao + round(ch_usuario / 15, 1)
+                                
+                        else:
+                            calculo_ch_semanal_aulas.ch_semanal_graduacao = calculo_ch_semanal_aulas.ch_semanal_graduacao + round(ch_usuario / 17, 1)
+
+                    elif instance.nivel == 'POS':
+                        calculo_ch_semanal_aulas.ch_semanal_pos_graduacao = calculo_ch_semanal_aulas.ch_semanal_pos_graduacao + round(ch_usuario / 15, 1)
+
+                    calculo_ch_semanal_aulas.save()
+
+                except CalculoCHSemanalAulas.DoesNotExist:
+                    if instance.nivel == 'GRA':
+                        ch_semanal_graduacao = None
+
+                        if ch_usuario % 15 == 0:
+                            ch_semanal_graduacao = round(ch_usuario / 15, 1)
+                        else:
+                            ch_semanal_graduacao = round(ch_usuario / 17, 1)
+
+                        calculo_ch_semanal_aulas = CalculoCHSemanalAulas.objects.create(
+                            relatorio_id = relatorio_id,
+                            semestre = instance.semestre,
+                            ch_semanal_graduacao = ch_semanal_graduacao,
+                            ch_semanal_pos_graduacao = 0.0,
+                            ch_semanal_total = ch_semanal_graduacao
+                        )
+
+                    elif instance.nivel == 'POS':
+                        ch_semanal_pos_graduacao = round(ch_usuario / 15, 1)
+
+                        calculo_ch_semanal_aulas = CalculoCHSemanalAulas.objects.create(
+                            relatorio_id = relatorio_id,
+                            semestre = instance.semestre,
+                            ch_semanal_graduacao = 0.0,
+                            ch_semanal_pos_graduacao = ch_semanal_pos_graduacao,
+                            ch_semanal_total = ch_semanal_pos_graduacao
+                        )
+
+    @staticmethod
+    def aplicar_maximos_e_minimos_calculos_ch_semanal_aulas(relatorio_id):
+        calculos_ch_semanal_aulas = CalculoCHSemanalAulas.objects.filter(relatorio_id=relatorio_id)
+        for instance in calculos_ch_semanal_aulas:
+            if instance.ch_semanal_graduacao >= 16.0: instance.ch_semanal_graduacao = 16.0
+            if instance.ch_semanal_pos_graduacao >= 16.0: instance.ch_semanal_pos_graduacao = 16.0
+            if instance.ch_semanal_graduacao < 8.0: instance.ch_semanal_graduacao = 0.0
+            if instance.ch_semanal_pos_graduacao < 8.0: instance.ch_semanal_pos_graduacao = 0.0
+
+            instance.ch_semanal_graduacao = round(instance.ch_semanal_graduacao, 1)
+            instance.ch_semanal_pos_graduacao = round(instance.ch_semanal_pos_graduacao, 1)
+
+            instance.ch_semanal_total = instance.ch_semanal_graduacao + instance.ch_semanal_pos_graduacao
+
+            instance.save()
