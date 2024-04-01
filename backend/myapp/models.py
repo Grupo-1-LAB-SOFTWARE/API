@@ -28,7 +28,7 @@ class Usuario(AbstractUser):
         ('Não selecionado', 'Não selecionado')
     )
     TITULACAO = (
-        ('Graduacão', 'Graduação'),
+        ('Graduação', 'Graduação'),
         ('Especialização', 'Especialização'),
         ('Mestre', 'Mestre'),
         ('Doutor', 'Doutor'),
