@@ -22,12 +22,12 @@ from rest_framework.permissions import IsAuthenticated
 
 class CriarUsuarioView(APIView):
     def post(self, request):
-        username = request.data.get('username')
-        email = request.data.get('email')
+        new_username = request.data.get('username')
+        new_email = request.data.get('email')
             
-        if self.is_username_disponivel(username) == False:
+        if self.is_username_disponivel(new_username) == False:
             return Util.response_bad_request('Já existe um usuário cadastrado com esse username.')
-        if self.is_email_disponivel(email) == False:
+        if self.is_email_disponivel(new_email) == False:
             return Util.response_bad_request('Já existe um usuário cadastrado com esse e-mail.')
 
         serializer = UsuarioSerializer(data=request.data)
@@ -54,20 +54,89 @@ class CriarUsuarioView(APIView):
             return False
         except Usuario.DoesNotExist:
             return True
-
+        
 class UsuarioView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def get(self, request, user_id=None):
-        if user_id:
-            return self.getById(request, user_id)
+    def get(self, request):
+        instance = request.user
+        
+        serializer = UsuarioSerializer(instance)
+        return Util.response_ok_no_message(serializer.data)
+    
+    def put(self, request):
+        instance = request.user
+        
+        data = request.data.copy()
+        if 'id' in data:
+            return Util.response_unauthorized('Não é permitido atualizar nenhum id')
+        if 'is_active' in data:
+            return Util.response_unauthorized('Não é permitido atualizar o campo "is_active"')
+        if 'date_joined' in data:
+            return Util.response_unauthorized('Não é permitido atualizar o campo "date_joined"')
+        if 'perfil' in data:
+            return Util.response_unauthorized('Não é permitido atualizar o campo "perfil"')
+        if 'last_login' in data:
+            return Util.response_unauthorized('Não é permitido atualizar o campo "last_login"')
+        
+        new_username = request.data.get('username')
+        new_email = request.data.get('email')
+        if self.is_username_disponivel(new_username) == False:
+            return Util.response_bad_request('Já existe um usuário cadastrado com esse username.')
+        if self.is_email_disponivel(new_email) == False:
+            return Util.response_bad_request('Já existe um usuário cadastrado com esse e-mail.')
+        
+        serializer = UsuarioSerializer(instance, data=data, partial=True)
+
+        if serializer.is_valid():
+            usuario = serializer.save()
+            if new_email:
+                usuario.is_active = False
+                usuario.save()
+                user_dict = model_to_dict(usuario)
+                user_login = user_dict.get('username', None)
+                user_email = user_dict.get('email', None)
+                if (user_login, user_email) is not None:
+                    Util.send_verification_email(user_login, user_email, request)
+            return Util.response_ok_no_message(serializer.data)
+        else:
+            return Util.response_bad_request(serializer.errors)
+        
+    def is_username_disponivel(self, username):
+        try:
+            Usuario.objects.get(username=username)
+            return False
+        except Usuario.DoesNotExist:
+            return True
+
+    def is_email_disponivel(self, email):
+        try:
+            Usuario.objects.get(email=email)
+            return False
+        except Usuario.DoesNotExist:
+            return True
+    
+    def delete(self, request):
+        instance = request.user
+        instance.delete()
+        return Util.response_ok_no_message('Usuário excluído com sucesso.')
+
+class UsuarioAdminView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, username=None):
+        if username:
+            return self.getById(request, username)
         else:
             return self.getAll(request)
             
-    def put(self, request, user_id=None):
-        if user_id is not None:
+    def put(self, request, username=None):
+        if username is not None:
+            usuario_autenticado = Usuario.objects.get(pk = request.user.id)
+            if usuario_autenticado.perfil != "Administrador":
+                return Util.response_unauthorized("Apenas usuários administradores podem realizar essa requisição!")
             try:
-                user = Usuario.objects.get(pk=user_id)
+                user = Usuario.objects.get(username=username)
                 data = request.data.copy()
                 if 'id' in data:
                     return Util.response_unauthorized('Não é permitido atualizar nenhum id')
@@ -76,27 +145,50 @@ class UsuarioView(APIView):
                 if 'date_joined' in data:
                     return Util.response_unauthorized('Não é permitido atualizar o campo "date_joined"')
 
-                username = request.data.get('username')
-                email = request.data.get('email')
-                if self.is_username_disponivel(username) == False:
+                new_username = request.data.get('username')
+                new_email = request.data.get('email')
+                if self.is_username_disponivel(new_username) == False:
                     return Util.response_bad_request('Já existe um usuário cadastrado com esse username.')
-                if self.is_email_disponivel(email) == False:
+                if self.is_email_disponivel(new_email) == False:
                     return Util.response_bad_request('Já existe um usuário cadastrado com esse e-mail.')
 
                 serializer = UsuarioSerializer(user, data=data, partial=True)
 
                 if serializer.is_valid():
-                    serializer.save()
+                    usuario = serializer.save()
+                    if new_email:
+                        usuario.is_active = False
+                        usuario.save()
+                        user_dict = model_to_dict(usuario)
+                        user_login = user_dict.get('username', None)
+                        user_email = user_dict.get('email', None)
+                        if (user_login, user_email) is not None:
+                            Util.send_verification_email(user_login, user_email, request)
+
                     return Util.response_ok_no_message(serializer.data)
                 else:
                     return Util.response_bad_request(serializer.errors)
 
             except Usuario.DoesNotExist:
-                return Util.response_not_found('Não foi possível encontrar um usuário com o id fornecido.')
+                return Util.response_not_found('Não foi possível encontrar um usuário com o username fornecido.')
 
-        return Util.response_bad_request('É necessário fornecer o id do usuário que você deseja atualizar em usuarios/{id}/')
+        return Util.response_bad_request('É necessário fornecer o id do usuário que você deseja atualizar em usuarios/admin/{username}/')
+    
+    def is_username_disponivel(self, username):
+        try:
+            Usuario.objects.get(username=username)
+            return False
+        except Usuario.DoesNotExist:
+            return True
 
-    #Pra pegar todos os usuários, sem especificar id
+    def is_email_disponivel(self, email):
+        try:
+            Usuario.objects.get(email=email)
+            return False
+        except Usuario.DoesNotExist:
+            return True
+
+    #Pra pegar todos os usuários, sem especificar username
     def getAll(self, request):
         usuario_autenticado = Usuario.objects.get(pk = request.user.id)
         if usuario_autenticado.perfil != "Administrador":
@@ -105,29 +197,28 @@ class UsuarioView(APIView):
         serializer = UsuarioSerializer(user, many=True)
         return Util.response_ok_no_message(serializer.data)
     
-    def getById(self, request, user_id=None):
-        if user_id:
+    def getById(self, request, username=None):
+        if username:
             try:
-                user = Usuario.objects.get(pk=user_id)
+                user = Usuario.objects.get(username=username)
                 serializer = UsuarioSerializer(user)
                 return Util.response_ok_no_message(serializer.data)
             except Usuario.DoesNotExist:
-                return Util.response_not_found('Não foi possível encontrar um usuário com o id fornecido')
-        return Util.response_bad_request('É necessário fornecer o id do objeto que você deseja ler em usuarios/{id}/')
+                return Util.response_not_found('Não foi possível encontrar um usuário com o username fornecido')
+        return Util.response_bad_request('É necessário fornecer o username do usuário que você deseja ler em usuarios/admin/{username}/')
         
-    def delete(self, request, user_id=None):
-        if user_id:
+    def delete(self, request, username=None):
+        if username:
             usuario_autenticado = Usuario.objects.get(pk = request.user.id)
             if usuario_autenticado.perfil != "Administrador":
                 return Util.response_unauthorized("Apenas usuários administradores podem realizar essa requisição!")
-            
             try:
-                instance = Usuario.objects.get(pk=user_id)
+                instance = Usuario.objects.get(username=username)
                 instance.delete()
                 return Util.response_ok_no_message('Usuário excluído com sucesso.')
             except Usuario.DoesNotExist:
-                return Util.response_not_found('Não foi possível encontrar um usuário com o id fornecido.')
-        return Util.response_bad_request('É necessário fornecer o id do objeto que você deseja excluir em usuarios/{id}/')
+                return Util.response_not_found('Não foi possível encontrar um usuário com o username fornecido.')
+        return Util.response_bad_request('É necessário fornecer o id do usuário que você deseja excluir em usuarios/admin/{username}/')
 
 class LoginView(APIView):
     def post(self, request):
