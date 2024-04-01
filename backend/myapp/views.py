@@ -144,6 +144,8 @@ class UsuarioAdminView(APIView):
                     return Util.response_unauthorized('Não é permitido atualizar o campo "is_active"')
                 if 'date_joined' in data:
                     return Util.response_unauthorized('Não é permitido atualizar o campo "date_joined"')
+                if 'last_login' in data:
+                    return Util.response_unauthorized('Não é permitido atualizar o campo "last_login"')
 
                 new_username = request.data.get('username')
                 new_email = request.data.get('email')
