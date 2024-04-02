@@ -45,11 +45,9 @@ urlpatterns = [
 
     path('relatorio_docente/<str:nome>/', RelatorioDocenteView.as_view(), name='relatorio_docente/nome/'),
 
-    path('calculo_ch_semanal_aulas/', CalculoCHSemanalAulasView.as_view(), name='calculo_ch_semanal_aulas/'),
+    path('calculo_ch_semanal_aulas/<str:nome_relatorio>/', CalculoCHSemanalAulasView.as_view(), name='calculo_ch_semanal_aulas/nome_relatorio/'),
 
-    path('calculo_ch_semanal_aulas', CalculoCHSemanalAulasView.as_view(), name='calculo_ch_semanal_aulas'),
-
-    path('calculo_ch_semanal_aulas/<int:id>/', CalculoCHSemanalAulasView.as_view(), name='calculo_ch_semanal_aulas/id/'),
+    path('calculo_ch_semanal_aulas/<str:nome_relatorio>/<int:id_calculo_ch_semanal_aulas>/', CalculoCHSemanalAulasView.as_view(), name='calculo_ch_semanal_aulas/nome_relatorio/id_calculo_ch_semanal_aulas/'),
 
     path('atividade_pedagogica_complementar', AtividadePedagogicaComplementarView.as_view(), name='atividade_pedagogica_complementar'),
 
