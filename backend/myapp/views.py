@@ -298,7 +298,7 @@ class AtividadeLetivaView(APIView):
                     return Util.response_not_found('Não foi possível encontrar uma atividade_letiva com o id fornecido.')
             
             return Util.response_bad_request('É necessário fornecer o id da atividade_letiva que você deseja ler em atividade_letiva/{nome_relatorio}/{id_atividade_letiva}/')
-        return Util.response_bad_request('É necessário fornecer o nome do relatorio_docente do qual você deseja deseja ler as atividades_letivas em atividade_letiva/{nome_relatorio}/{id_atividade_letiva}')
+        return Util.response_bad_request('É necessário fornecer o nome do relatorio_docente do qual você deseja deseja ler as atividades_letivas em atividade_letiva/{nome_relatorio}/{id_atividade_letiva}/')
 
     def getAll(self, request, nome_relatorio=None):
         if nome_relatorio:
@@ -451,36 +451,62 @@ class AtividadeLetivaView(APIView):
 class CalculoCHSemanalAulasView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def get(self, request, id=None):
-        if id:
-            return self.getById(request, id)
+    def get(self, request, nome_relatorio=None, id_calculo_ch_semanal_aulas=None):
+        if nome_relatorio and id_calculo_ch_semanal_aulas:
+            return self.getById(request, nome_relatorio, id_calculo_ch_semanal_aulas)
         else:
-            return self.getAll(request)
-
-    def getAll(self, request):
-        calculos_ch_semanal_aulas = CalculoCHSemanalAulas.objects.all()
-        serializer = CalculoCHSemanalAulasSerializer(calculos_ch_semanal_aulas, many=True)
-        return Util.response_ok_no_message(serializer.data)
-    
-    def getById(self, request, id=None):
-        if id:
-            try:
-                instance = CalculoCHSemanalAulas.objects.get(pk=id)
-                serializer = CalculoCHSemanalAulasSerializer(instance)
-                return Util.response_ok_no_message(serializer.data)
-            except CalculoCHSemanalAulas.DoesNotExist:
-                return Util.response_not_found('Não foi possível encontrar um calculo_ch_semanal_aulas com o id fornecido')
-        return Util.response_bad_request('É necessário fornecer o id do objeto que você deseja ler em calculo_ch_semanal_aulas/{id}/')
+            return self.getAll(request, nome_relatorio)
         
-    def delete(self, request, id=None):
-        if id:
+    def getById(self, request, nome_relatorio=None, id_calculo_ch_semanal_aulas=None):
+        if nome_relatorio:
+            if id_calculo_ch_semanal_aulas:
+                try:
+                    usuario_id = request.user.id
+                    relatorio_docente = RelatorioDocente.objects.get(usuario_id = usuario_id, nome=nome_relatorio)
+                    instance = CalculoCHSemanalAulas.objects.get(relatorio_id=relatorio_docente.pk, pk=id_calculo_ch_semanal_aulas)
+                    serializer = CalculoCHSemanalAulasSerializer(instance)
+                    return Util.response_ok_no_message(serializer.data)
+            
+                except RelatorioDocente.DoesNotExist:
+                    return Util.response_not_found('Não foi possível encontrar um relatorio_docente com o nome fornecido que seja pertencente ao usuário autenticado.')
+
+                except CalculoCHSemanalAulas.DoesNotExist:
+                    return Util.response_not_found('Não foi possível encontrar um calculo_ch_semanal_aulas com o id fornecido.')
+            
+            return Util.response_bad_request('É necessário fornecer o id do calculo_ch_semanal_aulas que você deseja ler em calculo_ch_semanal_aulas/{nome_relatorio}/{id_calculo_ch_semanal_aulas}/')
+        
+        return Util.response_bad_request('É necessário fornecer o nome do relatorio_docente do qual você deseja deseja ler os calculos_ch_semanal_aulas em calculo_ch_semanal_aulas/{nome_relatorio}/{id_calculo_ch_semanal_aulas}/')
+
+    def getAll(self, request, nome_relatorio=None):
+        if nome_relatorio:
             try:
-                instance = CalculoCHSemanalAulas.objects.get(pk=id)
-                instance.delete()
-                return Util.response_ok_no_message('Objeto excluído com sucesso.')
-            except CalculoCHSemanalAulas.DoesNotExist:
-                return Util.response_not_found('Não foi possível encontrar um calculo_ch_semanal_aulas com o id fornecido.')
-        return Util.response_bad_request('É necessário fornecer o id do objeto que você deseja excluir em calculo_ch_semanal_aulas/{id}/')
+                usuario_id = request.user.id
+                relatorio_docente = RelatorioDocente.objects.get(usuario_id = usuario_id, nome=nome_relatorio)
+                instances = CalculoCHSemanalAulas.objects.filter(relatorio_id=relatorio_docente.pk)
+                serializer = CalculoCHSemanalAulasSerializer(instances, many=True)
+                return Util.response_ok_no_message(serializer.data)
+            
+            except RelatorioDocente.DoesNotExist:
+                    return Util.response_not_found('Não foi possível encontrar um relatorio_docente com o nome fornecido que seja pertencente ao usuário autenticado.')
+            
+        return Util.response_bad_request('É necessário fornecer o nome do relatorio_docente do qual você deseja ler os calculos_ch_semanal_aulas em calculo_ch_semanal_aulas/{nome_relatorio}/')
+        
+    def delete(self, request, nome_relatorio=None, id_calculo_ch_semanal_aulas=None):
+        if nome_relatorio:
+            if id_calculo_ch_semanal_aulas:
+                try:
+                    usuario_id = request.user.id
+                    relatorio_docente = RelatorioDocente.objects.get(usuario_id=usuario_id, nome=nome_relatorio)
+                    calculo_ch_semanal_aulas = CalculoCHSemanalAulas.objects.get(pk=id_calculo_ch_semanal_aulas, relatorio_id = relatorio_docente.pk)
+                    calculo_ch_semanal_aulas.delete()
+                    
+                    return Util.response_ok_no_message('Objeto excluído com sucesso.')
+                except CalculoCHSemanalAulas.DoesNotExist:
+                    return Util.response_not_found('Não foi possível encontrar um calculo_ch_semanal_aulas com o id fornecido.')
+                
+            return Util.response_bad_request('É necessário fornecer o id do calculo_ch_semanal_aulas que você deseja deletar em calculo_ch_semanal_aulas/{nome_relatorio}/{id_calculo_ch_semanal_aulas}/')
+                
+        return Util.response_bad_request('É necessário fornecer o nome do relatorio_docente no qual você deseja deletar um calculo_ch_semanal_aulas em calculo_ch_semanal_aulas/{nome_relatorio}/{id_calculo_ch_semanal_aulas}/')
     
 
 class AtividadePedagogicaComplementarView(APIView):
