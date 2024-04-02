@@ -27,13 +27,9 @@ urlpatterns = [
 
     path('login/', LoginView.as_view(), name='login/'),
 
-    path('atividade_letiva', AtividadeLetivaView.as_view(), name='atividade_letiva'),
+    path('atividade_letiva/<str:nome_relatorio>/', AtividadeLetivaView.as_view(), name='atividade_letiva/nome_relatorio/'),
 
-    path('atividade_letiva/', AtividadeLetivaView.as_view(), name='atividade_letiva/'),
-
-    path('atividade_letiva/<int:id>/', AtividadeLetivaView.as_view(), name='atividade_letiva/id/'),
-
-    path('atividade_letiva/', AtividadeLetivaView.as_view(), name='atividade_letiva/'),
+    path('atividade_letiva/<str:nome_relatorio>/<int:id_atividade_letiva>/', AtividadeLetivaView.as_view(), name='atividade_letiva/nome_relatorio/id_atividade_letiva/'),
 
     path('relatorio_docente/admin', RelatorioDocenteAdminView.as_view(), name='relatorio_docente/admin'),
 
