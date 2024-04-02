@@ -275,129 +275,178 @@ class ActivateEmail(APIView):
 class AtividadeLetivaView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def get(self, request, id=None):
-        if id:
-            return self.getById(request, id)
+    def get(self, request, nome_relatorio=None, id_atividade_letiva=None):
+        if nome_relatorio and id_atividade_letiva:
+            return self.getById(request, nome_relatorio, id_atividade_letiva)
         else:
-            return self.getAll(request)
+            return self.getAll(request, nome_relatorio)
         
-    def post(self, request):
-        serializer = AtividadeLetivaSerializer(data=request.data)
-        if serializer.is_valid():
-            atividade_letiva = serializer.save()
-            return Util.response_created(f'id: {atividade_letiva.pk}')
-        return Util.response_bad_request(serializer.errors)
-    
+    def getById(self, request, nome_relatorio=None, id_atividade_letiva=None):
+        if nome_relatorio:
+            if id_atividade_letiva:
+                try:
+                    usuario_id = request.user.id
+                    relatorio_docente = RelatorioDocente.objects.get(usuario_id = usuario_id, nome=nome_relatorio)
+                    instance = AtividadeLetiva.objects.get(relatorio_id=relatorio_docente.pk, pk=id_atividade_letiva)
+                    serializer = AtividadeLetivaSerializer(instance)
+                    return Util.response_ok_no_message(serializer.data)
+            
+                except RelatorioDocente.DoesNotExist:
+                    return Util.response_not_found('Não foi possível encontrar um relatorio_docente com o nome fornecido que seja pertencente ao usuário autenticado.')
 
-    def put(self, request, id=None):
-        if id is not None:
+                except AtividadeLetiva.DoesNotExist:
+                    return Util.response_not_found('Não foi possível encontrar uma atividade_letiva com o id fornecido.')
+            
+            return Util.response_bad_request('É necessário fornecer o id da atividade_letiva que você deseja ler em atividade_letiva/{nome_relatorio}/{id_atividade_letiva}/')
+        return Util.response_bad_request('É necessário fornecer o nome do relatorio_docente do qual você deseja deseja ler as atividades_letivas em atividade_letiva/{nome_relatorio}/{id_atividade_letiva}')
+
+    def getAll(self, request, nome_relatorio=None):
+        if nome_relatorio:
             try:
-                atividade_letiva = AtividadeLetiva.objects.get(pk=id)
-                data = request.data.copy()
-                if 'id' in data or 'relatorio_id' in data:
-                    return Util.response_unauthorized('Não é permitido atualizar nenhum id ou relatorio_id')
+                usuario_id = request.user.id
+                relatorio_docente = RelatorioDocente.objects.get(usuario_id = usuario_id, nome=nome_relatorio)
+                instances = AtividadeLetiva.objects.filter(relatorio_id=relatorio_docente.pk)
+                serializer = AtividadeLetivaSerializer(instances, many=True)
+                return Util.response_ok_no_message(serializer.data)
+            
+            except RelatorioDocente.DoesNotExist:
+                    return Util.response_not_found('Não foi possível encontrar um relatorio_docente com o nome fornecido que seja pertencente ao usuário autenticado.')
+            
+        return Util.response_bad_request('É necessário fornecer o nome do relatorio_docente do qual você deseja deseja ler as atividades_letivas em atividade_letiva/{nome_relatorio}/')
+        
+    def post(self, request, nome_relatorio=None):
+        if nome_relatorio:
+            try:
+                usuario_id = request.user.id
+                relatorio_docente = RelatorioDocente.objects.get(usuario_id=usuario_id, nome=nome_relatorio)
 
-                serializer = AtividadeLetivaSerializer(atividade_letiva, data=data, partial=True)
+                request.data['relatorio_id'] = relatorio_docente.pk
+                serializer = AtividadeLetivaSerializer(data=request.data)
                 if serializer.is_valid():
                     atividade_letiva = serializer.save()
-                    return Util.response_ok_no_message(serializer.data)
-                else:
-                    return Util.response_bad_request(serializer.errors)
+                    return Util.response_created(f'id: {atividade_letiva.pk}')
+                return Util.response_bad_request(serializer.errors)
+            
+            except RelatorioDocente.DoesNotExist:
+                return Util.response_not_found('Não foi possível encontrar um relatorio_docente com o nome fornecido que seja pertencente ao usuário autenticado.')
+            
+        return Util.response_bad_request('É necessário fornecer o nome do relatorio_docente no qual você deseja criar uma atividade_letiva em atividade_letiva/{nome_relatorio}/')
 
-            except AtividadeLetiva.DoesNotExist:
-                return Util.response_not_found('Não foi possível encontrar uma atividade_letiva com o id fornecido.')
+    def put(self, request, nome_relatorio=None, id_atividade_letiva=None):
+        if nome_relatorio:
+            if id_atividade_letiva:
+                try:
+                    usuario_id = request.user.id
+                    relatorio_docente = RelatorioDocente.objects.get(usuario_id=usuario_id, nome=nome_relatorio)
+                    
+                    relatorio_docente = RelatorioDocente.objects.get(usuario_id = usuario_id, nome = nome_relatorio)
+                    atividade_letiva = AtividadeLetiva.objects.get(pk=id_atividade_letiva, relatorio_id = relatorio_docente.pk)
 
-        return Util.response_bad_request('É necessário fornecer o id da atividade letiva que você deseja atualizar em atividade_letiva/{id}/')
+                    data = request.data.copy()
+                    if 'id' in data or 'relatorio_id' in data:
+                        return Util.response_unauthorized('Não é permitido atualizar nenhum id ou relatorio_id')
 
-    def getAll(self, request):
-        atividades_letivas = AtividadeLetiva.objects.all()
-        serializer = AtividadeLetivaSerializer(atividades_letivas, many=True)
-        return Util.response_ok_no_message(serializer.data)
-        
-    def getById(self, request, id=None):
-        if id:
-            try:
-                instance = AtividadeLetiva.objects.get(pk=id)
-                serializer = AtividadeLetivaSerializer(instance)
-                return Util.response_ok_no_message(serializer.data)
-            except AtividadeLetiva.DoesNotExist:
-                return Util.response_not_found('Não foi possível encontrar uma atividade_letiva com o id fornecido')
-        return Util.response_bad_request('É necessário fornecer o id do objeto que você deseja ler em atividade_letiva/{id}/')
-        
-    def delete(self, request, id=None):
-        if id:
-            try:
-                instance = AtividadeLetiva.objects.get(pk=id)
-                atividade_letiva = instance
-                relatorio_id = atividade_letiva.relatorio_id
-                usuario = relatorio_id.usuario_id
-                atividades_letivas = AtividadeLetiva.objects.filter(relatorio_id=relatorio_id)
+                    serializer = AtividadeLetivaSerializer(atividade_letiva, data=data, partial=True)
+                    if serializer.is_valid():
+                        atividade_letiva = serializer.save()
+                        return Util.response_ok_no_message(serializer.data)
+                    else:
+                        return Util.response_bad_request(serializer.errors)
+                    
+                except RelatorioDocente.DoesNotExist:
+                    return Util.response_not_found('Não foi possível encontrar um relatorio_docente com o nome fornecido que seja pertencente ao usuário autenticado.')
+
+                except AtividadeLetiva.DoesNotExist:
+                    return Util.response_not_found('Não foi possível encontrar uma atividade_letiva com o id fornecido.')
                 
-                atividades_letivas_semestre = AtividadeLetiva.objects.filter(relatorio_id=relatorio_id, semestre = atividade_letiva.semestre)
+            return Util.response_bad_request('É necessário fornecer o id da atividade_letiva que você deseja atualizar em atividade_letiva/{nome_relatorio}/{id_atividade_letiva}/')
+        
+        return Util.response_bad_request('É necessário fornecer o nome do relatorio_docente no qual você deseja atualizar uma atividade_letiva em atividade_letiva/{nome_relatorio}/{id_atividade_letiva}/')
+        
+    def delete(self, request, nome_relatorio=None, id_atividade_letiva=None):
+        if nome_relatorio:
+            if id_atividade_letiva:
+                try:
+                    usuario_id = request.user.id
+                    relatorio_docente = RelatorioDocente.objects.get(usuario_id=usuario_id, nome=nome_relatorio)
+                    atividade_letiva = AtividadeLetiva.objects.get(pk=id_atividade_letiva, relatorio_id = relatorio_docente.pk)
 
-                # if atividades_letivas_semestre.count() == 1:
-                #     atividades_pedagogicas_complementares = AtividadePedagogicaComplementar.objects.filter(relatorio_id=relatorio_id, semestre=atividade_letiva.semestre)
 
-                #     for instance in atividades_pedagogicas_complementares:
-                #         if instance.ch_semanal_total > 0.0:
-                #             return Util.response_bad_request('ERRO: Para deletar a atividade_letiva desejada será necessário deletar todas as atividades_pedagogicas_complementares desse mesmo semestre no radoc em questão ou atualizá-las para terem sua ch_semanal_total igual a zero.')
+                    relatorio_id = atividade_letiva.relatorio_id
+                    atividades_letivas = AtividadeLetiva.objects.filter(relatorio_id=relatorio_id)
+                    
+                    atividades_letivas_semestre = AtividadeLetiva.objects.filter(relatorio_id=relatorio_id, semestre = atividade_letiva.semestre)
 
-                # calculo_ch_semanal_aulas_soma = 0.0
-                
-                # for instance in atividades_letivas_semestre:
-                #     if instance == atividade_letiva:
-                #         continue
+                    # if atividades_letivas_semestre.count() == 1:
+                    #     atividades_pedagogicas_complementares = AtividadePedagogicaComplementar.objects.filter(relatorio_id=relatorio_id, semestre=atividade_letiva.semestre)
 
-                #     ch_usuario = instance.docentes_envolvidos_e_cargas_horarias.pop(relatorio_id.usuario_id.nome_completo.upper(), None)
+                    #     for instance in atividades_pedagogicas_complementares:
+                    #         if instance.ch_semanal_total > 0.0:
+                    #             return Util.response_bad_request('ERRO: Para deletar a atividade_letiva desejada será necessário deletar todas as atividades_pedagogicas_complementares desse mesmo semestre no radoc em questão ou atualizá-las para terem sua ch_semanal_total igual a zero.')
 
-                #     if instance.nivel == 'GRA':
-                #         if ch_usuario % 15 == 0:
-                #             calculo_ch_semanal_aulas_soma = calculo_ch_semanal_aulas_soma + round(ch_usuario / 15, 1)
+                    # calculo_ch_semanal_aulas_soma = 0.0
+                    
+                    # for instance in atividades_letivas_semestre:
+                    #     if instance == atividade_letiva:
+                    #         continue
+
+                    #     ch_usuario = instance.docentes_envolvidos_e_cargas_horarias.pop(relatorio_id.usuario_id.nome_completo.upper(), None)
+
+                    #     if instance.nivel == 'GRA':
+                    #         if ch_usuario % 15 == 0:
+                    #             calculo_ch_semanal_aulas_soma = calculo_ch_semanal_aulas_soma + round(ch_usuario / 15, 1)
+                                
+                    #         else:
+                    #             calculo_ch_semanal_aulas_soma = calculo_ch_semanal_aulas_soma + round(ch_usuario / 17, 1)
+
+                    #     elif instance.nivel == 'POS':
+                    #         calculo_ch_semanal_aulas_soma = calculo_ch_semanal_aulas_soma + round(ch_usuario / 15, 1)
+
+                    # try:
+                    #     atividade_pedagogica_complementar = AtividadePedagogicaComplementar.objects.get(relatorio_id=relatorio_id, semestre=atividade_letiva.semestre)
+                        
+                    #     calculo_ch_semanal_aulas_soma = 2 * calculo_ch_semanal_aulas_soma
+
+                    #     if atividade_pedagogica_complementar.ch_semanal_total > calculo_ch_semanal_aulas_soma:
+                    #         return Util.response_bad_request(f'ERRO: não é possível deletar uma atividade_letiva para esse nível e semestre sem antes atualizar a ch_semanal_total da sua atividade_pedagogica_complementar do mesmo nível e semestre para um valor menor ou igual a {calculo_ch_semanal_aulas_soma}.')
+                        
+                    #     if atividade_pedagogica_complementar.ch_semanal_total > 32.0:
+                    #         return Util.response_bad_request('ERRO: não é possível deletar uma atividade_letiva para esse nível e semestre sem antes atualizar a ch_semanal_total da sua atividade_pedagogica_complementar do mesmo nível e semestre para um valor menor ou igual a 32.0.')
                             
-                #         else:
-                #             calculo_ch_semanal_aulas_soma = calculo_ch_semanal_aulas_soma + round(ch_usuario / 17, 1)
-
-                #     elif instance.nivel == 'POS':
-                #         calculo_ch_semanal_aulas_soma = calculo_ch_semanal_aulas_soma + round(ch_usuario / 15, 1)
-
-                # try:
-                #     atividade_pedagogica_complementar = AtividadePedagogicaComplementar.objects.get(relatorio_id=relatorio_id, semestre=atividade_letiva.semestre)
                     
-                #     calculo_ch_semanal_aulas_soma = 2 * calculo_ch_semanal_aulas_soma
+                    # except AtividadePedagogicaComplementar.DoesNotExist:
+                    #     pass
+                            
+                    if atividades_letivas_semestre.count() == 1:
+                        calculo_ch_semanal_aulas = CalculoCHSemanalAulas.objects.get(relatorio_id=relatorio_id, semestre=atividade_letiva.semestre)
 
-                #     if atividade_pedagogica_complementar.ch_semanal_total > calculo_ch_semanal_aulas_soma:
-                #         return Util.response_bad_request(f'ERRO: não é possível deletar uma atividade_letiva para esse nível e semestre sem antes atualizar a ch_semanal_total da sua atividade_pedagogica_complementar do mesmo nível e semestre para um valor menor ou igual a {calculo_ch_semanal_aulas_soma}.')
-                    
-                #     if atividade_pedagogica_complementar.ch_semanal_total > 32.0:
-                #         return Util.response_bad_request('ERRO: não é possível deletar uma atividade_letiva para esse nível e semestre sem antes atualizar a ch_semanal_total da sua atividade_pedagogica_complementar do mesmo nível e semestre para um valor menor ou igual a 32.0.')
-                        
+                        calculo_ch_semanal_aulas.delete()
+        
+                    atividade_letiva.delete()
+
+                    Util.resetar_valores_calculos_ch_semanal_aulas(relatorio_id = relatorio_id)
+
+                    Util.recriar_calculos_ch_semanal_aulas(relatorio_id = relatorio_id)
+
+                    if atividades_letivas.count() == 0:
+                        calculos_ch_semanal_aulas = CalculoCHSemanalAulas.objects.filter(relatorio_id=relatorio_id)
+
+                        for instance in calculos_ch_semanal_aulas:
+                            instance.delete()
+                    else:
+                        Util.aplicar_maximos_e_minimos_calculos_ch_semanal_aulas(relatorio_id=relatorio_id)
+
+                    return Util.response_ok_no_message('Objeto excluído com sucesso.')
                 
-                # except AtividadePedagogicaComplementar.DoesNotExist:
-                #     pass
-                        
-                if atividades_letivas_semestre.count() == 1:
-                    calculo_ch_semanal_aulas = CalculoCHSemanalAulas.objects.get(relatorio_id=relatorio_id, semestre=atividade_letiva.semestre)
-
-                    calculo_ch_semanal_aulas.delete()
-    
-                atividade_letiva.delete()
-
-                Util.resetar_valores_calculos_ch_semanal_aulas(relatorio_id = relatorio_id)
-
-                Util.recriar_calculos_ch_semanal_aulas(relatorio_id = relatorio_id)
-
-                if atividades_letivas.count() == 0:
-                    calculos_ch_semanal_aulas = CalculoCHSemanalAulas.objects.filter(relatorio_id=relatorio_id)
-
-                    for instance in calculos_ch_semanal_aulas:
-                        instance.delete()
-                else:
-                    Util.aplicar_maximos_e_minimos_calculos_ch_semanal_aulas(relatorio_id=relatorio_id)
-
-                return Util.response_ok_no_message('Objeto excluído com sucesso.')
-            except AtividadeLetiva.DoesNotExist:
-                return Util.response_not_found('Não foi possível encontrar uma atividade_letiva com o id fornecido.')
-        return Util.response_bad_request('É necessário fornecer o id do objeto que você deseja excluir em atividade_letiva/{id}/')
+                except RelatorioDocente.DoesNotExist:
+                    return Util.response_not_found('Não foi possível encontrar um relatorio_docente com o nome fornecido que seja pertencente ao usuário autenticado.')
+                
+                except AtividadeLetiva.DoesNotExist:
+                    return Util.response_not_found('Não foi possível encontrar uma atividade_letiva com o id fornecido.')
+                
+            return Util.response_bad_request('É necessário fornecer o id da atividade_letiva que você deseja deletar em atividade_letiva/{nome_relatorio}/{id_atividade_letiva}/')
+        
+        return Util.response_bad_request('É necessário fornecer o nome do relatorio_docente no qual você deseja deletar uma atividade_letiva em atividade_letiva/{nome_relatorio}/{id_atividade_letiva}/')
 
 class CalculoCHSemanalAulasView(APIView):
     permission_classes = [IsAuthenticated]
