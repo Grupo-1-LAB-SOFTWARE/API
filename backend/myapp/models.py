@@ -40,7 +40,7 @@ class Usuario(AbstractUser):
     id = models.AutoField(primary_key=True)
     nome_completo = models.CharField(max_length=500)
     perfil = models.CharField(
-        max_length=25,
+        max_length=50,
         choices=PERFIL,
         default='Docente'
     )
