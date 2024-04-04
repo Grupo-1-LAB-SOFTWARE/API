@@ -49,11 +49,9 @@ urlpatterns = [
 
     path('calculo_ch_semanal_aulas/<str:nome_relatorio>/<int:id_calculo_ch_semanal_aulas>/', CalculoCHSemanalAulasView.as_view(), name='calculo_ch_semanal_aulas/nome_relatorio/id_calculo_ch_semanal_aulas/'),
 
-    path('atividade_pedagogica_complementar', AtividadePedagogicaComplementarView.as_view(), name='atividade_pedagogica_complementar'),
+    path('atividade_pedagogica_complementar/<str:nome_relatorio>/', AtividadePedagogicaComplementarView.as_view(), name='atividade_pedagogica_complementar/nome_relatorio/'),
 
-    path('atividade_pedagogica_complementar/', AtividadePedagogicaComplementarView.as_view(), name='atividade_pedagogica_complementar/'),
-
-    path('atividade_pedagogica_complementar/<int:id>/', AtividadePedagogicaComplementarView.as_view(), name='atividade_pedagogica_complementar/id/'),
+    path('atividade_pedagogica_complementar/<str:nome_relatorio>/<int:id_atividade_pedagogica_complementar>/', AtividadePedagogicaComplementarView.as_view(), name='atividade_pedagogica_complementar/nome_relatorio/id_atividade_pedagogica_complementar/'),
 
     path('atividade_orientacao_supervisao_preceptoria_tutoria', AtividadeOrientacaoSupervisaoPreceptoriaTutoriaView.as_view(), name='atividade_orientacao_supervisao_preceptoria_tutoria'),
 

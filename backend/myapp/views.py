@@ -499,7 +499,7 @@ class CalculoCHSemanalAulasView(APIView):
                     relatorio_docente = RelatorioDocente.objects.get(usuario_id=usuario_id, nome=nome_relatorio)
                     calculo_ch_semanal_aulas = CalculoCHSemanalAulas.objects.get(pk=id_calculo_ch_semanal_aulas, relatorio_id = relatorio_docente.pk)
                     calculo_ch_semanal_aulas.delete()
-                    
+
                     return Util.response_ok_no_message('Objeto excluído com sucesso.')
                 except CalculoCHSemanalAulas.DoesNotExist:
                     return Util.response_not_found('Não foi possível encontrar um calculo_ch_semanal_aulas com o id fornecido.')
@@ -508,130 +508,173 @@ class CalculoCHSemanalAulasView(APIView):
                 
         return Util.response_bad_request('É necessário fornecer o nome do relatorio_docente no qual você deseja deletar um calculo_ch_semanal_aulas em calculo_ch_semanal_aulas/{nome_relatorio}/{id_calculo_ch_semanal_aulas}/')
     
-
 class AtividadePedagogicaComplementarView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def get(self, request, id=None):
-        if id:
-            return self.getById(request, id)
+    def get(self, request, nome_relatorio=None, id_atividade_pedagogica_complementar=None):
+        if nome_relatorio and id_atividade_pedagogica_complementar:
+            return self.getById(request, nome_relatorio, id_atividade_pedagogica_complementar)
         else:
-            return self.getAll(request)
+            return self.getAll(request, nome_relatorio)
+        
+    def getById(self, request, nome_relatorio=None, id_atividade_pedagogica_complementar=None):
+        if nome_relatorio:
+            if id_atividade_pedagogica_complementar:
+                try:
+                    usuario_id = request.user.id
+                    relatorio_docente = RelatorioDocente.objects.get(usuario_id = usuario_id, nome=nome_relatorio)
 
-    def post(self, request):
-        atividade_pedagogica_complementar = None
-        serializer = AtividadePedagogicaComplementarSerializer(data=request.data)
-        if serializer.is_valid():
-            relatorio_id = serializer.validated_data.get('relatorio_id')
-            try:
-                instances = AtividadePedagogicaComplementar.objects.filter(relatorio_id=relatorio_id)
-                if instances.count() > 0:
-                    if instances.count() == 2:
-                        return Util.response_bad_request('Objeto não criado: só podem ser adicionadas duas atividade_pedagogica_complementar para cada relatorio_docente. Uma para cada semestre.')
-                    
-                    for instance in instances:
-                        if instance.semestre is 1 and serializer.validated_data.get('semestre') is 1:
-                            return Util.response_bad_request('Objeto não criado: só pode ser adicionada uma atividade_pedagogica_complementar por semestre para cada relatorio_docente.')
-                        if instance.semestre is 2 and serializer.validated_data.get('semestre') is 2:
-                            return Util.response_bad_request('Objeto não criado: só pode ser adicionada uma atividade_pedagogica_complementar por semestre para cada relatorio_docente.')
-
-            except AtividadePedagogicaComplementar.DoesNotExist:
-                pass
-                
-            try:
-                relatorio_id = serializer.validated_data.get('relatorio_id')
-                semestre = serializer.validated_data.get('semestre')
-
-                calculo_ch_semanal_aulas = CalculoCHSemanalAulas.objects.get(relatorio_id=relatorio_id, semestre=semestre)
-                
-                ch_semanal_total = serializer.validated_data.get('ch_semanal_graduacao') + serializer.validated_data.get('ch_semanal_pos_graduacao')
-
-                if ch_semanal_total > 2 * calculo_ch_semanal_aulas.ch_semanal_total:
-                    return Util.response_bad_request('ERRO: não é possível criar uma atividade_pedagogica_complementar em que a soma entre ch_semanal_graduacao e ch_semanal_pos_graduacao seja maior que o dobro do ch_semanal_total do seu calculo_ch_semanal_aulas correspondente')
-
-            except CalculoCHSemanalAulas.DoesNotExist:
-                return Util.response_bad_request('ERRO: não é possível criar uma atividade_pedagogica_complementar para um semestre em específico sem antes criar uma atividade_letiva para o mesmo semestre.')
+                    instance = AtividadePedagogicaComplementar.objects.get(relatorio_id=relatorio_docente.pk, pk=id_atividade_pedagogica_complementar)
+                    serializer = AtividadePedagogicaComplementarSerializer(instance)
+                    return Util.response_ok_no_message(serializer.data)
             
-            atividade_pedagogica_complementar = serializer.save()
+                except RelatorioDocente.DoesNotExist:
+                    return Util.response_not_found('Não foi possível encontrar um relatorio_docente com o nome fornecido que seja pertencente ao usuário autenticado.')
 
-            return Util.response_created(f'id: {atividade_pedagogica_complementar.pk}')
-        return Util.response_bad_request(serializer.errors)
+                except AtividadePedagogicaComplementar.DoesNotExist:
+                    return Util.response_not_found('Não foi possível encontrar uma atividade_pedagogica_complementar com o id fornecido.')
+            
+            return Util.response_bad_request('É necessário fornecer o id da atividade_pedagogica_complementar que você deseja ler em atividade_pedagogica_complementar/{nome_relatorio}/{id_atividade_pedagogica_complementar}/')
+        
+        return Util.response_bad_request('É necessário fornecer o nome do relatorio_docente do qual você deseja deseja ler os calculos_ch_semanal_aulas em atividade_pedagogica_complementar/{nome_relatorio}/{id_atividade_pedagogica_complementar}/')
 
-    def put(self, request, id=None):
-        if id is not None:
+    def getAll(self, request, nome_relatorio=None):
+        if nome_relatorio:
             try:
-                atividade_pedagogica_complementar = AtividadePedagogicaComplementar.objects.get(pk=id)
-                data = request.data.copy()
-                if 'id' in data or 'relatorio_id' in data:
-                    return Util.response_unauthorized('Não é permitido atualizar nenhum id ou relatorio_id')
+                usuario_id = request.user.id
+                relatorio_docente = RelatorioDocente.objects.get(usuario_id = usuario_id, nome=nome_relatorio)
+                instances = AtividadePedagogicaComplementar.objects.filter(relatorio_id=relatorio_docente.pk)
+                serializer = AtividadePedagogicaComplementarSerializer(instances, many=True)
+                return Util.response_ok_no_message(serializer.data)
+            
+            except RelatorioDocente.DoesNotExist:
+                return Util.response_not_found('Não foi possível encontrar um relatorio_docente com o nome fornecido que seja pertencente ao usuário autenticado.')
+            
+        return Util.response_bad_request('É necessário fornecer o nome do relatorio_docente do qual você deseja ler as atividades_pedagogicas_complementares em atividade_pedagogica_complementar/{nome_relatorio}/')
+        
+    def post(self, request, nome_relatorio=None):
+        if nome_relatorio:
+            try:
+                atividade_pedagogica_complementar = None
+                usuario_id = request.user.id
+                relatorio_docente = RelatorioDocente.objects.get(usuario_id=usuario_id, nome=nome_relatorio)
+                try:
+                    instances = AtividadePedagogicaComplementar.objects.filter(relatorio_id=relatorio_docente.pk)
+                    if instances.count() > 0:
+                        if instances.count() == 2:
+                            return Util.response_bad_request('Objeto não criado: só podem ser adicionadas duas atividade_pedagogica_complementar para cada relatorio_docente. Uma para cada semestre.')
+                        
+                        for instance in instances:
+                            if instance.semestre is 1 and serializer.validated_data.get('semestre') is 1:
+                                return Util.response_bad_request('Objeto não criado: só pode ser adicionada uma atividade_pedagogica_complementar por semestre para cada relatorio_docente.')
+                            if instance.semestre is 2 and serializer.validated_data.get('semestre') is 2:
+                                return Util.response_bad_request('Objeto não criado: só pode ser adicionada uma atividade_pedagogica_complementar por semestre para cada relatorio_docente.')
+                            
+                except AtividadePedagogicaComplementar.DoesNotExist:
+                    pass
 
-                serializer = AtividadePedagogicaComplementarSerializer(atividade_pedagogica_complementar, data=data, partial=True)
-
+                request.data['relatorio_id'] = relatorio_docente.pk
+                serializer = AtividadePedagogicaComplementarSerializer(data=request.data)
                 if serializer.is_valid():
-                    relatorio_id = serializer.validated_data.get('relatorio_id')
                     try:
-                        instances = AtividadePedagogicaComplementar.objects.filter(relatorio_id=relatorio_id)
-                        if instances.count() > 0:
-                            if instances.count() == 2:
-                                return Util.response_bad_request('Objeto não criado: só podem ser adicionadas duas atividade_pedagogica_complementar para cada relatorio_docente. Uma para cada semestre.')
-                    
-                            for instance in instances:
-                                if instance.semestre is 1 and serializer.validated_data.get('semestre', 2) is 1:
-                                    return Util.response_bad_request('Objeto não criado: só pode ser adicionada uma atividade_pedagogica_complementar por semestre para cada relatorio_docente.')
-                                if instance.semestre is 2 and serializer.validated_data.get('semestre', 1) is 2:
-                                    return Util.response_bad_request('Objeto não criado: só pode ser adicionada uma atividade_pedagogica_complementar por semestre para cada relatorio_docente.')
-
-                    except AtividadePedagogicaComplementar.DoesNotExist:
-                        return Util.response_bad_request('ERRO: Não foi possível encontrar uma atividade_pedagogica_complementar que faça referência ao mesmo relatorio_docente.')
-                    
-                    try:
-                        relatorio_id = serializer.validated_data.get('relatorio_id', atividade_pedagogica_complementar.relatorio_id)
-                        semestre = serializer.validated_data.get('semestre', atividade_pedagogica_complementar.semestre)
+                        relatorio_id = serializer.validated_data.get('relatorio_id')
+                        semestre = serializer.validated_data.get('semestre')
 
                         calculo_ch_semanal_aulas = CalculoCHSemanalAulas.objects.get(relatorio_id=relatorio_id, semestre=semestre)
-                
-                        ch_semanal_total = serializer.validated_data.get('ch_semanal_graduacao', atividade_pedagogica_complementar.ch_semanal_graduacao) + serializer.validated_data.get('ch_semanal_pos_graduacao', atividade_pedagogica_complementar.ch_semanal_pos_graduacao)
+                        
+                        ch_semanal_total = serializer.validated_data.get('ch_semanal_graduacao') + serializer.validated_data.get('ch_semanal_pos_graduacao')
 
                         if ch_semanal_total > 2 * calculo_ch_semanal_aulas.ch_semanal_total:
-                            return Util.response_bad_request('ERRO: não é possível atualizar uma atividade_pedagogica_complementar em que a soma entre ch_semanal_graduacao e ch_semanal_pos_graduacao seja maior que o dobro do ch_semanal_total do seu calculo_ch_semanal_aulas correspondente')
+                            return Util.response_bad_request('ERRO: não é possível criar uma atividade_pedagogica_complementar em que a soma entre ch_semanal_graduacao e ch_semanal_pos_graduacao seja maior que o dobro do ch_semanal_total do seu calculo_ch_semanal_aulas correspondente')
 
                     except CalculoCHSemanalAulas.DoesNotExist:
-                        return Util.response_bad_request('ERRO: não é possível atualizar uma atividade_pedagogica_complementar para um semestre em específico sem antes criar uma atividade_letiva para o mesmo semestre.')
-
-                    serializer.save()
-                    return Util.response_ok_no_message(serializer.data)
-                else:
-                    return Util.response_bad_request(serializer.errors)
-
-            except AtividadePedagogicaComplementar.DoesNotExist:
-                return Util.response_not_found('Não foi possível encontrar uma atividade_pedagogica_complementar com o id fornecido.')
-
-        return Util.response_bad_request('É necessário fornecer o id da atividade_pedagogica_complementar que você deseja atualizar em atividade_pedagogica_complementar/{id}/')
-
-    def getAll(self, request):
-        atividade_pedagogica_complementar = AtividadePedagogicaComplementar.objects.all()
-        serializer = AtividadePedagogicaComplementarSerializer(atividade_pedagogica_complementar, many=True)
-        return Util.response_ok_no_message(serializer.data)
+                        return Util.response_bad_request('ERRO: não é possível criar uma atividade_pedagogica_complementar para um semestre em específico sem antes criar uma atividade_letiva para o mesmo semestre.')
+            
+                
+                    atividade_pedagogica_complementar = serializer.save()
+                    return Util.response_created(f'id: {atividade_pedagogica_complementar.pk}')
+                
+                return Util.response_bad_request(serializer.errors)
+            
+            except RelatorioDocente.DoesNotExist:
+                return Util.response_not_found('Não foi possível encontrar um relatorio_docente com o nome fornecido que seja pertencente ao usuário autenticado.')
+            
+        return Util.response_bad_request('É necessário fornecer o nome do relatorio_docente no qual você deseja criar uma atividade_pedagogica_complementar em atividade_pedagogica_complementar/{nome_relatorio}/')
     
-    def getById(self, request, id=None):
-        if id:
-            try:
-                instance = AtividadePedagogicaComplementar.objects.get(pk=id)
-                serializer = AtividadePedagogicaComplementarSerializer(instance)
-                return Util.response_ok_no_message(serializer.data)
-            except AtividadePedagogicaComplementar.DoesNotExist:
-                return Util.response_not_found('Não foi possível encontrar uma atividade_pedagogica_complementar com o id fornecido')
-        return Util.response_bad_request('É necessário fornecer o id do objeto que você deseja ler em atividade_pedagogica_complementar/{id}/')
+    def put(self, request, nome_relatorio=None, id_atividade_pedagogica_complementar=None):
+        if nome_relatorio:
+            if id_atividade_pedagogica_complementar:
+                try:
+                    usuario_id = request.user.id
+                    relatorio_docente = RelatorioDocente.objects.get(usuario_id=usuario_id, nome=nome_relatorio)
+                    
+                    relatorio_docente = RelatorioDocente.objects.get(usuario_id = usuario_id, nome = nome_relatorio)
+                    atividade_pedagogica_complementar = AtividadePedagogicaComplementar.objects.get(pk=id_atividade_pedagogica_complementar, relatorio_id = relatorio_docente.pk)
+
+                    data = request.data.copy()
+                    if 'id' in data or 'relatorio_id' in data:
+                        return Util.response_unauthorized('Não é permitido atualizar nenhum id ou relatorio_id')
+
+                    serializer = AtividadePedagogicaComplementarSerializer(atividade_pedagogica_complementar, data=data, partial=True)
+                    if serializer.is_valid():
+                        relatorio_id = atividade_pedagogica_complementar.relatorio_id
+                        try:
+                            instances = AtividadePedagogicaComplementar.objects.filter(relatorio_id=relatorio_id)
+
+                            for instance in instances:
+                                if instance.pk != id_atividade_pedagogica_complementar:
+                                    if instance.semestre is 1 and serializer.validated_data.get('semestre', 2) is 1:
+                                        return Util.response_bad_request('Objeto não atualizado: só pode ser adicionada uma atividade_pedagogica_complementar por semestre para cada relatorio_docente.')
+                                    if instance.semestre is 2 and serializer.validated_data.get('semestre', 1) is 2:
+                                        return Util.response_bad_request('Objeto não atualizado: só pode ser adicionada uma atividade_pedagogica_complementar por semestre para cada relatorio_docente.')
+
+                        except AtividadePedagogicaComplementar.DoesNotExist:
+                            return Util.response_bad_request('ERRO: Não foi possível encontrar uma atividade_pedagogica_complementar que pertença ao mesmo relatorio_docente.')
+                        
+                        try:
+                            relatorio_id = serializer.validated_data.get('relatorio_id', atividade_pedagogica_complementar.relatorio_id)
+                            semestre = serializer.validated_data.get('semestre', atividade_pedagogica_complementar.semestre)
+
+                            calculo_ch_semanal_aulas = CalculoCHSemanalAulas.objects.get(relatorio_id=relatorio_id, semestre=semestre)
+                    
+                            ch_semanal_total = serializer.validated_data.get('ch_semanal_graduacao', atividade_pedagogica_complementar.ch_semanal_graduacao) + serializer.validated_data.get('ch_semanal_pos_graduacao', atividade_pedagogica_complementar.ch_semanal_pos_graduacao)
+
+                            if ch_semanal_total > 2 * calculo_ch_semanal_aulas.ch_semanal_total:
+                                return Util.response_bad_request('ERRO: não é possível atualizar uma atividade_pedagogica_complementar em que a soma entre ch_semanal_graduacao e ch_semanal_pos_graduacao seja maior que o dobro do ch_semanal_total do seu calculo_ch_semanal_aulas correspondente')
+
+                        except CalculoCHSemanalAulas.DoesNotExist:
+                            return Util.response_bad_request('ERRO: não é possível atualizar uma atividade_pedagogica_complementar para um semestre em específico sem antes criar uma atividade_letiva para o mesmo semestre.')
+                    
+                        atividade_pedagogica_complementar = serializer.save()
+
+                        return Util.response_ok_no_message(serializer.data)
+                    else:
+                        return Util.response_bad_request(serializer.errors)
+                    
+                except RelatorioDocente.DoesNotExist:
+                    return Util.response_not_found('Não foi possível encontrar um relatorio_docente com o nome fornecido que seja pertencente ao usuário autenticado.')
+
+                except AtividadePedagogicaComplementar.DoesNotExist:
+                    return Util.response_not_found('Não foi possível encontrar uma atividade_pedagogica_complementar com o id fornecido.')
+                
+            return Util.response_bad_request('É necessário fornecer o id da atividade_pedagogica_complementar que você deseja atualizar em atividade_pedagogica_complementar/{nome_relatorio}/{id_atividade_pedagogica_complementar}/')
         
-    def delete(self, request, id=None):
-        if id:
-            try:
-                instance = AtividadePedagogicaComplementar.objects.get(pk=id)
-                instance.delete()
-                return Util.response_ok_no_message('Objeto excluído com sucesso.')
-            except AtividadePedagogicaComplementar.DoesNotExist:
-                return Util.response_not_found('Não foi possível encontrar uma atividade_pedagogica_complementar com o id fornecido.')
-        return Util.response_bad_request('É necessário fornecer o id do objeto que você deseja excluir em atividade_pedagogica_complementar/{id}/')
+        return Util.response_bad_request('É necessário fornecer o nome do relatorio_docente no qual você deseja atualizar uma atividade_pedagogica_complementar em atividade_pedagogica_complementar/{nome_relatorio}/{id_atividade_pedagogica_complementar}/')
+
+    def delete(self, request, nome_relatorio=None, id_atividade_pedagogica_complementar=None):
+        if nome_relatorio:
+            if id_atividade_pedagogica_complementar:
+                try:
+                    usuario_id = request.user.id
+                    relatorio_docente = RelatorioDocente.objects.get(usuario_id=usuario_id, nome=nome_relatorio)
+                    atividade_pedagogica_complementar = AtividadePedagogicaComplementar.objects.get(pk=id_atividade_pedagogica_complementar, relatorio_id = relatorio_docente.pk)
+                    atividade_pedagogica_complementar.delete()
+
+                    return Util.response_ok_no_message('Objeto excluído com sucesso.')
+                except AtividadePedagogicaComplementar.DoesNotExist:
+                    return Util.response_not_found('Não foi possível encontrar um atividade_pedagogica_complementar com o id fornecido.')
+                
+            return Util.response_bad_request('É necessário fornecer o id da atividade_pedagogica_complementar que você deseja deletar em atividade_pedagogica_complementar/{nome_relatorio}/{id_atividade_pedagogica_complementar}/')
 
 class AtividadeOrientacaoSupervisaoPreceptoriaTutoriaView(APIView):
     permission_classes = [IsAuthenticated]
