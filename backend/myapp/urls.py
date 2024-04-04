@@ -61,11 +61,9 @@ urlpatterns = [
 
     path('descricao_orientacao_coorientacao_academica/<str:nome_relatorio>/<int:id_descricao_orientacao_coorientacao_academica>/', DescricaoOrientacaoCoorientacaoAcademicaView.as_view(), name='descricao_orientacao_coorientacao_academica/nome_relatorio/id_descricao_orientacao_coorientacao_academica/'),
 
-    path('supervisao_academica', SupervisaoAcademicaView.as_view(), name='supervisao_academica'),
-    
-    path('supervisao_academica/', SupervisaoAcademicaView.as_view(), name='supervisao_academica/'),
+    path('supervisao_academica/<str:nome_relatorio>/', SupervisaoAcademicaView.as_view(), name='supervisao_academica/nome_relatorio/'),
 
-    path('supervisao_academica/<int:id>/', SupervisaoAcademicaView.as_view(), name='supervisao_academica/id//'),
+    path('supervisao_academica/<str:nome_relatorio>/<int:id_supervisao_academica>/', SupervisaoAcademicaView.as_view(), name='supervisao_academica/nome_relatorio/id_supervisao_academica/'),
 
     path('preceptoria_tutoria_residencia', PreceptoriaTutoriaResidenciaView.as_view(), name='preceptoria_tutoria_residencia'),
 
