@@ -64,18 +64,14 @@ urlpatterns = [
     path('supervisao_academica/<str:nome_relatorio>/', SupervisaoAcademicaView.as_view(), name='supervisao_academica/nome_relatorio/'),
 
     path('supervisao_academica/<str:nome_relatorio>/<int:id_supervisao_academica>/', SupervisaoAcademicaView.as_view(), name='supervisao_academica/nome_relatorio/id_supervisao_academica/'),
+    
+    path('preceptoria_tutoria_residencia/<str:nome_relatorio>/', PreceptoriaTutoriaResidenciaView.as_view(), name='preceptoria_tutoria_residencia/nome_relatorio/'),
 
-    path('preceptoria_tutoria_residencia', PreceptoriaTutoriaResidenciaView.as_view(), name='preceptoria_tutoria_residencia'),
+    path('preceptoria_tutoria_residencia/<str:nome_relatorio>/<int:id_preceptoria_tutoria_residencia>/', PreceptoriaTutoriaResidenciaView.as_view(), name='preceptoria_tutoria_residencia/nome_relatorio/id_preceptoria_tutoria_residencia/'),
 
-    path('preceptoria_tutoria_residencia/', PreceptoriaTutoriaResidenciaView.as_view(), name='preceptoria_tutoria_residencia/'),
+    path('banca_examinadora/<str:nome_relatorio>/', BancaExaminadoraView.as_view(), name='banca_examinadora/nome_relatorio/'),
 
-    path('preceptoria_tutoria_residencia/<int:id>/', PreceptoriaTutoriaResidenciaView.as_view(), name='preceptoria_tutoria_residencia/id/'),
-
-    path('banca_examinadora', BancaExaminadoraView.as_view(), name='banca_examinadora'),
-
-    path('banca_examinadora/', BancaExaminadoraView.as_view(), name='banca_examinadora/'),
-
-    path('banca_examinadora/<int:id>/', BancaExaminadoraView.as_view(), name='banca_examinadora/id/'),
+    path('banca_examinadora/<str:nome_relatorio>/<int:id_banca_examinadora>/', BancaExaminadoraView.as_view(), name='banca_examinadora/nome_relatorio/id_banca_examinadora/'),
 
     path('ch_semanal_atividades_ensino', CHSemanalAtividadeEnsinoView.as_view(), name='ch_semanal_atividades_ensino'),
 
