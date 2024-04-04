@@ -69,11 +69,9 @@ urlpatterns = [
 
     path('banca_examinadora/<str:nome_relatorio>/<int:id_banca_examinadora>/', BancaExaminadoraView.as_view(), name='banca_examinadora/nome_relatorio/id_banca_examinadora/'),
 
-    path('avaliacao_discente', AvaliacaoDiscenteView.as_view(), name='avaliacao_discente'),
+    path('avaliacao_discente/<str:nome_relatorio>/', AvaliacaoDiscenteView.as_view(), name='avaliacao_discente/nome_relatorio/'),
 
-    path('avaliacao_discente/', AvaliacaoDiscenteView.as_view(), name='avaliacao_discente/'),
-
-    path('avaliacao_discente/<int:id>/', AvaliacaoDiscenteView.as_view(), name='avaliacao_discente/id/'),
+    path('avaliacao_discente/<str:nome_relatorio>/<int:id_avaliacao_discente>/', AvaliacaoDiscenteView.as_view(), name='avaliacao_discente/nome_relatorio/id_avaliacao_discente/'),
 
     path('projeto_pesquisa_producao_intelectual', ProjetoPesquisaProducaoIntelectualView.as_view(), name='projeto_pesquisa_producao_intelectual'),
     

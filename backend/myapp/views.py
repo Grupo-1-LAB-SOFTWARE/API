@@ -1182,63 +1182,109 @@ class BancaExaminadoraView(APIView):
 class AvaliacaoDiscenteView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def get(self, request, id=None):
-        if id:
-            return self.getById(request, id)
+    def get(self, request, nome_relatorio=None, id_avaliacao_discente=None):
+        if nome_relatorio and id_avaliacao_discente:
+            return self.getById(request, nome_relatorio, id_avaliacao_discente)
         else:
-            return self.getAll(request)
-
-    def post(self, request):
-        serializer = AvaliacaoDiscenteSerializer(data=request.data)
-        if serializer.is_valid():
-            instance = serializer.save() 
-            return Util.response_created(f'id: {instance.pk}')
-        return Util.response_bad_request(serializer.errors)
-
-    def put(self, request, id=None):
-        if id is not None:
-            try:
-                instance = AvaliacaoDiscente.objects.get(pk=id)
-                data = request.data.copy()
-                if 'id' in data or 'relatorio_id' in data:
-                    return Util.response_unauthorized('Não é permitido atualizar nenhum id ou relatorio_id')
-
-                serializer = AvaliacaoDiscenteSerializer(instance, data=data, partial=True)
-                if serializer.is_valid():
-                    serializer.save()
+            return self.getAll(request, nome_relatorio)
+        
+    def getById(self, request, nome_relatorio=None, id_avaliacao_discente=None):
+        if nome_relatorio:
+            if id_avaliacao_discente:
+                try:
+                    usuario_id = request.user.id
+                    relatorio_docente = RelatorioDocente.objects.get(usuario_id = usuario_id, nome=nome_relatorio)
+                    instance = AvaliacaoDiscente.objects.get(relatorio_id=relatorio_docente.pk, pk=id_avaliacao_discente)
+                    serializer = AvaliacaoDiscenteSerializer(instance)
                     return Util.response_ok_no_message(serializer.data)
-                else:
-                    return Util.response_bad_request(serializer.errors)
+            
+                except RelatorioDocente.DoesNotExist:
+                    return Util.response_not_found('Não foi possível encontrar um relatorio_docente com o nome fornecido que seja pertencente ao usuário autenticado.')
 
-            except AvaliacaoDiscente.DoesNotExist:
-                return Util.response_not_found('Não foi possível encontrar uma avaliacao_discente com o id fornecido.')
-
-        return Util.response_bad_request('É necessário fornecer o id do objeto que você deseja atualizar em avaliacao_discente/{id}/')
-
-    def getAll(self, request):
-        instances = AvaliacaoDiscente.objects.all()
-        serializer = AvaliacaoDiscenteSerializer(instances, many=True)
-        return Util.response_ok_no_message(serializer.data)
+                except AvaliacaoDiscente.DoesNotExist:
+                    return Util.response_not_found('Não foi possível encontrar uma avaliacao_discente com o id fornecido.')
+            
+            return Util.response_bad_request('É necessário fornecer o id da avaliacao_discente que você deseja ler em avaliacao_discente/{nome_relatorio}/{id_avaliacao_discente}/')
         
-    def getById(self, request, id=None):
-        if id:
+        return Util.response_bad_request('É necessário fornecer o nome do relatorio_docente do qual você deseja deseja ler as avaliacoes_discentes em avaliacao_discente/{nome_relatorio}/{id_avaliacao_discente}/')
+
+    def getAll(self, request, nome_relatorio=None):
+        if nome_relatorio:
             try:
-                instance = AvaliacaoDiscente.objects.get(pk=id)
-                serializer = AvaliacaoDiscenteSerializer(instance)
+                usuario_id = request.user.id
+                relatorio_docente = RelatorioDocente.objects.get(usuario_id = usuario_id, nome=nome_relatorio)
+                instances = AvaliacaoDiscente.objects.filter(relatorio_id=relatorio_docente.pk)
+                serializer = AvaliacaoDiscenteSerializer(instances, many=True)
                 return Util.response_ok_no_message(serializer.data)
-            except AvaliacaoDiscente.DoesNotExist:
-                return Util.response_not_found('Não foi possível encontrar uma avaliacao_discente com o id fornecido')
-        return Util.response_bad_request('É necessário fornecer o id do objeto que você deseja ler em avaliacao_discente/{id}/')
-        
-    def delete(self, request, id=None):
-        if id:
+            
+            except RelatorioDocente.DoesNotExist:
+                    return Util.response_not_found('Não foi possível encontrar um relatorio_docente com o nome fornecido que seja pertencente ao usuário autenticado.')
+            
+        return Util.response_bad_request('É necessário fornecer o nome do relatorio_docente do qual você deseja ler as avaliacoes_discentes em avaliacao_discente/{nome_relatorio}/')
+    
+    def post(self, request, nome_relatorio=None):
+        if nome_relatorio:
             try:
-                instance = AvaliacaoDiscente.objects.get(pk=id)
-                instance.delete()
-                return Util.response_ok_no_message('Objeto excluído com sucesso.')
-            except AvaliacaoDiscente.DoesNotExist:
-                return Util.response_not_found('Não foi possível encontrar uma avaliacao_discente com o id fornecido.')
-        return Util.response_bad_request('É necessário fornecer o id do objeto que você deseja excluir em avaliacao_discente/{id}/')
+                usuario_id = request.user.id
+                relatorio_docente = RelatorioDocente.objects.get(usuario_id=usuario_id, nome=nome_relatorio)
+
+                request.data['relatorio_id'] = relatorio_docente.pk
+                serializer = AvaliacaoDiscenteSerializer(data=request.data)
+                if serializer.is_valid():
+                    avaliacao_discente = serializer.save()
+                    return Util.response_created(f'id: {avaliacao_discente.pk}')
+                return Util.response_bad_request(serializer.errors)
+            
+            except RelatorioDocente.DoesNotExist:
+                return Util.response_not_found('Não foi possível encontrar um relatorio_docente com o nome fornecido que seja pertencente ao usuário autenticado.')
+            
+        return Util.response_bad_request('É necessário fornecer o nome do relatorio_docente no qual você deseja criar uma avaliacao_discente em avaliacao_discente/{nome_relatorio}/')
+    
+    def put(self, request, nome_relatorio=None, id_avaliacao_discente=None):
+        if nome_relatorio:
+            if id_avaliacao_discente:
+                try:
+                    usuario_id = request.user.id
+                    relatorio_docente = RelatorioDocente.objects.get(usuario_id = usuario_id, nome = nome_relatorio)
+
+                    avaliacao_discente = AvaliacaoDiscente.objects.get(pk=id_avaliacao_discente, relatorio_id = relatorio_docente.pk)
+
+                    data = request.data.copy()
+                    if 'id' in data or 'relatorio_id' in data:
+                        return Util.response_unauthorized('Não é permitido atualizar nenhum id ou relatorio_id')
+
+                    serializer = AvaliacaoDiscenteSerializer(avaliacao_discente, data=data, partial=True)
+                    if serializer.is_valid():
+                        avaliacao_discente = serializer.save()
+                        return Util.response_ok_no_message(serializer.data)
+                    else:
+                        return Util.response_bad_request(serializer.errors)
+                    
+                except RelatorioDocente.DoesNotExist:
+                    return Util.response_not_found('Não foi possível encontrar um relatorio_docente com o nome fornecido que seja pertencente ao usuário autenticado.')
+
+                except AvaliacaoDiscente.DoesNotExist:
+                    return Util.response_not_found('Não foi possível encontrar uma avaliacao_discente com o id fornecido.')
+                
+            return Util.response_bad_request('É necessário fornecer o id da avaliacao_discente que você deseja atualizar em avaliacao_discente/{nome_relatorio}/{id_avaliacao_discente}/')
+        
+        return Util.response_bad_request('É necessário fornecer o nome do relatorio_docente no qual você deseja atualizar uma avaliacao_discente em avaliacao_discente/{nome_relatorio}/{id_avaliacao_discente}/')
+    
+    def delete(self, request, nome_relatorio=None, id_avaliacao_discente=None):
+        if nome_relatorio:
+            if id_avaliacao_discente:
+                try:
+                    usuario_id = request.user.id
+                    relatorio_docente = RelatorioDocente.objects.get(usuario_id=usuario_id, nome=nome_relatorio)
+                    avaliacao_discente = AvaliacaoDiscente.objects.get(pk=id_avaliacao_discente, relatorio_id = relatorio_docente.pk)
+                    avaliacao_discente.delete()
+
+                    return Util.response_ok_no_message('Objeto excluído com sucesso.')
+                
+                except AvaliacaoDiscente.DoesNotExist:
+                    return Util.response_not_found('Não foi possível encontrar uma avaliacao_discente com o id fornecido.')
+                
+            return Util.response_bad_request('É necessário fornecer o id da avaliacao_discente que você deseja deletar em avaliacao_discente/{nome_relatorio}/{id_avaliacao_discente}/')
 
 class ProjetoPesquisaProducaoIntelectualView(APIView):
     permission_classes = [IsAuthenticated]
