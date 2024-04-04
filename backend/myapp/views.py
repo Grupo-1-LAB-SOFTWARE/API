@@ -811,67 +811,111 @@ class AtividadeOrientacaoSupervisaoPreceptoriaTutoriaView(APIView):
                 
             return Util.response_bad_request('É necessário fornecer o id da atividade_orientacao_supervisao_preceptoria_tutoria que você deseja deletar em atividade_orientacao_supervisao_preceptoria_tutoria/{nome_relatorio}/{id_atividade_orientacao_supervisao_preceptoria_tutoria}/')
         
-
 class DescricaoOrientacaoCoorientacaoAcademicaView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def get(self, request, id=None):
-        if id:
-            return self.getById(request, id)
+    def get(self, request, nome_relatorio=None, id_descricao_orientacao_coorientacao_academica=None):
+        if nome_relatorio and id_descricao_orientacao_coorientacao_academica:
+            return self.getById(request, nome_relatorio, id_descricao_orientacao_coorientacao_academica)
         else:
-            return self.getAll(request)
-
-    def post(self, request):
-        serializer = DescricaoOrientacaoCoorientacaoAcademicaSerializer(data=request.data)
-        if serializer.is_valid():
-            instance = serializer.save() 
-            return Util.response_created(f'id: {instance.pk}')
-        return Util.response_bad_request(serializer.errors)
-
-    def put(self, request, id=None):
-        if id is not None:
-            try:
-                instance = DescricaoOrientacaoCoorientacaoAcademica.objects.get(pk=id)
-                data = request.data.copy()
-                if 'id' in data or 'relatorio_id' in data:
-                    return Util.response_unauthorized('Não é permitido atualizar nenhum id ou relatorio_id')
-
-                serializer = DescricaoOrientacaoCoorientacaoAcademicaSerializer(instance, data=data, partial=True)
-                if serializer.is_valid():
-                    serializer.save()
+            return self.getAll(request, nome_relatorio)
+        
+    def getById(self, request, nome_relatorio=None, id_descricao_orientacao_coorientacao_academica=None):
+        if nome_relatorio:
+            if id_descricao_orientacao_coorientacao_academica:
+                try:
+                    usuario_id = request.user.id
+                    relatorio_docente = RelatorioDocente.objects.get(usuario_id = usuario_id, nome=nome_relatorio)
+                    instance = DescricaoOrientacaoCoorientacaoAcademica.objects.get(relatorio_id=relatorio_docente.pk, pk=id_descricao_orientacao_coorientacao_academica)
+                    serializer = DescricaoOrientacaoCoorientacaoAcademicaSerializer(instance)
                     return Util.response_ok_no_message(serializer.data)
-                else:
-                    return Util.response_bad_request(serializer.errors)
+            
+                except RelatorioDocente.DoesNotExist:
+                    return Util.response_not_found('Não foi possível encontrar um relatorio_docente com o nome fornecido que seja pertencente ao usuário autenticado.')
 
-            except DescricaoOrientacaoCoorientacaoAcademica.DoesNotExist:
-                return Util.response_not_found('Não foi possível encontrar uma descricao_orientacao_coorientacao_academica com o id fornecido.')
-
-        return Util.response_bad_request('É necessário fornecer o id do objeto que você deseja atualizar em descricao_orientacao_coorientacao_academica/{id}/')
-
-    def getAll(self, request):
-        instances = DescricaoOrientacaoCoorientacaoAcademica.objects.all()
-        serializer = DescricaoOrientacaoCoorientacaoAcademicaSerializer(instances, many=True)
-        return Util.response_ok_no_message(serializer.data)
+                except DescricaoOrientacaoCoorientacaoAcademica.DoesNotExist:
+                    return Util.response_not_found('Não foi possível encontrar uma descricao_orientacao_coorientacao_academica com o id fornecido.')
+            
+            return Util.response_bad_request('É necessário fornecer o id da descricao_orientacao_coorientacao_academica que você deseja ler em descricao_orientacao_coorientacao_academica/{nome_relatorio}/{id_descricao_orientacao_coorientacao_academica}/')
         
-    def getById(self, request, id=None):
-        if id:
+        return Util.response_bad_request('É necessário fornecer o nome do relatorio_docente do qual você deseja deseja ler as descricoes_orientacoes_coorientacoes_academicas em descricao_orientacao_coorientacao_academica/{nome_relatorio}/{id_descricao_orientacao_coorientacao_academica}/')
+
+    def getAll(self, request, nome_relatorio=None):
+        if nome_relatorio:
             try:
-                instance = DescricaoOrientacaoCoorientacaoAcademica.objects.get(pk=id)
-                serializer = DescricaoOrientacaoCoorientacaoAcademicaSerializer(instance)
+                usuario_id = request.user.id
+                relatorio_docente = RelatorioDocente.objects.get(usuario_id = usuario_id, nome=nome_relatorio)
+                instances = DescricaoOrientacaoCoorientacaoAcademica.objects.filter(relatorio_id=relatorio_docente.pk)
+                serializer = DescricaoOrientacaoCoorientacaoAcademicaSerializer(instances, many=True)
                 return Util.response_ok_no_message(serializer.data)
-            except DescricaoOrientacaoCoorientacaoAcademica.DoesNotExist:
-                return Util.response_not_found('Não foi possível encontrar uma descricao_orientacao_coorientacao_academica com o id fornecido')
-        return Util.response_bad_request('É necessário fornecer o id do objeto que você deseja ler em descricao_orientacao_coorientacao_academica/{id}/')
-        
-    def delete(self, request, id=None):
-        if id:
+            
+            except RelatorioDocente.DoesNotExist:
+                    return Util.response_not_found('Não foi possível encontrar um relatorio_docente com o nome fornecido que seja pertencente ao usuário autenticado.')
+            
+        return Util.response_bad_request('É necessário fornecer o nome do relatorio_docente do qual você deseja ler as descricoes_orientacoes_coorientacoes_academicas em descricao_orientacao_coorientacao_academica/{nome_relatorio}/')
+    
+    def post(self, request, nome_relatorio=None):
+        if nome_relatorio:
             try:
-                instance = DescricaoOrientacaoCoorientacaoAcademica.objects.get(pk=id)
-                instance.delete()
-                return Util.response_ok_no_message('Objeto excluído com sucesso.')
-            except DescricaoOrientacaoCoorientacaoAcademica.DoesNotExist:
-                return Util.response_not_found('Não foi possível encontrar uma descricao_orientacao_coorientacao_academica com o id fornecido.')
-        return Util.response_bad_request('É necessário fornecer o id do objeto que você deseja excluir em descricao_orientacao_coorientacao_academica/{id}/')
+                usuario_id = request.user.id
+                relatorio_docente = RelatorioDocente.objects.get(usuario_id=usuario_id, nome=nome_relatorio)
+
+                request.data['relatorio_id'] = relatorio_docente.pk
+                serializer = DescricaoOrientacaoCoorientacaoAcademicaSerializer(data=request.data)
+                if serializer.is_valid():
+                    descricao_orientacao_coorientacao_academica = serializer.save()
+                    return Util.response_created(f'id: {descricao_orientacao_coorientacao_academica.pk}')
+                return Util.response_bad_request(serializer.errors)
+            
+            except RelatorioDocente.DoesNotExist:
+                return Util.response_not_found('Não foi possível encontrar um relatorio_docente com o nome fornecido que seja pertencente ao usuário autenticado.')
+            
+        return Util.response_bad_request('É necessário fornecer o nome do relatorio_docente no qual você deseja criar uma descricao_orientacao_coorientacao_academica em descricao_orientacao_coorientacao_academica/{nome_relatorio}/')
+
+    def put(self, request, nome_relatorio=None, id_descricao_orientacao_coorientacao_academica=None):
+        if nome_relatorio:
+            if id_descricao_orientacao_coorientacao_academica:
+                try:
+                    usuario_id = request.user.id
+                    relatorio_docente = RelatorioDocente.objects.get(usuario_id = usuario_id, nome = nome_relatorio)
+
+                    descricao_orientacao_coorientacao_academica = DescricaoOrientacaoCoorientacaoAcademica.objects.get(pk=id_descricao_orientacao_coorientacao_academica, relatorio_id = relatorio_docente.pk)
+
+                    data = request.data.copy()
+                    if 'id' in data or 'relatorio_id' in data:
+                        return Util.response_unauthorized('Não é permitido atualizar nenhum id ou relatorio_id')
+
+                    serializer = DescricaoOrientacaoCoorientacaoAcademicaSerializer(descricao_orientacao_coorientacao_academica, data=data, partial=True)
+                    if serializer.is_valid():
+                        descricao_orientacao_coorientacao_academica = serializer.save()
+                        return Util.response_ok_no_message(serializer.data)
+                    else:
+                        return Util.response_bad_request(serializer.errors)
+                    
+                except RelatorioDocente.DoesNotExist:
+                    return Util.response_not_found('Não foi possível encontrar um relatorio_docente com o nome fornecido que seja pertencente ao usuário autenticado.')
+
+                except DescricaoOrientacaoCoorientacaoAcademica.DoesNotExist:
+                    return Util.response_not_found('Não foi possível encontrar uma descricao_orientacao_coorientacao_academica com o id fornecido.')
+                
+            return Util.response_bad_request('É necessário fornecer o id da descricao_orientacao_coorientacao_academica que você deseja atualizar em descricao_orientacao_coorientacao_academica/{nome_relatorio}/{id_descricao_orientacao_coorientacao_academica}/')
+        
+        return Util.response_bad_request('É necessário fornecer o nome do relatorio_docente no qual você deseja atualizar uma descricao_orientacao_coorientacao_academica em descricao_orientacao_coorientacao_academica/{nome_relatorio}/{id_descricao_orientacao_coorientacao_academica}/')
+        
+    def delete(self, request, nome_relatorio=None, id_descricao_orientacao_coorientacao_academica=None):
+        if nome_relatorio:
+            if id_descricao_orientacao_coorientacao_academica:
+                try:
+                    usuario_id = request.user.id
+                    relatorio_docente = RelatorioDocente.objects.get(usuario_id=usuario_id, nome=nome_relatorio)
+                    descricao_orientacao_coorientacao_academica = DescricaoOrientacaoCoorientacaoAcademica.objects.get(pk=id_descricao_orientacao_coorientacao_academica, relatorio_id = relatorio_docente.pk)
+                    descricao_orientacao_coorientacao_academica.delete()
+
+                    return Util.response_ok_no_message('Objeto excluído com sucesso.')
+                except DescricaoOrientacaoCoorientacaoAcademica.DoesNotExist:
+                    return Util.response_not_found('Não foi possível encontrar uma descricao_orientacao_coorientacao_academica com o id fornecido.')
+                
+            return Util.response_bad_request('É necessário fornecer o id da descricao_orientacao_coorientacao_academica que você deseja deletar em descricao_orientacao_coorientacao_academica/{nome_relatorio}/{id_descricao_orientacao_coorientacao_academica}/')
     
 class SupervisaoAcademicaView(APIView):
     permission_classes = [IsAuthenticated]
