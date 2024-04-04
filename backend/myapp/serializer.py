@@ -49,7 +49,6 @@ class CustomizarTokenSerializer(TokenObtainPairSerializer):
         token = {
             #'refresh': str(refresh),
             'token': str(refresh.access_token)
-            #'id_usuario': user.pk
         }
 
         return token
