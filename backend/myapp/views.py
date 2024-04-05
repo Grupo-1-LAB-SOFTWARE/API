@@ -1503,63 +1503,109 @@ class TrabalhoCompletoPublicadoPeriodicoBoletimTecnicoView(APIView):
 class LivroCapituloVerbetePublicadoView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def get(self, request, id=None):
-        if id:
-            return self.getById(request, id)
+    def get(self, request, nome_relatorio=None, id_livro_capitulo_verbete_publicado=None):
+        if nome_relatorio and id_livro_capitulo_verbete_publicado:
+            return self.getById(request, nome_relatorio, id_livro_capitulo_verbete_publicado)
         else:
-            return self.getAll(request)
-
-    def post(self, request):
-        serializer = LivroCapituloVerbetePublicadoSerializer(data=request.data)
-        if serializer.is_valid():
-            instance = serializer.save() 
-            return Util.response_created(f'id: {instance.pk}')
-        return Util.response_bad_request(serializer.errors)
-
-    def put(self, request, id=None):
-        if id is not None:
-            try:
-                instance = LivroCapituloVerbetePublicado.objects.get(pk=id)
-                data = request.data.copy()
-                if 'id' in data or 'relatorio_id' in data:
-                    return Util.response_unauthorized('Não é permitido atualizar nenhum id ou relatorio_id')
-
-                serializer = LivroCapituloVerbetePublicadoSerializer(instance, data=data, partial=True)
-                if serializer.is_valid():
-                    serializer.save()
+            return self.getAll(request, nome_relatorio)
+        
+    def getById(self, request, nome_relatorio=None, id_livro_capitulo_verbete_publicado=None):
+        if nome_relatorio:
+            if id_livro_capitulo_verbete_publicado:
+                try:
+                    usuario_id = request.user.id
+                    relatorio_docente = RelatorioDocente.objects.get(usuario_id = usuario_id, nome=nome_relatorio)
+                    instance = LivroCapituloVerbetePublicado.objects.get(relatorio_id=relatorio_docente.pk, pk=id_livro_capitulo_verbete_publicado)
+                    serializer = LivroCapituloVerbetePublicadoSerializer(instance)
                     return Util.response_ok_no_message(serializer.data)
-                else:
-                    return Util.response_bad_request(serializer.errors)
+            
+                except RelatorioDocente.DoesNotExist:
+                    return Util.response_not_found('Não foi possível encontrar um relatorio_docente com o nome fornecido que seja pertencente ao usuário autenticado.')
 
-            except TrabalhoCompletoPublicadoPeriodicoBoletimTecnico.DoesNotExist:
-                return Util.response_not_found('Não foi possível encontrar um livro_capitulo_verbete_publicado com o id fornecido.')
-
-        return Util.response_bad_request('É necessário fornecer o id do objeto que você deseja atualizar em livro_capitulo_verbete_publicado/{id}/')
-
-    def getAll(self, request):
-        instances = LivroCapituloVerbetePublicado.objects.all()
-        serializer = LivroCapituloVerbetePublicadoSerializer(instances, many=True)
-        return Util.response_ok_no_message(serializer.data)
+                except LivroCapituloVerbetePublicado.DoesNotExist:
+                    return Util.response_not_found('Não foi possível encontrar uma livro_capitulo_verbete_publicado com o id fornecido.')
+            
+            return Util.response_bad_request('É necessário fornecer o id da livro_capitulo_verbete_publicado que você deseja ler em livro_capitulo_verbete_publicado/{nome_relatorio}/{id_livro_capitulo_verbete_publicado}/')
         
-    def getById(self, request, id=None):
-        if id:
+        return Util.response_bad_request('É necessário fornecer o nome do relatorio_docente do qual você deseja deseja ler as livro_capitulo_verbete_publicado em livro_capitulo_verbete_publicado/{nome_relatorio}/{id_livro_capitulo_verbete_publicado}/')
+
+    def getAll(self, request, nome_relatorio=None):
+        if nome_relatorio:
             try:
-                instance = LivroCapituloVerbetePublicado.objects.get(pk=id)
-                serializer = LivroCapituloVerbetePublicadoSerializer(instance)
+                usuario_id = request.user.id
+                relatorio_docente = RelatorioDocente.objects.get(usuario_id = usuario_id, nome=nome_relatorio)
+                instances = LivroCapituloVerbetePublicado.objects.filter(relatorio_id=relatorio_docente.pk)
+                serializer = LivroCapituloVerbetePublicadoSerializer(instances, many=True)
                 return Util.response_ok_no_message(serializer.data)
-            except LivroCapituloVerbetePublicado.DoesNotExist:
-                return Util.response_not_found('Não foi possível encontrar um livro_capitulo_verbete_publicado com o id fornecido')
-        return Util.response_bad_request('É necessário fornecer o id do objeto que você deseja ler em livro_capitulo_verbete_publicado/{id}/')
-        
-    def delete(self, request, id=None):
-        if id:
+            
+            except RelatorioDocente.DoesNotExist:
+                    return Util.response_not_found('Não foi possível encontrar um relatorio_docente com o nome fornecido que seja pertencente ao usuário autenticado.')
+            
+        return Util.response_bad_request('É necessário fornecer o nome do relatorio_docente do qual você deseja ler as livro_capitulo_verbete_publicado em livro_capitulo_verbete_publicado/{nome_relatorio}/')
+    
+    def post(self, request, nome_relatorio=None):
+        if nome_relatorio:
             try:
-                instance = LivroCapituloVerbetePublicado.objects.get(pk=id)
-                instance.delete()
-                return Util.response_ok_no_message('Objeto excluído com sucesso.')
-            except LivroCapituloVerbetePublicado.DoesNotExist:
-                return Util.response_not_found('Não foi possível encontrar um livro_capitulo_verbete_publicado com o id fornecido.')
-        return Util.response_bad_request('É necessário fornecer o id do objeto que você deseja excluir em livro_capitulo_verbete_publicado/{id}/')
+                usuario_id = request.user.id
+                relatorio_docente = RelatorioDocente.objects.get(usuario_id=usuario_id, nome=nome_relatorio)
+
+                request.data['relatorio_id'] = relatorio_docente.pk
+                serializer = LivroCapituloVerbetePublicadoSerializer(data=request.data)
+                if serializer.is_valid():
+                    livro_capitulo_verbete_publicado = serializer.save()
+                    return Util.response_created(f'id: {livro_capitulo_verbete_publicado.pk}')
+                return Util.response_bad_request(serializer.errors)
+            
+            except RelatorioDocente.DoesNotExist:
+                return Util.response_not_found('Não foi possível encontrar um relatorio_docente com o nome fornecido que seja pertencente ao usuário autenticado.')
+            
+        return Util.response_bad_request('É necessário fornecer o nome do relatorio_docente no qual você deseja criar uma livro_capitulo_verbete_publicado em livro_capitulo_verbete_publicado/{nome_relatorio}/')
+    
+    def put(self, request, nome_relatorio=None, id_livro_capitulo_verbete_publicado=None):
+        if nome_relatorio:
+            if id_livro_capitulo_verbete_publicado:
+                try:
+                    usuario_id = request.user.id
+                    relatorio_docente = RelatorioDocente.objects.get(usuario_id = usuario_id, nome = nome_relatorio)
+
+                    livro_capitulo_verbete_publicado = LivroCapituloVerbetePublicado.objects.get(pk=id_livro_capitulo_verbete_publicado, relatorio_id = relatorio_docente.pk)
+
+                    data = request.data.copy()
+                    if 'id' in data or 'relatorio_id' in data:
+                        return Util.response_unauthorized('Não é permitido atualizar nenhum id ou relatorio_id')
+
+                    serializer = LivroCapituloVerbetePublicadoSerializer(livro_capitulo_verbete_publicado, data=data, partial=True)
+                    if serializer.is_valid():
+                        livro_capitulo_verbete_publicado = serializer.save()
+                        return Util.response_ok_no_message(serializer.data)
+                    else:
+                        return Util.response_bad_request(serializer.errors)
+                    
+                except RelatorioDocente.DoesNotExist:
+                    return Util.response_not_found('Não foi possível encontrar um relatorio_docente com o nome fornecido que seja pertencente ao usuário autenticado.')
+
+                except LivroCapituloVerbetePublicado.DoesNotExist:
+                    return Util.response_not_found('Não foi possível encontrar uma livro_capitulo_verbete_publicado com o id fornecido.')
+                
+            return Util.response_bad_request('É necessário fornecer o id da livro_capitulo_verbete_publicado que você deseja atualizar em livro_capitulo_verbete_publicado/{nome_relatorio}/{id_livro_capitulo_verbete_publicado}/')
+        
+        return Util.response_bad_request('É necessário fornecer o nome do relatorio_docente no qual você deseja atualizar uma livro_capitulo_verbete_publicado em livro_capitulo_verbete_publicado/{nome_relatorio}/{id_livro_capitulo_verbete_publicado}/')
+    
+    def delete(self, request, nome_relatorio=None, id_livro_capitulo_verbete_publicado=None):
+        if nome_relatorio:
+            if id_livro_capitulo_verbete_publicado:
+                try:
+                    usuario_id = request.user.id
+                    relatorio_docente = RelatorioDocente.objects.get(usuario_id=usuario_id, nome=nome_relatorio)
+                    livro_capitulo_verbete_publicado = BancaExaminadora.objects.get(pk=id_livro_capitulo_verbete_publicado, relatorio_id = relatorio_docente.pk)
+                    livro_capitulo_verbete_publicado.delete()
+
+                    return Util.response_ok_no_message('Objeto excluído com sucesso.')
+                
+                except LivroCapituloVerbetePublicado.DoesNotExist:
+                    return Util.response_not_found('Não foi possível encontrar uma livro_capitulo_verbete_publicado com o id fornecido.')
+                
+            return Util.response_bad_request('É necessário fornecer o id da livro_capitulo_verbete_publicado que você deseja deletar em livro_capitulo_verbete_publicado/{nome_relatorio}/{id_livro_capitulo_verbete_publicado}/')
 
 class TrabalhoCompletoResumoPublicadoApresentadoCongressosView(APIView):
     permission_classes = [IsAuthenticated]
