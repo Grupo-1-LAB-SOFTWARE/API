@@ -1,7 +1,7 @@
 from django.core.mail import send_mail, EmailMessage, get_connection
 from django.contrib.sites.shortcuts import get_current_site
 from django.urls import reverse
-from .models import Usuario, CalculoCHSemanalAulas, AtividadeLetiva
+from .models import Usuario, CalculoCHSemanalAulas, AtividadeLetiva, CHSemanalAtividadeEnsino
 from django.contrib.auth.models import User
 from django.conf import settings
 from decouple import config
@@ -67,12 +67,29 @@ class Util:
     @staticmethod
     def resetar_valores_calculos_ch_semanal_aulas(relatorio_id):
         calculos_ch_semanal_aulas = CalculoCHSemanalAulas.objects.filter(relatorio_id=relatorio_id)
-        for calculo_ch_semanal_aulas in calculos_ch_semanal_aulas:
-            calculo_ch_semanal_aulas.ch_semanal_graduacao = 0.0
-            calculo_ch_semanal_aulas.ch_semanal_pos_graduacao = 0.0
-            calculo_ch_semanal_aulas.ch_semanal_total = 0.0
-            calculo_ch_semanal_aulas.save()
+        ch_semanal_atividade_ensino = None
 
+        try:
+            ch_semanal_atividade_ensino = CHSemanalAtividadeEnsino.objects.get(relatorio_id=relatorio_id)
+
+        except CHSemanalAtividadeEnsino.DoesNotExist:
+            ch_semanal_atividade_ensino = CHSemanalAtividadeEnsino.objects.create(
+                relatorio_id = relatorio_id,
+                ch_semanal_primeiro_semestre = 0.0,
+                ch_semanal_segundo_semestre = 0.0
+            )
+
+            for calculo_ch_semanal_aulas in calculos_ch_semanal_aulas:
+                if calculo_ch_semanal_aulas.semestre == 1:
+                    ch_semanal_atividade_ensino.ch_semanal_primeiro_semestre = ch_semanal_atividade_ensino.ch_semanal_primeiro_semestre - calculo_ch_semanal_aulas.ch_semanal_total
+                else:
+                    ch_semanal_atividade_ensino.ch_semanal_segundo_semestre = ch_semanal_atividade_ensino.ch_semanal_segundo_semestre - calculo_ch_semanal_aulas.ch_semanal_total
+
+                ch_semanal_atividade_ensino.save()
+                calculo_ch_semanal_aulas.ch_semanal_graduacao = 0.0
+                calculo_ch_semanal_aulas.ch_semanal_pos_graduacao = 0.0
+                calculo_ch_semanal_aulas.ch_semanal_total = 0.0
+                calculo_ch_semanal_aulas.save()
 
     @staticmethod
     def recriar_calculos_ch_semanal_aulas(relatorio_id):
@@ -137,3 +154,22 @@ class Util:
             instance.ch_semanal_total = instance.ch_semanal_graduacao + instance.ch_semanal_pos_graduacao
 
             instance.save()
+            
+            ch_semanal_atividade_ensino = None
+
+            try:
+                ch_semanal_atividade_ensino = CHSemanalAtividadeEnsino.objects.get(relatorio_id=relatorio_id)
+
+            except CHSemanalAtividadeEnsino.DoesNotExist:
+                ch_semanal_atividade_ensino = CHSemanalAtividadeEnsino.objects.create(
+                    relatorio_id = relatorio_id,
+                    ch_semanal_primeiro_semestre = 0.0,
+                    ch_semanal_segundo_semestre = 0.0
+                )
+
+            if instance.semestre == 1:
+                ch_semanal_atividade_ensino.ch_semanal_primeiro_semestre = ch_semanal_atividade_ensino.ch_semanal_primeiro_semestre + instance.ch_semanal_total
+            else:
+                ch_semanal_atividade_ensino.ch_semanal_segundo_semestre = ch_semanal_atividade_ensino.ch_semanal_segundo_semestre + instance.ch_semanal_total
+
+            ch_semanal_atividade_ensino.save()
