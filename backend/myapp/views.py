@@ -1610,63 +1610,109 @@ class LivroCapituloVerbetePublicadoView(APIView):
 class TrabalhoCompletoResumoPublicadoApresentadoCongressosView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def get(self, request, id=None):
-        if id:
-            return self.getById(request, id)
+    def get(self, request, nome_relatorio=None, id_trabalho_completo_publicado_apresentado_congressos=None):
+        if nome_relatorio and id_trabalho_completo_publicado_apresentado_congressos:
+            return self.getById(request, nome_relatorio, id_trabalho_completo_publicado_apresentado_congressos)
         else:
-            return self.getAll(request)
-
-    def post(self, request):
-        serializer = TrabalhoCompletoResumoPublicadoApresentadoCongressosSerializer(data=request.data)
-        if serializer.is_valid():
-            instance = serializer.save() 
-            return Util.response_created(f'id: {instance.pk}')
-        return Util.response_bad_request(serializer.errors)
-
-    def put(self, request, id=None):
-        if id is not None:
-            try:
-                instance = TrabalhoCompletoResumoPublicadoApresentadoCongressos.objects.get(pk=id)
-                data = request.data.copy()
-                if 'id' in data or 'relatorio_id' in data:
-                    return Util.response_unauthorized('Não é permitido atualizar nenhum id ou relatorio_id')
-
-                serializer = TrabalhoCompletoResumoPublicadoApresentadoCongressosSerializer(instance, data=data, partial=True)
-                if serializer.is_valid():
-                    serializer.save()
-                    return Util.response_ok_no_message(serializer.data)
-                else:
-                    return Util.response_bad_request(serializer.errors)
-
-            except TrabalhoCompletoResumoPublicadoApresentadoCongressos.DoesNotExist:
-                return Util.response_not_found('Não foi possível encontrar um trabalho_completo_resumo_publicado_apresentado_congressos com o id fornecido.')
-
-        return Util.response_bad_request('É necessário fornecer o id do objeto que você deseja atualizar em trabalho_completo_resumo_publicado_apresentado_congressos/{id}/')
-
-    def getAll(self, request):
-        instances = TrabalhoCompletoResumoPublicadoApresentadoCongressos.objects.all()
-        serializer = TrabalhoCompletoResumoPublicadoApresentadoCongressosSerializer(instances, many=True)
-        return Util.response_ok_no_message(serializer.data)
-    
-    def getById(self, request, id=None):
-        if id:
-            try:
-                instance = TrabalhoCompletoResumoPublicadoApresentadoCongressos.objects.get(pk=id)
-                serializer = TrabalhoCompletoResumoPublicadoApresentadoCongressosSerializer(instance)
-                return Util.response_ok_no_message(serializer.data)
-            except TrabalhoCompletoResumoPublicadoApresentadoCongressos.DoesNotExist:
-                return Util.response_not_found('Não foi possível encontrar um trabalho_completo_resumo_publicado_apresentado_congressos com o id fornecido')
-        return Util.response_bad_request('É necessário fornecer o id do objeto que você deseja ler em trabalho_completo_resumo_publicado_apresentado_congressos/{id}/')
+            return self.getAll(request, nome_relatorio)
         
-    def delete(self, request, id=None):
-        if id:
+    def getById(self, request, nome_relatorio=None, id_trabalho_completo_publicado_apresentado_congressos=None):
+        if nome_relatorio:
+            if id_trabalho_completo_publicado_apresentado_congressos:
+                try:
+                    usuario_id = request.user.id
+                    relatorio_docente = RelatorioDocente.objects.get(usuario_id = usuario_id, nome=nome_relatorio)
+                    instance = TrabalhoCompletoResumoPublicadoApresentadoCongressos.objects.get(relatorio_id=relatorio_docente.pk, pk=id_trabalho_completo_publicado_apresentado_congressos)
+                    serializer = TrabalhoCompletoResumoPublicadoApresentadoCongressosSerializer(instance)
+                    return Util.response_ok_no_message(serializer.data)
+            
+                except RelatorioDocente.DoesNotExist:
+                    return Util.response_not_found('Não foi possível encontrar um relatorio_docente com o nome fornecido que seja pertencente ao usuário autenticado.')
+
+                except TrabalhoCompletoResumoPublicadoApresentadoCongressos.DoesNotExist:
+                    return Util.response_not_found('Não foi possível encontrar uma trabalho_completo_publicado_apresentado_congressos com o id fornecido.')
+            
+            return Util.response_bad_request('É necessário fornecer o id da trabalho_completo_publicado_apresentado_congressos que você deseja ler em trabalho_completo_publicado_apresentado_congressos/{nome_relatorio}/{id_trabalho_completo_publicado_apresentado_congressos}/')
+        
+        return Util.response_bad_request('É necessário fornecer o nome do relatorio_docente do qual você deseja deseja ler as trabalho_completo_publicado_apresentado_congressos em trabalho_completo_publicado_apresentado_congressos/{nome_relatorio}/{id_trabalho_completo_publicado_apresentado_congressos}/')
+
+    def getAll(self, request, nome_relatorio=None):
+        if nome_relatorio:
             try:
-                instance = TrabalhoCompletoResumoPublicadoApresentadoCongressos.objects.get(pk=id)
-                instance.delete()
-                return Util.response_ok_no_message('Objeto excluído com sucesso.')
-            except TrabalhoCompletoResumoPublicadoApresentadoCongressos.DoesNotExist:
-                return Util.response_not_found('Não foi possível encontrar um trabalho_completo_resumo_publicado_apresentado_congressos com o id fornecido.')
-        return Util.response_bad_request('É necessário fornecer o id do objeto que você deseja excluir em trabalho_completo_resumo_publicado_apresentado_congressos/{id}/')
+                usuario_id = request.user.id
+                relatorio_docente = RelatorioDocente.objects.get(usuario_id = usuario_id, nome=nome_relatorio)
+                instances = TrabalhoCompletoResumoPublicadoApresentadoCongressos.objects.filter(relatorio_id=relatorio_docente.pk)
+                serializer = TrabalhoCompletoResumoPublicadoApresentadoCongressosSerializer(instances, many=True)
+                return Util.response_ok_no_message(serializer.data)
+            
+            except RelatorioDocente.DoesNotExist:
+                    return Util.response_not_found('Não foi possível encontrar um relatorio_docente com o nome fornecido que seja pertencente ao usuário autenticado.')
+            
+        return Util.response_bad_request('É necessário fornecer o nome do relatorio_docente do qual você deseja ler as trabalho_completo_publicado_apresentado_congressos em trabalho_completo_publicado_apresentado_congressos/{nome_relatorio}/')
+    
+    def post(self, request, nome_relatorio=None):
+        if nome_relatorio:
+            try:
+                usuario_id = request.user.id
+                relatorio_docente = RelatorioDocente.objects.get(usuario_id=usuario_id, nome=nome_relatorio)
+
+                request.data['relatorio_id'] = relatorio_docente.pk
+                serializer = TrabalhoCompletoResumoPublicadoApresentadoCongressosSerializer(data=request.data)
+                if serializer.is_valid():
+                    trabalho_completo_publicado_apresentado_congressos = serializer.save()
+                    return Util.response_created(f'id: {trabalho_completo_publicado_apresentado_congressos.pk}')
+                return Util.response_bad_request(serializer.errors)
+            
+            except RelatorioDocente.DoesNotExist:
+                return Util.response_not_found('Não foi possível encontrar um relatorio_docente com o nome fornecido que seja pertencente ao usuário autenticado.')
+            
+        return Util.response_bad_request('É necessário fornecer o nome do relatorio_docente no qual você deseja criar uma trabalho_completo_publicado_apresentado_congressos em trabalho_completo_publicado_apresentado_congressos/{nome_relatorio}/')
+    
+    def put(self, request, nome_relatorio=None, id_trabalho_completo_publicado_apresentado_congressos=None):
+        if nome_relatorio:
+            if id_trabalho_completo_publicado_apresentado_congressos:
+                try:
+                    usuario_id = request.user.id
+                    relatorio_docente = RelatorioDocente.objects.get(usuario_id = usuario_id, nome = nome_relatorio)
+
+                    trabalho_completo_publicado_apresentado_congressos = TrabalhoCompletoResumoPublicadoApresentadoCongressos.objects.get(pk=id_trabalho_completo_publicado_apresentado_congressos, relatorio_id = relatorio_docente.pk)
+
+                    data = request.data.copy()
+                    if 'id' in data or 'relatorio_id' in data:
+                        return Util.response_unauthorized('Não é permitido atualizar nenhum id ou relatorio_id')
+
+                    serializer = TrabalhoCompletoResumoPublicadoApresentadoCongressosSerializer(trabalho_completo_publicado_apresentado_congressos, data=data, partial=True)
+                    if serializer.is_valid():
+                        trabalho_completo_publicado_apresentado_congressos = serializer.save()
+                        return Util.response_ok_no_message(serializer.data)
+                    else:
+                        return Util.response_bad_request(serializer.errors)
+                    
+                except RelatorioDocente.DoesNotExist:
+                    return Util.response_not_found('Não foi possível encontrar um relatorio_docente com o nome fornecido que seja pertencente ao usuário autenticado.')
+
+                except TrabalhoCompletoResumoPublicadoApresentadoCongressos.DoesNotExist:
+                    return Util.response_not_found('Não foi possível encontrar uma banca_examinadora com o id fornecido.')
+                
+            return Util.response_bad_request('É necessário fornecer o id da banca_examinadora que você deseja atualizar em trabalho_completo_publicado_apresentado_congressos/{nome_relatorio}/{id_trabalho_completo_publicado_apresentado_congressos}/')
+        
+        return Util.response_bad_request('É necessário fornecer o nome do relatorio_docente no qual você deseja atualizar uma trabalho_completo_publicado_apresentado_congressos em trabalho_completo_publicado_apresentado_congressos/{nome_relatorio}/{id_trabalho_completo_publicado_apresentado_congressos}/')
+    
+    def delete(self, request, nome_relatorio=None, id_trabalho_completo_publicado_apresentado_congressos=None):
+        if nome_relatorio:
+            if id_trabalho_completo_publicado_apresentado_congressos:
+                try:
+                    usuario_id = request.user.id
+                    relatorio_docente = RelatorioDocente.objects.get(usuario_id=usuario_id, nome=nome_relatorio)
+                    trabalho_completo_publicado_apresentado_congressos = TrabalhoCompletoResumoPublicadoApresentadoCongressos.objects.get(pk=trabalho_completo_publicado_apresentado_congressos, relatorio_id = relatorio_docente.pk)
+                    trabalho_completo_publicado_apresentado_congressos.delete()
+
+                    return Util.response_ok_no_message('Objeto excluído com sucesso.')
+                
+                except TrabalhoCompletoResumoPublicadoApresentadoCongressos.DoesNotExist:
+                    return Util.response_not_found('Não foi possível encontrar uma trabalho_completo_publicado_apresentado_congressos com o id fornecido.')
+                
+            return Util.response_bad_request('É necessário fornecer o id da trabalho_completo_publicado_apresentado_congressos que você deseja deletar em trabalho_completo_publicado_apresentado_congressos/{nome_relatorio}/{id_trabalho_completo_publicado_apresentado_congressos}/')
     
 
 class OutraAtividadePesquisaProducaoIntelectualView(APIView):
