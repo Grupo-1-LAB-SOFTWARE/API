@@ -1290,63 +1290,107 @@ class AvaliacaoDiscenteView(APIView):
 class ProjetoPesquisaProducaoIntelectualView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def get(self, request, id=None):
-        if id:
-            return self.getById(request, id)
+    def get(self, request, nome_relatorio=None, id_projeto_pesquisa_producao_intelectual=None):
+        if nome_relatorio and id_projeto_pesquisa_producao_intelectual:
+            return self.getById(request, nome_relatorio, id_projeto_pesquisa_producao_intelectual)
         else:
-            return self.getAll(request)
+            return self.getAll(request, nome_relatorio)
 
-    def post(self, request):
-        serializer = ProjetoPesquisaProducaoIntelectualSerializer(data=request.data)
-        if serializer.is_valid():
-            instance = serializer.save() 
-            return Util.response_created(f'id: {instance.pk}')
-        return Util.response_bad_request(serializer.errors)
-
-    def put(self, request, id=None):
-        if id is not None:
+    def post(self, request, nome_relatorio=None):
+        if nome_relatorio:
             try:
-                instance = ProjetoPesquisaProducaoIntelectual.objects.get(pk=id)
-                data = request.data.copy()
-                if 'id' in data or 'relatorio_id' in data:
-                    return Util.response_unauthorized('Não é permitido atualizar nenhum id ou relatorio_id')
+                usuario_id = request.user.id
+                relatorio_docente = RelatorioDocente.objects.get(usuario_id=usuario_id, nome=nome_relatorio)
 
-                serializer = ProjetoPesquisaProducaoIntelectualSerializer(instance, data=data, partial=True)
+                request.data['relatorio_id'] = relatorio_docente.pk
+                serializer = ProjetoPesquisaProducaoIntelectualSerializer(data=request.data)
                 if serializer.is_valid():
-                    serializer.save()
-                    return Util.response_ok_no_message(serializer.data)
-                else:
-                    return Util.response_bad_request(serializer.errors)
+                    projeto_pesquisa_producao_intelectual = serializer.save()
+                    return Util.response_created(f'id: {projeto_pesquisa_producao_intelectual.pk}')
+                return Util.response_bad_request(serializer.errors)
+            
+            except RelatorioDocente.DoesNotExist:
+                return Util.response_not_found('Não foi possível encontrar um relatorio_docente com o nome fornecido que seja pertencente ao usuário autenticado.')
+            
+        return Util.response_bad_request('É necessário fornecer o nome do relatorio_docente no qual você deseja criar uma projeto_pesquisa_producao_intelectual em projeto_pesquisa_producao_intelectual/{nome_relatorio}/')
 
-            except ProjetoPesquisaProducaoIntelectual.DoesNotExist:
-                return Util.response_not_found('Não foi possível encontrar uma projeto_pesquisa_producao_intelectual com o id fornecido.')
+    def put(self, request, nome_relatorio=None, id_projeto_pesquisa_producao_intelectual=None):
+        if nome_relatorio:
+            if id_projeto_pesquisa_producao_intelectual:
+                try:
+                    usuario_id = request.user.id
+                    relatorio_docente = RelatorioDocente.objects.get(usuario_id = usuario_id, nome = nome_relatorio)
 
-        return Util.response_bad_request('É necessário fornecer o id do objeto que você deseja atualizar em projeto_pesquisa_producao_intelectual/{id}/')
+                    projeto_pesquisa_producao_intelectual = ProjetoPesquisaProducaoIntelectual.objects.get(pk=id_projeto_pesquisa_producao_intelectual, relatorio_id = relatorio_docente.pk)
 
-    def getAll(self, request):
-        instances = ProjetoPesquisaProducaoIntelectual.objects.all()
-        serializer = ProjetoPesquisaProducaoIntelectualSerializer(instances, many=True)
-        return Util.response_ok_no_message(serializer.data)
+                    data = request.data.copy()
+                    if 'id' in data or 'relatorio_id' in data:
+                        return Util.response_unauthorized('Não é permitido atualizar nenhum id ou relatorio_id')
+
+                    serializer = ProjetoPesquisaProducaoIntelectualSerializer(projeto_pesquisa_producao_intelectual, data=data, partial=True)
+                    if serializer.is_valid():
+                        projeto_pesquisa_producao_intelectual = serializer.save()
+                        return Util.response_ok_no_message(serializer.data)
+                    else:
+                        return Util.response_bad_request(serializer.errors)
+                    
+                except RelatorioDocente.DoesNotExist:
+                    return Util.response_not_found('Não foi possível encontrar um relatorio_docente com o nome fornecido que seja pertencente ao usuário autenticado.')
+
+                except ProjetoPesquisaProducaoIntelectual.DoesNotExist:
+                    return Util.response_not_found('Não foi possível encontrar uma projeto_pesquisa_producao_intelectual com o id fornecido.')
+                
+            return Util.response_bad_request('É necessário fornecer o id da projeto_pesquisa_producao_intelectual que você deseja atualizar em projeto_pesquisa_producao_intelectual/{nome_relatorio}/{id_projeto_pesquisa_producao_intelectual}/')
         
-    def getById(self, request, id=None):
-        if id:
+        return Util.response_bad_request('É necessário fornecer o nome do relatorio_docente no qual você deseja atualizar uma projeto_pesquisa_producao_intelectual em projeto_pesquisa_producao_intelectual/{nome_relatorio}/{id_projeto_pesquisa_producao_intelectual}/')
+
+    def getAll(self, request, nome_relatorio=None):
+        if nome_relatorio:
             try:
-                instance = ProjetoPesquisaProducaoIntelectual.objects.get(pk=id)
-                serializer = ProjetoPesquisaProducaoIntelectualSerializer(instance)
+                usuario_id = request.user.id
+                relatorio_docente = RelatorioDocente.objects.get(usuario_id = usuario_id, nome=nome_relatorio)
+                instances = ProjetoPesquisaProducaoIntelectual.objects.filter(relatorio_id=relatorio_docente.pk)
+                serializer = ProjetoPesquisaProducaoIntelectualSerializer(instances, many=True)
                 return Util.response_ok_no_message(serializer.data)
-            except ProjetoPesquisaProducaoIntelectual.DoesNotExist:
-                return Util.response_not_found('Não foi possível encontrar um projeto_pesquisa_producao_intelectual com o id fornecido')
-        return Util.response_bad_request('É necessário fornecer o id do objeto que você deseja ler em projeto_pesquisa_producao_intelectual/{id}/')
+            
+            except RelatorioDocente.DoesNotExist:
+                    return Util.response_not_found('Não foi possível encontrar um relatorio_docente com o nome fornecido que seja pertencente ao usuário autenticado.')
         
-    def delete(self, request, id=None):
-        if id:
-            try:
-                instance = ProjetoPesquisaProducaoIntelectual.objects.get(pk=id)
-                instance.delete()
-                return Util.response_ok_no_message('Objeto excluído com sucesso.')
-            except ProjetoPesquisaProducaoIntelectual.DoesNotExist:
-                return Util.response_not_found('Não foi possível encontrar um projeto_pesquisa_producao_intelectual com o id fornecido.')
-        return Util.response_bad_request('É necessário fornecer o id do objeto que você deseja excluir em projeto_pesquisa_producao_intelectual/{id}/')
+    def getById(self, request, nome_relatorio=None, id_projeto_pesquisa_producao_intelectual=None):
+        if nome_relatorio:
+            if id_projeto_pesquisa_producao_intelectual:
+                try:
+                    usuario_id = request.user.id
+                    relatorio_docente = RelatorioDocente.objects.get(usuario_id = usuario_id, nome=nome_relatorio)
+                    instance = ProjetoPesquisaProducaoIntelectual.objects.get(relatorio_id=relatorio_docente.pk, pk=id_projeto_pesquisa_producao_intelectual)
+                    serializer = ProjetoPesquisaProducaoIntelectualSerializer(instance)
+                    return Util.response_ok_no_message(serializer.data)
+            
+                except RelatorioDocente.DoesNotExist:
+                    return Util.response_not_found('Não foi possível encontrar um relatorio_docente com o nome fornecido que seja pertencente ao usuário autenticado.')
+
+                except ProjetoPesquisaProducaoIntelectual.DoesNotExist:
+                    return Util.response_not_found('Não foi possível encontrar uma projeto_pesquisa_producao_intelectuala com o id fornecido.')
+            
+            return Util.response_bad_request('É necessário fornecer o id da projeto_pesquisa_producao_intelectual que você deseja ler em projeto_pesquisa_producao_intelectual/{nome_relatorio}/{id_projeto_pesquisa_producao_intelectual}/')
+        
+        return Util.response_bad_request('É necessário fornecer o nome do relatorio_docente do qual você deseja deseja ler as projeto_pesquisa_producao_intelectual em projeto_pesquisa_producao_intelectual/{nome_relatorio}/{id_projeto_pesquisa_producao_intelectual}/')
+        
+    def delete(self, request, nome_relatorio=None, id_projeto_pesquisa_producao_intelectual=None):
+        if nome_relatorio:
+            if id_projeto_pesquisa_producao_intelectual:
+                try:
+                    usuario_id = request.user.id
+                    relatorio_docente = RelatorioDocente.objects.get(usuario_id=usuario_id, nome=nome_relatorio)
+                    projeto_pesquisa_producao_intelectual = ProjetoPesquisaProducaoIntelectual.objects.get(pk=id_projeto_pesquisa_producao_intelectual, relatorio_id = relatorio_docente.pk)
+                    projeto_pesquisa_producao_intelectual.delete()
+
+                    return Util.response_ok_no_message('Objeto excluído com sucesso.')
+                
+                except ProjetoPesquisaProducaoIntelectual.DoesNotExist:
+                    return Util.response_not_found('Não foi possível encontrar uma projeto_pesquisa_producao_intelectual com o id fornecido.')
+                
+            return Util.response_bad_request('É necessário fornecer o id da projeto_pesquisa_producao_intelectual que você deseja deletar em projeto_pesquisa_producao_intelectual/{nome_relatorio}/{id_projeto_pesquisa_producao_intelectual}/')
 
 
 class TrabalhoCompletoPublicadoPeriodicoBoletimTecnicoView(APIView):
