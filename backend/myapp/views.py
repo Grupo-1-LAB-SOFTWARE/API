@@ -371,7 +371,6 @@ class AtividadeLetivaView(APIView):
                     relatorio_docente = RelatorioDocente.objects.get(usuario_id=usuario_id, nome=nome_relatorio)
                     atividade_letiva = AtividadeLetiva.objects.get(pk=id_atividade_letiva, relatorio_id = relatorio_docente.pk)
 
-
                     relatorio_id = atividade_letiva.relatorio_id
                     atividades_letivas = AtividadeLetiva.objects.filter(relatorio_id=relatorio_id)
                     
@@ -608,6 +607,27 @@ class AtividadePedagogicaComplementarView(APIView):
                     usuario_id = request.user.id
                     relatorio_docente = RelatorioDocente.objects.get(usuario_id=usuario_id, nome=nome_relatorio)
                     atividade_pedagogica_complementar = AtividadePedagogicaComplementar.objects.get(pk=id_atividade_pedagogica_complementar, relatorio_id = relatorio_docente.pk)
+
+                    #Lógica DELETE ch_semanal_atividade_ensino
+                    ch_semanal_atividade_ensino = None
+
+                    try:
+                        ch_semanal_atividade_ensino = CHSemanalAtividadeEnsino.objects.get(relatorio_id = relatorio_docente.pk)
+
+                        if atividade_pedagogica_complementar.semestre == 1:
+                            ch_semanal_atividade_ensino.ch_semanal_primeiro_semestre = ch_semanal_atividade_ensino.ch_semanal_primeiro_semestre - atividade_pedagogica_complementar.ch_semanal_total
+                        else:
+                            ch_semanal_atividade_ensino.ch_semanal_segundo_semestre = ch_semanal_atividade_ensino.ch_semanal_segundo_semestre - atividade_pedagogica_complementar.ch_semanal_total
+
+                    except CHSemanalAtividadeEnsino.DoesNotExist:
+                        ch_semanal_atividade_ensino = CHSemanalAtividadeEnsino.objects.create(
+                        relatorio_id = relatorio_docente.pk,
+                        ch_semanal_primeiro_semestre = 0.0,
+                        ch_semanal_segundo_semestre = 0.0
+                    )
+                    ch_semanal_atividade_ensino.save()
+                    #Termina aqui
+
                     atividade_pedagogica_complementar.delete()
 
                     return Util.response_ok_no_message('Objeto excluído com sucesso.')
@@ -744,6 +764,27 @@ class AtividadeOrientacaoSupervisaoPreceptoriaTutoriaView(APIView):
                     usuario_id = request.user.id
                     relatorio_docente = RelatorioDocente.objects.get(usuario_id=usuario_id, nome=nome_relatorio)
                     atividade_orientacao_supervisao_preceptoria_tutoria = AtividadeOrientacaoSupervisaoPreceptoriaTutoria.objects.get(pk=id_atividade_orientacao_supervisao_preceptoria_tutoria, relatorio_id = relatorio_docente.pk)
+
+                    #Lógica DELETE ch_semanal_atividade_ensino
+                    ch_semanal_atividade_ensino = None
+
+                    try:
+                        ch_semanal_atividade_ensino = CHSemanalAtividadeEnsino.objects.get(relatorio_id = relatorio_docente.pk)
+
+                        if atividade_orientacao_supervisao_preceptoria_tutoria.semestre == 1:
+                            ch_semanal_atividade_ensino.ch_semanal_primeiro_semestre = ch_semanal_atividade_ensino.ch_semanal_primeiro_semestre - atividade_orientacao_supervisao_preceptoria_tutoria.ch_semanal_total
+                        else:
+                            ch_semanal_atividade_ensino.ch_semanal_segundo_semestre = ch_semanal_atividade_ensino.ch_semanal_segundo_semestre - atividade_orientacao_supervisao_preceptoria_tutoria.ch_semanal_total
+
+                    except CHSemanalAtividadeEnsino.DoesNotExist:
+                        ch_semanal_atividade_ensino = CHSemanalAtividadeEnsino.objects.create(
+                        relatorio_id = relatorio_docente.pk,
+                        ch_semanal_primeiro_semestre = 0.0,
+                        ch_semanal_segundo_semestre = 0.0
+                    )
+                    ch_semanal_atividade_ensino.save()
+                    #Termina aqui
+
                     atividade_orientacao_supervisao_preceptoria_tutoria.delete()
 
                     return Util.response_ok_no_message('Objeto excluído com sucesso.')
@@ -1171,6 +1212,27 @@ class BancaExaminadoraView(APIView):
                     usuario_id = request.user.id
                     relatorio_docente = RelatorioDocente.objects.get(usuario_id=usuario_id, nome=nome_relatorio)
                     banca_examinadora = BancaExaminadora.objects.get(pk=id_banca_examinadora, relatorio_id = relatorio_docente.pk)
+
+                    #Lógica DELETE ch_semanal_atividade_ensino
+                    ch_semanal_atividade_ensino = None
+
+                    try:
+                        ch_semanal_atividade_ensino = CHSemanalAtividadeEnsino.objects.get(relatorio_id = relatorio_docente.pk)
+
+                        ch_semanal_atividade_ensino.ch_semanal_primeiro_semestre = ch_semanal_atividade_ensino.ch_semanal_primeiro_semestre - banca_examinadora.ch_semanal_primeiro_semestre
+
+                        ch_semanal_atividade_ensino.ch_semanal_segundo_semestre = ch_semanal_atividade_ensino.ch_semanal_segundo_semestre - banca_examinadora.ch_semanal_segundo_semestre
+
+                    except CHSemanalAtividadeEnsino.DoesNotExist:
+                        ch_semanal_atividade_ensino = CHSemanalAtividadeEnsino.objects.create(
+                        relatorio_id = relatorio_docente.pk,
+                        ch_semanal_primeiro_semestre = 0.0,
+                        ch_semanal_segundo_semestre = 0.0
+                    )
+                        
+                    ch_semanal_atividade_ensino.save()
+                    #Termina aqui
+
                     banca_examinadora.delete()
 
                     return Util.response_ok_no_message('Objeto excluído com sucesso.')
@@ -1312,7 +1374,7 @@ class ProjetoPesquisaProducaoIntelectualView(APIView):
             except RelatorioDocente.DoesNotExist:
                 return Util.response_not_found('Não foi possível encontrar um relatorio_docente com o nome fornecido que seja pertencente ao usuário autenticado.')
             
-        return Util.response_bad_request('É necessário fornecer o nome do relatorio_docente no qual você deseja criar uma projeto_pesquisa_producao_intelectual em projeto_pesquisa_producao_intelectual/{nome_relatorio}/')
+        return Util.response_bad_request('É necessário fornecer o nome do relatorio_docente no qual você deseja criar um projeto_pesquisa_producao_intelectual em projeto_pesquisa_producao_intelectual/{nome_relatorio}/')
 
     def put(self, request, nome_relatorio=None, id_projeto_pesquisa_producao_intelectual=None):
         if nome_relatorio:
@@ -1338,9 +1400,9 @@ class ProjetoPesquisaProducaoIntelectualView(APIView):
                     return Util.response_not_found('Não foi possível encontrar um relatorio_docente com o nome fornecido que seja pertencente ao usuário autenticado.')
 
                 except ProjetoPesquisaProducaoIntelectual.DoesNotExist:
-                    return Util.response_not_found('Não foi possível encontrar uma projeto_pesquisa_producao_intelectual com o id fornecido.')
+                    return Util.response_not_found('Não foi possível encontrar um projeto_pesquisa_producao_intelectual com o id fornecido.')
                 
-            return Util.response_bad_request('É necessário fornecer o id da projeto_pesquisa_producao_intelectual que você deseja atualizar em projeto_pesquisa_producao_intelectual/{nome_relatorio}/{id_projeto_pesquisa_producao_intelectual}/')
+            return Util.response_bad_request('É necessário fornecer o id do projeto_pesquisa_producao_intelectual que você deseja atualizar em projeto_pesquisa_producao_intelectual/{nome_relatorio}/{id_projeto_pesquisa_producao_intelectual}/')
         
         return Util.response_bad_request('É necessário fornecer o nome do relatorio_docente no qual você deseja atualizar uma projeto_pesquisa_producao_intelectual em projeto_pesquisa_producao_intelectual/{nome_relatorio}/{id_projeto_pesquisa_producao_intelectual}/')
 

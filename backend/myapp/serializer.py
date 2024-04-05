@@ -380,9 +380,33 @@ class AtividadePedagogicaComplementarSerializer(serializers.ModelSerializer):
             **validated_data,
             ch_semanal_total = ch_semanal_total
         )
+
+        #Lógica POST para ch_semanal_atividade_ensino
+        relatorio_id = atividade_pedagogica_complementar.relatorio_id
+        ch_semanal_atividade_ensino = None
+        try:
+            ch_semanal_atividade_ensino = CHSemanalAtividadeEnsino.objects.get(relatorio_id = relatorio_id)
+
+        except CHSemanalAtividadeEnsino.DoesNotExist:
+            ch_semanal_atividade_ensino = CHSemanalAtividadeEnsino.objects.create(
+                relatorio_id = relatorio_id,
+                ch_semanal_primeiro_semestre = 0.0,
+                ch_semanal_segundo_semestre = 0.0
+            )
+        
+        if atividade_pedagogica_complementar.semestre == 1:
+            ch_semanal_atividade_ensino.ch_semanal_primeiro_semestre = ch_semanal_atividade_ensino.ch_semanal_primeiro_semestre + atividade_pedagogica_complementar.ch_semanal_total
+        else:
+            ch_semanal_atividade_ensino.ch_semanal_segundo_semestre = ch_semanal_atividade_ensino.ch_semanal_primeiro_semestre + atividade_pedagogica_complementar.ch_semanal_total
+
+        ch_semanal_atividade_ensino.save()
+        #Termina aqui
+
         return atividade_pedagogica_complementar
 
     def update(self, instance, validated_data):
+        antigo_ch_semanal_total = instance.ch_semanal_total
+
         semestre = validated_data.get('semestre', None)
         if semestre:
             Util.validar_semestre(semestre = semestre)
@@ -394,6 +418,36 @@ class AtividadePedagogicaComplementarSerializer(serializers.ModelSerializer):
         instance.ch_semanal_total = instance.ch_semanal_graduacao + instance.ch_semanal_pos_graduacao
     
         instance.save()
+
+        #Lógica PUT para ch_semanal_atividade_ensino
+        relatorio_id = instance.relatorio_id
+        try:
+            ch_semanal_atividade_ensino = CHSemanalAtividadeEnsino.objects.get(relatorio_id = relatorio_id)
+            
+            if instance.semestre == 1:
+                ch_semanal_atividade_ensino.ch_semanal_primeiro_semestre = ch_semanal_atividade_ensino.ch_semanal_primeiro_semestre - antigo_ch_semanal_total
+
+                ch_semanal_atividade_ensino.ch_semanal_primeiro_semestre = ch_semanal_atividade_ensino.ch_semanal_primeiro_semestre + instance.ch_semanal_total
+            else:
+                ch_semanal_atividade_ensino.ch_semanal_segundo_semestre = ch_semanal_atividade_ensino.ch_semanal_segundo_semestre - antigo_ch_semanal_total
+
+                ch_semanal_atividade_ensino.ch_semanal_segundo_semestre = ch_semanal_atividade_ensino.ch_semanal_primeiro_semestre + instance.ch_semanal_total
+
+        except CHSemanalAtividadeEnsino.DoesNotExist:
+            ch_semanal_atividade_ensino = CHSemanalAtividadeEnsino.objects.create(
+                relatorio_id = relatorio_id,
+                ch_semanal_primeiro_semestre = 0.0,
+                ch_semanal_segundo_semestre = 0.0
+            )
+
+            if instance.semestre == 1:
+                ch_semanal_atividade_ensino.ch_semanal_primeiro_semestre = ch_semanal_atividade_ensino.ch_semanal_primeiro_semestre + instance.ch_semanal_total
+            else:
+                ch_semanal_atividade_ensino.ch_semanal_segundo_semestre = ch_semanal_atividade_ensino.ch_semanal_primeiro_semestre + instance.ch_semanal_total
+
+            ch_semanal_atividade_ensino.save()
+        #Termina aqui
+
         return instance
 
 
@@ -420,9 +474,33 @@ class AtividadeOrientacaoSupervisaoPreceptoriaTutoriaSerializer(serializers.Mode
             **validated_data,
             ch_semanal_total = ch_semanal_total
         )
+
+        #Lógica POST para ch_semanal_atividade_ensino
+        relatorio_id = atividades_orientacao_supervisao_preceptoria_tutoria.relatorio_id
+        ch_semanal_atividade_ensino = None
+        try:
+            ch_semanal_atividade_ensino = CHSemanalAtividadeEnsino.objects.get(relatorio_id = relatorio_id)
+
+        except CHSemanalAtividadeEnsino.DoesNotExist:
+            ch_semanal_atividade_ensino = CHSemanalAtividadeEnsino.objects.create(
+                relatorio_id = relatorio_id,
+                ch_semanal_primeiro_semestre = 0.0,
+                ch_semanal_segundo_semestre = 0.0
+            )
+        
+        if atividades_orientacao_supervisao_preceptoria_tutoria.semestre == 1:
+            ch_semanal_atividade_ensino.ch_semanal_primeiro_semestre = ch_semanal_atividade_ensino.ch_semanal_primeiro_semestre + atividades_orientacao_supervisao_preceptoria_tutoria.ch_semanal_total
+        else:
+            ch_semanal_atividade_ensino.ch_semanal_segundo_semestre = ch_semanal_atividade_ensino.ch_semanal_primeiro_semestre + atividades_orientacao_supervisao_preceptoria_tutoria.ch_semanal_total
+
+        ch_semanal_atividade_ensino.save()
+        #Termina aqui
+
         return atividades_orientacao_supervisao_preceptoria_tutoria
 
     def update(self, instance, validated_data):
+        antigo_ch_semanal_total = instance.ch_semanal_total
+
         semestre = validated_data.get('semestre', None)
         if semestre:
             Util.validar_semestre(semestre = semestre)
@@ -439,6 +517,38 @@ class AtividadeOrientacaoSupervisaoPreceptoriaTutoriaSerializer(serializers.Mode
         instance.ch_semanal_total = instance.ch_semanal_orientacao + instance.ch_semanal_coorientacao + instance.ch_semanal_supervisao + instance.ch_semanal_preceptoria_e_ou_tutoria
     
         instance.save()
+
+        #Lógica PUT para ch_semanal_atividade_ensino
+        relatorio_id = instance.relatorio_id
+        ch_semanal_atividade_ensino = None
+
+        try:
+            ch_semanal_atividade_ensino = CHSemanalAtividadeEnsino.objects.get(relatorio_id = relatorio_id)
+        
+            if instance.semestre == 1:
+                ch_semanal_atividade_ensino.ch_semanal_primeiro_semestre = ch_semanal_atividade_ensino.ch_semanal_primeiro_semestre - antigo_ch_semanal_total
+
+                ch_semanal_atividade_ensino.ch_semanal_primeiro_semestre = ch_semanal_atividade_ensino.ch_semanal_primeiro_semestre + instance.ch_semanal_total
+            else:
+                ch_semanal_atividade_ensino.ch_semanal_segundo_semestre = ch_semanal_atividade_ensino.ch_semanal_segundo_semestre - antigo_ch_semanal_total
+
+                ch_semanal_atividade_ensino.ch_semanal_segundo_semestre = ch_semanal_atividade_ensino.ch_semanal_primeiro_semestre + instance.ch_semanal_total
+
+        except CHSemanalAtividadeEnsino.DoesNotExist:
+            ch_semanal_atividade_ensino = CHSemanalAtividadeEnsino.objects.create(
+                relatorio_id = relatorio_id,
+                ch_semanal_primeiro_semestre = 0.0,
+                ch_semanal_segundo_semestre = 0.0
+            )
+
+            if instance.semestre == 1:
+                ch_semanal_atividade_ensino.ch_semanal_primeiro_semestre = ch_semanal_atividade_ensino.ch_semanal_primeiro_semestre + instance.ch_semanal_total
+            else:
+                ch_semanal_atividade_ensino.ch_semanal_segundo_semestre = ch_semanal_atividade_ensino.ch_semanal_primeiro_semestre + instance.ch_semanal_total
+            
+            ch_semanal_atividade_ensino.save()
+        #Termina aqui
+                
         return instance
  
 
@@ -509,6 +619,79 @@ class BancaExaminadoraSerializer(serializers.ModelSerializer):
     class Meta:
         model = BancaExaminadora
         fields = '__all__'
+
+    def create(self, validated_data):
+
+        banca_examinadora = BancaExaminadora.objects.create(
+            **validated_data
+        )
+
+        #Lógica POST para ch_semanal_atividade_ensino
+        relatorio_id = banca_examinadora.relatorio_id
+        ch_semanal_atividade_ensino = None
+        try:
+            ch_semanal_atividade_ensino = CHSemanalAtividadeEnsino.objects.get(relatorio_id = relatorio_id)
+
+        except CHSemanalAtividadeEnsino.DoesNotExist:
+            ch_semanal_atividade_ensino = CHSemanalAtividadeEnsino.objects.create(
+                relatorio_id = relatorio_id,
+                ch_semanal_primeiro_semestre = 0.0,
+                ch_semanal_segundo_semestre = 0.0
+            )
+        
+        ch_semanal_atividade_ensino.ch_semanal_primeiro_semestre = ch_semanal_atividade_ensino.ch_semanal_primeiro_semestre + banca_examinadora.ch_semanal_primeiro_semestre
+
+        ch_semanal_atividade_ensino.ch_semanal_segundo_semestre = ch_semanal_atividade_ensino.ch_semanal_segundo_semestre + banca_examinadora.ch_semanal_segundo_semestre
+
+        ch_semanal_atividade_ensino.save()
+        #Termina aqui
+
+        return banca_examinadora
+    
+    def update(self, instance, validated_data):
+        antigo_ch_semanal_primeiro_semestre = instance.ch_semanal_primeiro_semestre
+        antigo_ch_semanal_segundo_semestre = instance.ch_semanal_segundo_semestre
+
+        instance.numero_doc = validated_data.get('numero_doc', instance.numero_doc)
+        instance.nome_candidato = validated_data.get('nome_candidato', instance.nome_candidato)
+        instance.titulo_trabalho = validated_data.get('titulo_trabalho', instance.titulo_trabalho)
+        instance.ies = validated_data.get('ies', instance.ies)
+        instance.tipo = validated_data.get('tipo', instance.tipo)
+        instance.ch_semanal_primeiro_semestre = validated_data.get('ch_semanal_primeiro_semestre', instance.ch_semanal_primeiro_semestre)
+        instance.ch_semanal_segundo_semestre = validated_data.get('ch_semanal_segundo_semestre', instance.ch_semanal_segundo_semestre)
+
+        instance.save()
+
+        #Lógica PUT para ch_semanal_atividade_ensino
+        relatorio_id = instance.relatorio_id
+        ch_semanal_atividade_ensino = None
+
+        try:
+            ch_semanal_atividade_ensino = CHSemanalAtividadeEnsino.objects.get(relatorio_id = relatorio_id)
+
+            ch_semanal_atividade_ensino.ch_semanal_primeiro_semestre = ch_semanal_atividade_ensino.ch_semanal_primeiro_semestre - antigo_ch_semanal_primeiro_semestre
+
+            ch_semanal_atividade_ensino.ch_semanal_primeiro_semestre = ch_semanal_atividade_ensino.ch_semanal_primeiro_semestre + instance.ch_semanal_primeiro_semestre
+        
+            ch_semanal_atividade_ensino.ch_semanal_segundo_semestre = ch_semanal_atividade_ensino.ch_semanal_segundo_semestre - antigo_ch_semanal_segundo_semestre
+
+            ch_semanal_atividade_ensino.ch_semanal_segundo_semestre = ch_semanal_atividade_ensino.ch_semanal_segundo_semestre + instance.ch_semanal_segundo_semestre
+
+        except CHSemanalAtividadeEnsino.DoesNotExist:
+            ch_semanal_atividade_ensino = CHSemanalAtividadeEnsino.objects.create(
+                relatorio_id = relatorio_id,
+                ch_semanal_primeiro_semestre = 0.0,
+                ch_semanal_segundo_semestre = 0.0
+            )
+
+            ch_semanal_atividade_ensino.ch_semanal_primeiro_semestre = ch_semanal_atividade_ensino.ch_semanal_primeiro_semestre + instance.ch_semanal_primeiro_semestre
+
+            ch_semanal_atividade_ensino.ch_semanal_segundo_semestre = ch_semanal_atividade_ensino.ch_semanal_segundo_semestre + instance.ch_semanal_segundo_semestre
+            
+            ch_semanal_atividade_ensino.save()
+        #Termina aqui
+                
+        return instance
 
 class CHSemanalAtividadeEnsinoSerializer(serializers.ModelSerializer):
 
