@@ -83,11 +83,11 @@ urlpatterns = [
 
     path('livro_capitulo_verbete_publicado/<str:nome_relatorio>/', LivroCapituloVerbetePublicadoView.as_view(), name='livro_capitulo_verbete_publicado/nome_relatorio'),
 
-    path('livro_capitulo_verbete_publicado/<str:nome_relatorio>/<int:id>/', LivroCapituloVerbetePublicadoView.as_view(), name='livro_capitulo_verbete_publicado/nome_relatorio/id_livro_capitulo_verbete_publicado/'),
+    path('livro_capitulo_verbete_publicado/<str:nome_relatorio>/<int:id_livro_capitulo_verbete_publicado>/', LivroCapituloVerbetePublicadoView.as_view(), name='livro_capitulo_verbete_publicado/nome_relatorio/id_livro_capitulo_verbete_publicado/'),
 
     path('trabalho_completo_resumo_publicado_apresentado_congressos/<str:nome_relatorio>/', TrabalhoCompletoResumoPublicadoApresentadoCongressosView.as_view(), name='trabalho_completo_resumo_publicado_apresentado_congressos/nome_relatorio'),
 
-    path('trabalho_completo_resumo_publicado_apresentado_congressos/<str:nome_relatorio>/<int:id>/', TrabalhoCompletoResumoPublicadoApresentadoCongressosView.as_view(), name='trabalho_completo_resumo_publicado_apresentado_congressos/nome_relatorio/id_trabalho_completo_publicado_apresentado_congressos/'),
+    path('trabalho_completo_resumo_publicado_apresentado_congressos/<str:nome_relatorio>/<int:id_trabalho_completo_resumo_publicado_apresentado_congressos>/', TrabalhoCompletoResumoPublicadoApresentadoCongressosView.as_view(), name='trabalho_completo_resumo_publicado_apresentado_congressos/nome_relatorio/id_trabalho_completo_resumo_publicado_apresentado_congressos/'),
 
     path('outra_atividade_pesquisa_producao_intelectual', OutraAtividadePesquisaProducaoIntelectualView.as_view(), name='outra_atividade_pesquisa_producao_intelectual'),
 
