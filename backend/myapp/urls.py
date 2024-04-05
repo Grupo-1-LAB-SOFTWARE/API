@@ -72,30 +72,22 @@ urlpatterns = [
     path('avaliacao_discente/<str:nome_relatorio>/', AvaliacaoDiscenteView.as_view(), name='avaliacao_discente/nome_relatorio/'),
 
     path('avaliacao_discente/<str:nome_relatorio>/<int:id_avaliacao_discente>/', AvaliacaoDiscenteView.as_view(), name='avaliacao_discente/nome_relatorio/id_avaliacao_discente/'),
+   
+    path('projeto_pesquisa_producao_intelectual/<str:nome_relatorio>/', ProjetoPesquisaProducaoIntelectualView.as_view(), name='projeto_pesquisa_producao_intelectual/nome_relatorio'),
 
-    path('projeto_pesquisa_producao_intelectual', ProjetoPesquisaProducaoIntelectualView.as_view(), name='projeto_pesquisa_producao_intelectual'),
-    
-    path('projeto_pesquisa_producao_intelectual/', ProjetoPesquisaProducaoIntelectualView.as_view(), name='projeto_pesquisa_producao_intelectual/'),
+    path('projeto_pesquisa_producao_intelectual/<str:nome_relatorio>/<int:id_projeto_pesquisa_producao_intelectual>/', ProjetoPesquisaProducaoIntelectualView.as_view(), name='projeto_pesquisa_producao_intelectual/nome_relatorio/id_projeto_pesquisa_producao_intelectual'),
 
-    path('projeto_pesquisa_producao_intelectual/<int:id>/', ProjetoPesquisaProducaoIntelectualView.as_view(), name='projeto_pesquisa_producao_intelectual/id'),
+    path('trabalho_completo_publicado_periodico_boletim_tecnico/<str:nome_relatorio>/', TrabalhoCompletoPublicadoPeriodicoBoletimTecnicoView.as_view(), name='trabalho_completo_publicado_periodico_boletim_tecnico/nome_relatorio'),
 
-    path('trabalho_completo_publicado_periodico_boletim_tecnico', TrabalhoCompletoPublicadoPeriodicoBoletimTecnicoView.as_view(), name='trabalho_completo_publicado_periodico_boletim_tecnico'),
+    path('trabalho_completo_publicado_periodico_boletim_tecnico/<str:nome_relatorio>/<int:id_trabalho_completo_publicado_periodico_boletim_tecnico>', TrabalhoCompletoPublicadoPeriodicoBoletimTecnicoView.as_view(), name='trabalho_completo_publicado_periodico_boletim_tecnico/nome_relatorio/id_trabalho_completo_publicado_periodico_boletim_tecnico/'),
 
-    path('trabalho_completo_publicado_periodico_boletim_tecnico/', TrabalhoCompletoPublicadoPeriodicoBoletimTecnicoView.as_view(), name='trabalho_completo_publicado_periodico_boletim_tecnico/'),
+    path('livro_capitulo_verbete_publicado/<str:nome_relatorio>/', LivroCapituloVerbetePublicadoView.as_view(), name='livro_capitulo_verbete_publicado/nome_relatorio'),
 
-    path('trabalho_completo_publicado_periodico_boletim_tecnico/<int:id>', TrabalhoCompletoPublicadoPeriodicoBoletimTecnicoView.as_view(), name='trabalho_completo_publicado_periodico_boletim_tecnico/id/'),
+    path('livro_capitulo_verbete_publicado/<str:nome_relatorio>/<int:id_livro_capitulo_verbete_publicado>/', LivroCapituloVerbetePublicadoView.as_view(), name='livro_capitulo_verbete_publicado/nome_relatorio/id_livro_capitulo_verbete_publicado/'),
 
-    path('livro_capitulo_verbete_publicado', LivroCapituloVerbetePublicadoView.as_view(), name='livro_capitulo_verbete_publicado'),
+    path('trabalho_completo_resumo_publicado_apresentado_congressos/<str:nome_relatorio>/', TrabalhoCompletoResumoPublicadoApresentadoCongressosView.as_view(), name='trabalho_completo_resumo_publicado_apresentado_congressos/nome_relatorio'),
 
-    path('livro_capitulo_verbete_publicado/', LivroCapituloVerbetePublicadoView.as_view(), name='livro_capitulo_verbete_publicado/'),
-
-    path('livro_capitulo_verbete_publicado/<int:id>/', LivroCapituloVerbetePublicadoView.as_view(), name='livro_capitulo_verbete_publicado/id/'),
-
-    path('trabalho_completo_resumo_publicado_apresentado_congressos', TrabalhoCompletoResumoPublicadoApresentadoCongressosView.as_view(), name='trabalho_completo_resumo_publicado_apresentado_congressos'),
-
-    path('trabalho_completo_resumo_publicado_apresentado_congressos/', TrabalhoCompletoResumoPublicadoApresentadoCongressosView.as_view(), name='trabalho_completo_resumo_publicado_apresentado_congressos/'),
-
-    path('trabalho_completo_resumo_publicado_apresentado_congressos/<int:id>/', TrabalhoCompletoResumoPublicadoApresentadoCongressosView.as_view(), name='trabalho_completo_resumo_publicado_apresentado_congressos/id/'),
+    path('trabalho_completo_resumo_publicado_apresentado_congressos/<str:nome_relatorio>/<int:id_trabalho_completo_resumo_publicado_apresentado_congressos>/', TrabalhoCompletoResumoPublicadoApresentadoCongressosView.as_view(), name='trabalho_completo_resumo_publicado_apresentado_congressos/nome_relatorio/id_trabalho_completo_resumo_publicado_apresentado_congressos/'),
 
     path('outra_atividade_pesquisa_producao_intelectual', OutraAtividadePesquisaProducaoIntelectualView.as_view(), name='outra_atividade_pesquisa_producao_intelectual'),
 
