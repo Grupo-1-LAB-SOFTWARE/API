@@ -1,7 +1,7 @@
 from django.urls import path
 
 from .views import (UsuarioView, ActivateEmail, LoginView, EndpointsView,
-                    RelatorioDocenteAdminView, RelatorioDocenteView, AtividadeLetivaView, CalculoCHSemanalAulasView, AtividadePedagogicaComplementarView, AtividadeOrientacaoSupervisaoPreceptoriaTutoriaView, DescricaoOrientacaoCoorientacaoAcademicaView, SupervisaoAcademicaView, PreceptoriaTutoriaResidenciaView, BancaExaminadoraView, CHSemanalAtividadeEnsinoView, AvaliacaoDiscenteView, ProjetoPesquisaProducaoIntelectualView, TrabalhoCompletoPublicadoPeriodicoBoletimTecnicoView, LivroCapituloVerbetePublicadoView, TrabalhoCompletoResumoPublicadoApresentadoCongressosView, OutraAtividadePesquisaProducaoIntelectualView, CHSemanalAtividadesPesquisaView, ProjetoExtensaoView, EstagioExtensaoView, AtividadeEnsinoNaoFormalView, OutraAtividadeExtensaoView, CHSemanalAtividadesExtensaoView, DistribuicaoCHSemanalView, AtividadeGestaoRepresentacaoView, QualificacaoDocenteAcademicaProfissionalView, OutraInformacaoView, AfastamentoView, DocumentoComprobatorioView, DownloadRelatorioDocenteView, CriarUsuarioView, UsuarioAdminView, ExtrairDadosAtividadesLetivasPDFAPIView)
+                    RelatorioDocenteAdminView, RelatorioDocenteView, AtividadeLetivaView, AtividadePedagogicaComplementarView, AtividadeOrientacaoSupervisaoPreceptoriaTutoriaView, DescricaoOrientacaoCoorientacaoAcademicaView, SupervisaoAcademicaView, PreceptoriaTutoriaResidenciaView, BancaExaminadoraView, AvaliacaoDiscenteView, ProjetoPesquisaProducaoIntelectualView, TrabalhoCompletoPublicadoPeriodicoBoletimTecnicoView, LivroCapituloVerbetePublicadoView, TrabalhoCompletoResumoPublicadoApresentadoCongressosView, OutraAtividadePesquisaProducaoIntelectualView, CHSemanalAtividadesPesquisaView, ProjetoExtensaoView, EstagioExtensaoView, AtividadeEnsinoNaoFormalView, OutraAtividadeExtensaoView, CHSemanalAtividadesExtensaoView, DistribuicaoCHSemanalView, AtividadeGestaoRepresentacaoView, QualificacaoDocenteAcademicaProfissionalView, OutraInformacaoView, AfastamentoView, DocumentoComprobatorioView, DownloadRelatorioDocenteView, CriarUsuarioView, UsuarioAdminView, ExtrairDadosAtividadesLetivasPDFAPIView)
 
 
 urlpatterns = [
@@ -45,59 +45,33 @@ urlpatterns = [
 
     path('relatorio_docente/<str:nome>/', RelatorioDocenteView.as_view(), name='relatorio_docente/nome/'),
 
-    path('calculo_ch_semanal_aulas/', CalculoCHSemanalAulasView.as_view(), name='calculo_ch_semanal_aulas/'),
+    path('atividade_pedagogica_complementar/<str:nome_relatorio>/', AtividadePedagogicaComplementarView.as_view(), name='atividade_pedagogica_complementar/nome_relatorio/'),
 
-    path('calculo_ch_semanal_aulas', CalculoCHSemanalAulasView.as_view(), name='calculo_ch_semanal_aulas'),
+    path('atividade_pedagogica_complementar/<str:nome_relatorio>/<int:id_atividade_pedagogica_complementar>/', AtividadePedagogicaComplementarView.as_view(), name='atividade_pedagogica_complementar/nome_relatorio/id_atividade_pedagogica_complementar/'),
 
-    path('calculo_ch_semanal_aulas/<int:id>/', CalculoCHSemanalAulasView.as_view(), name='calculo_ch_semanal_aulas/id/'),
+    path('atividade_orientacao_supervisao_preceptoria_tutoria/<str:nome_relatorio>/', AtividadeOrientacaoSupervisaoPreceptoriaTutoriaView.as_view(), name='atividade_orientacao_supervisao_preceptoria_tutoria/nome_relatorio/'),
 
-    path('atividade_pedagogica_complementar', AtividadePedagogicaComplementarView.as_view(), name='atividade_pedagogica_complementar'),
-
-    path('atividade_pedagogica_complementar/', AtividadePedagogicaComplementarView.as_view(), name='atividade_pedagogica_complementar/'),
-
-    path('atividade_pedagogica_complementar/<int:id>/', AtividadePedagogicaComplementarView.as_view(), name='atividade_pedagogica_complementar/id/'),
-
-    path('atividade_orientacao_supervisao_preceptoria_tutoria', AtividadeOrientacaoSupervisaoPreceptoriaTutoriaView.as_view(), name='atividade_orientacao_supervisao_preceptoria_tutoria'),
-
-    path('atividade_orientacao_supervisao_preceptoria_tutoria/', AtividadeOrientacaoSupervisaoPreceptoriaTutoriaView.as_view(), name='atividade_orientacao_supervisao_preceptoria_tutoria/'),
-
-    path('atividade_orientacao_supervisao_preceptoria_tutoria/<int:id>/', AtividadeOrientacaoSupervisaoPreceptoriaTutoriaView.as_view(), name='atividade_orientacao_supervisao_preceptoria_tutoria/id/'),
-
-    path('descricao_orientacao_coorientacao_academica', DescricaoOrientacaoCoorientacaoAcademicaView.as_view(), name='descricao_orientacao_coorientacao_academica'),
-
-    path('descricao_orientacao_coorientacao_academica/', DescricaoOrientacaoCoorientacaoAcademicaView.as_view(), name='descricao_orientacao_coorientacao_academica/'),
-
-    path('descricao_orientacao_coorientacao_academica/<int:id>/', DescricaoOrientacaoCoorientacaoAcademicaView.as_view(), name='descricao_orientacao_coorientacao_academica/id/'),
-
-    path('supervisao_academica', SupervisaoAcademicaView.as_view(), name='supervisao_academica'),
+    path('atividade_orientacao_supervisao_preceptoria_tutoria/<str:nome_relatorio>/<int:id_atividade_orientacao_supervisao_preceptoria_tutoria>/', AtividadeOrientacaoSupervisaoPreceptoriaTutoriaView.as_view(), name='atividade_orientacao_supervisao_preceptoria_tutoria/nome_relatorio/id_atividade_orientacao_supervisao_preceptoria_tutoria/'),
     
-    path('supervisao_academica/', SupervisaoAcademicaView.as_view(), name='supervisao_academica/'),
+    path('descricao_orientacao_coorientacao_academica/<str:nome_relatorio>/', DescricaoOrientacaoCoorientacaoAcademicaView.as_view(), name='descricao_orientacao_coorientacao_academica/nome_relatorio/'),
 
-    path('supervisao_academica/<int:id>/', SupervisaoAcademicaView.as_view(), name='supervisao_academica/id//'),
+    path('descricao_orientacao_coorientacao_academica/<str:nome_relatorio>/<int:id_descricao_orientacao_coorientacao_academica>/', DescricaoOrientacaoCoorientacaoAcademicaView.as_view(), name='descricao_orientacao_coorientacao_academica/nome_relatorio/id_descricao_orientacao_coorientacao_academica/'),
 
-    path('preceptoria_tutoria_residencia', PreceptoriaTutoriaResidenciaView.as_view(), name='preceptoria_tutoria_residencia'),
+    path('supervisao_academica/<str:nome_relatorio>/', SupervisaoAcademicaView.as_view(), name='supervisao_academica/nome_relatorio/'),
 
-    path('preceptoria_tutoria_residencia/', PreceptoriaTutoriaResidenciaView.as_view(), name='preceptoria_tutoria_residencia/'),
+    path('supervisao_academica/<str:nome_relatorio>/<int:id_supervisao_academica>/', SupervisaoAcademicaView.as_view(), name='supervisao_academica/nome_relatorio/id_supervisao_academica/'),
+    
+    path('preceptoria_tutoria_residencia/<str:nome_relatorio>/', PreceptoriaTutoriaResidenciaView.as_view(), name='preceptoria_tutoria_residencia/nome_relatorio/'),
 
-    path('preceptoria_tutoria_residencia/<int:id>/', PreceptoriaTutoriaResidenciaView.as_view(), name='preceptoria_tutoria_residencia/id/'),
+    path('preceptoria_tutoria_residencia/<str:nome_relatorio>/<int:id_preceptoria_tutoria_residencia>/', PreceptoriaTutoriaResidenciaView.as_view(), name='preceptoria_tutoria_residencia/nome_relatorio/id_preceptoria_tutoria_residencia/'),
 
-    path('banca_examinadora', BancaExaminadoraView.as_view(), name='banca_examinadora'),
+    path('banca_examinadora/<str:nome_relatorio>/', BancaExaminadoraView.as_view(), name='banca_examinadora/nome_relatorio/'),
 
-    path('banca_examinadora/', BancaExaminadoraView.as_view(), name='banca_examinadora/'),
+    path('banca_examinadora/<str:nome_relatorio>/<int:id_banca_examinadora>/', BancaExaminadoraView.as_view(), name='banca_examinadora/nome_relatorio/id_banca_examinadora/'),
 
-    path('banca_examinadora/<int:id>/', BancaExaminadoraView.as_view(), name='banca_examinadora/id/'),
+    path('avaliacao_discente/<str:nome_relatorio>/', AvaliacaoDiscenteView.as_view(), name='avaliacao_discente/nome_relatorio/'),
 
-    path('ch_semanal_atividades_ensino', CHSemanalAtividadeEnsinoView.as_view(), name='ch_semanal_atividades_ensino'),
-
-    path('ch_semanal_atividades_ensino/', CHSemanalAtividadeEnsinoView.as_view(), name='ch_semanal_atividades_ensino/'),
-
-    path('ch_semanal_atividades_ensino/<int:id>/', CHSemanalAtividadeEnsinoView.as_view(), name='ch_semanal_atividades_ensino/id/'),
-
-    path('avaliacao_discente', AvaliacaoDiscenteView.as_view(), name='avaliacao_discente'),
-
-    path('avaliacao_discente/', AvaliacaoDiscenteView.as_view(), name='avaliacao_discente/'),
-
-    path('avaliacao_discente/<int:id>/', AvaliacaoDiscenteView.as_view(), name='avaliacao_discente/id/'),
+    path('avaliacao_discente/<str:nome_relatorio>/<int:id_avaliacao_discente>/', AvaliacaoDiscenteView.as_view(), name='avaliacao_discente/nome_relatorio/id_avaliacao_discente/'),
 
     path('projeto_pesquisa_producao_intelectual', ProjetoPesquisaProducaoIntelectualView.as_view(), name='projeto_pesquisa_producao_intelectual'),
     

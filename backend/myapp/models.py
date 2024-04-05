@@ -79,6 +79,8 @@ class AtividadeLetiva(models.Model):
     NIVEL = (
         ('GRA', 'GRA'),
         ('POS', 'POS'),
+        ('MES', 'MES'),
+        ('DOC', 'DOC'),
     )
     relatorio_id = models.ForeignKey(RelatorioDocente, on_delete=models.CASCADE)
     semestre = models.IntegerField()
@@ -122,22 +124,42 @@ class AtividadeOrientacaoSupervisaoPreceptoriaTutoria(models.Model):
     ch_semanal_total = models.FloatField(null=True)
 
 class DescricaoOrientacaoCoorientacaoAcademica(models.Model):
+    NIVEL = (
+        ('GRA', 'GRA'),
+        ('POS', 'POS'),
+        ('MES', 'MES'),
+        ('DOC', 'DOC'),
+    )
     relatorio_id = models.ForeignKey(RelatorioDocente, on_delete=models.CASCADE)
     numero_doc = models.IntegerField()
     nome_e_ou_matricula_discente = models.CharField(max_length=300)
     curso = models.CharField(max_length=100)
     tipo = models.CharField(max_length=50)
-    nivel = models.CharField(max_length=50)
+    nivel = models.CharField(
+        max_length=50,
+        choices=NIVEL,
+        default='GRA'
+    )
     ch_semanal_primeiro_semestre = models.FloatField()
     ch_semanal_segundo_semestre = models.FloatField()
 
 class SupervisaoAcademica(models.Model):
+    NIVEL = (
+        ('GRA', 'GRA'),
+        ('POS', 'POS'),
+        ('MES', 'MES'),
+        ('DOC', 'DOC'),
+    )
     relatorio_id = models.ForeignKey(RelatorioDocente, on_delete=models.CASCADE)
     numero_doc = models.IntegerField()
     nome_e_ou_matricula_discente = models.CharField(max_length=300)
     curso = models.CharField(max_length=100)
     tipo = models.CharField(max_length=50)
-    nivel = models.CharField(max_length=50)
+    nivel = models.CharField(
+        max_length=50,
+        choices=NIVEL,
+        default='GRA'
+    )
     ch_semanal_primeiro_semestre = models.FloatField()
     ch_semanal_segundo_semestre = models.FloatField()
 

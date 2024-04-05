@@ -30,6 +30,7 @@ class CriarUsuarioView(APIView):
         if self.is_email_disponivel(new_email) == False:
             return Util.response_bad_request('Já existe um usuário cadastrado com esse e-mail.')
 
+        request.data['perfil'] = 'Docente'
         serializer = UsuarioSerializer(data=request.data)
         if serializer.is_valid():
             user = serializer.save()
@@ -298,7 +299,7 @@ class AtividadeLetivaView(APIView):
                     return Util.response_not_found('Não foi possível encontrar uma atividade_letiva com o id fornecido.')
             
             return Util.response_bad_request('É necessário fornecer o id da atividade_letiva que você deseja ler em atividade_letiva/{nome_relatorio}/{id_atividade_letiva}/')
-        return Util.response_bad_request('É necessário fornecer o nome do relatorio_docente do qual você deseja deseja ler as atividades_letivas em atividade_letiva/{nome_relatorio}/{id_atividade_letiva}')
+        return Util.response_bad_request('É necessário fornecer o nome do relatorio_docente do qual você deseja deseja ler as atividades_letivas em atividade_letiva/{nome_relatorio}/{id_atividade_letiva}/')
 
     def getAll(self, request, nome_relatorio=None):
         if nome_relatorio:
@@ -337,9 +338,8 @@ class AtividadeLetivaView(APIView):
             if id_atividade_letiva:
                 try:
                     usuario_id = request.user.id
-                    relatorio_docente = RelatorioDocente.objects.get(usuario_id=usuario_id, nome=nome_relatorio)
-                    
                     relatorio_docente = RelatorioDocente.objects.get(usuario_id = usuario_id, nome = nome_relatorio)
+
                     atividade_letiva = AtividadeLetiva.objects.get(pk=id_atividade_letiva, relatorio_id = relatorio_docente.pk)
 
                     data = request.data.copy()
@@ -447,621 +447,845 @@ class AtividadeLetivaView(APIView):
             return Util.response_bad_request('É necessário fornecer o id da atividade_letiva que você deseja deletar em atividade_letiva/{nome_relatorio}/{id_atividade_letiva}/')
         
         return Util.response_bad_request('É necessário fornecer o nome do relatorio_docente no qual você deseja deletar uma atividade_letiva em atividade_letiva/{nome_relatorio}/{id_atividade_letiva}/')
-
-class CalculoCHSemanalAulasView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request, id=None):
-        if id:
-            return self.getById(request, id)
-        else:
-            return self.getAll(request)
-
-    def getAll(self, request):
-        calculos_ch_semanal_aulas = CalculoCHSemanalAulas.objects.all()
-        serializer = CalculoCHSemanalAulasSerializer(calculos_ch_semanal_aulas, many=True)
-        return Util.response_ok_no_message(serializer.data)
     
-    def getById(self, request, id=None):
-        if id:
-            try:
-                instance = CalculoCHSemanalAulas.objects.get(pk=id)
-                serializer = CalculoCHSemanalAulasSerializer(instance)
-                return Util.response_ok_no_message(serializer.data)
-            except CalculoCHSemanalAulas.DoesNotExist:
-                return Util.response_not_found('Não foi possível encontrar um calculo_ch_semanal_aulas com o id fornecido')
-        return Util.response_bad_request('É necessário fornecer o id do objeto que você deseja ler em calculo_ch_semanal_aulas/{id}/')
-        
-    def delete(self, request, id=None):
-        if id:
-            try:
-                instance = CalculoCHSemanalAulas.objects.get(pk=id)
-                instance.delete()
-                return Util.response_ok_no_message('Objeto excluído com sucesso.')
-            except CalculoCHSemanalAulas.DoesNotExist:
-                return Util.response_not_found('Não foi possível encontrar um calculo_ch_semanal_aulas com o id fornecido.')
-        return Util.response_bad_request('É necessário fornecer o id do objeto que você deseja excluir em calculo_ch_semanal_aulas/{id}/')
-    
-
 class AtividadePedagogicaComplementarView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def get(self, request, id=None):
-        if id:
-            return self.getById(request, id)
+    def get(self, request, nome_relatorio=None, id_atividade_pedagogica_complementar=None):
+        if nome_relatorio and id_atividade_pedagogica_complementar:
+            return self.getById(request, nome_relatorio, id_atividade_pedagogica_complementar)
         else:
-            return self.getAll(request)
+            return self.getAll(request, nome_relatorio)
+        
+    def getById(self, request, nome_relatorio=None, id_atividade_pedagogica_complementar=None):
+        if nome_relatorio:
+            if id_atividade_pedagogica_complementar:
+                try:
+                    usuario_id = request.user.id
+                    relatorio_docente = RelatorioDocente.objects.get(usuario_id = usuario_id, nome=nome_relatorio)
 
-    def post(self, request):
-        atividade_pedagogica_complementar = None
-        serializer = AtividadePedagogicaComplementarSerializer(data=request.data)
-        if serializer.is_valid():
-            relatorio_id = serializer.validated_data.get('relatorio_id')
-            try:
-                instances = AtividadePedagogicaComplementar.objects.filter(relatorio_id=relatorio_id)
-                if instances.count() > 0:
-                    if instances.count() == 2:
-                        return Util.response_bad_request('Objeto não criado: só podem ser adicionadas duas atividade_pedagogica_complementar para cada relatorio_docente. Uma para cada semestre.')
-                    
-                    for instance in instances:
-                        if instance.semestre is 1 and serializer.validated_data.get('semestre') is 1:
-                            return Util.response_bad_request('Objeto não criado: só pode ser adicionada uma atividade_pedagogica_complementar por semestre para cada relatorio_docente.')
-                        if instance.semestre is 2 and serializer.validated_data.get('semestre') is 2:
-                            return Util.response_bad_request('Objeto não criado: só pode ser adicionada uma atividade_pedagogica_complementar por semestre para cada relatorio_docente.')
-
-            except AtividadePedagogicaComplementar.DoesNotExist:
-                pass
-                
-            try:
-                relatorio_id = serializer.validated_data.get('relatorio_id')
-                semestre = serializer.validated_data.get('semestre')
-
-                calculo_ch_semanal_aulas = CalculoCHSemanalAulas.objects.get(relatorio_id=relatorio_id, semestre=semestre)
-                
-                ch_semanal_total = serializer.validated_data.get('ch_semanal_graduacao') + serializer.validated_data.get('ch_semanal_pos_graduacao')
-
-                if ch_semanal_total > 2 * calculo_ch_semanal_aulas.ch_semanal_total:
-                    return Util.response_bad_request('ERRO: não é possível criar uma atividade_pedagogica_complementar em que a soma entre ch_semanal_graduacao e ch_semanal_pos_graduacao seja maior que o dobro do ch_semanal_total do seu calculo_ch_semanal_aulas correspondente')
-
-            except CalculoCHSemanalAulas.DoesNotExist:
-                return Util.response_bad_request('ERRO: não é possível criar uma atividade_pedagogica_complementar para um semestre em específico sem antes criar uma atividade_letiva para o mesmo semestre.')
+                    instance = AtividadePedagogicaComplementar.objects.get(relatorio_id=relatorio_docente.pk, pk=id_atividade_pedagogica_complementar)
+                    serializer = AtividadePedagogicaComplementarSerializer(instance)
+                    return Util.response_ok_no_message(serializer.data)
             
-            atividade_pedagogica_complementar = serializer.save()
+                except RelatorioDocente.DoesNotExist:
+                    return Util.response_not_found('Não foi possível encontrar um relatorio_docente com o nome fornecido que seja pertencente ao usuário autenticado.')
 
-            return Util.response_created(f'id: {atividade_pedagogica_complementar.pk}')
-        return Util.response_bad_request(serializer.errors)
+                except AtividadePedagogicaComplementar.DoesNotExist:
+                    return Util.response_not_found('Não foi possível encontrar uma atividade_pedagogica_complementar com o id fornecido.')
+            
+            return Util.response_bad_request('É necessário fornecer o id da atividade_pedagogica_complementar que você deseja ler em atividade_pedagogica_complementar/{nome_relatorio}/{id_atividade_pedagogica_complementar}/')
+        
+        return Util.response_bad_request('É necessário fornecer o nome do relatorio_docente do qual você deseja deseja ler os calculos_ch_semanal_aulas em atividade_pedagogica_complementar/{nome_relatorio}/{id_atividade_pedagogica_complementar}/')
 
-    def put(self, request, id=None):
-        if id is not None:
+    def getAll(self, request, nome_relatorio=None):
+        if nome_relatorio:
             try:
-                atividade_pedagogica_complementar = AtividadePedagogicaComplementar.objects.get(pk=id)
-                data = request.data.copy()
-                if 'id' in data or 'relatorio_id' in data:
-                    return Util.response_unauthorized('Não é permitido atualizar nenhum id ou relatorio_id')
+                usuario_id = request.user.id
+                relatorio_docente = RelatorioDocente.objects.get(usuario_id = usuario_id, nome=nome_relatorio)
+                instances = AtividadePedagogicaComplementar.objects.filter(relatorio_id=relatorio_docente.pk)
+                serializer = AtividadePedagogicaComplementarSerializer(instances, many=True)
+                return Util.response_ok_no_message(serializer.data)
+            
+            except RelatorioDocente.DoesNotExist:
+                return Util.response_not_found('Não foi possível encontrar um relatorio_docente com o nome fornecido que seja pertencente ao usuário autenticado.')
+            
+        return Util.response_bad_request('É necessário fornecer o nome do relatorio_docente do qual você deseja ler as atividades_pedagogicas_complementares em atividade_pedagogica_complementar/{nome_relatorio}/')
+        
+    def post(self, request, nome_relatorio=None):
+        if nome_relatorio:
+            try:
+                atividade_pedagogica_complementar = None
+                usuario_id = request.user.id
+                relatorio_docente = RelatorioDocente.objects.get(usuario_id=usuario_id, nome=nome_relatorio)
+                try:
+                    instances = AtividadePedagogicaComplementar.objects.filter(relatorio_id=relatorio_docente.pk)
+                    if instances.count() > 0:
+                        if instances.count() == 2:
+                            return Util.response_bad_request('Objeto não criado: só podem ser adicionadas duas atividade_pedagogica_complementar para cada relatorio_docente. Uma para cada semestre.')
+                        
+                        for instance in instances:
+                            if instance.semestre is 1 and serializer.validated_data.get('semestre') is 1:
+                                return Util.response_bad_request('Objeto não criado: só pode ser adicionada uma atividade_pedagogica_complementar por semestre para cada relatorio_docente.')
+                            if instance.semestre is 2 and serializer.validated_data.get('semestre') is 2:
+                                return Util.response_bad_request('Objeto não criado: só pode ser adicionada uma atividade_pedagogica_complementar por semestre para cada relatorio_docente.')
+                            
+                except AtividadePedagogicaComplementar.DoesNotExist:
+                    pass
 
-                serializer = AtividadePedagogicaComplementarSerializer(atividade_pedagogica_complementar, data=data, partial=True)
-
+                request.data['relatorio_id'] = relatorio_docente.pk
+                serializer = AtividadePedagogicaComplementarSerializer(data=request.data)
                 if serializer.is_valid():
-                    relatorio_id = serializer.validated_data.get('relatorio_id')
                     try:
-                        instances = AtividadePedagogicaComplementar.objects.filter(relatorio_id=relatorio_id)
-                        if instances.count() > 0:
-                            if instances.count() == 2:
-                                return Util.response_bad_request('Objeto não criado: só podem ser adicionadas duas atividade_pedagogica_complementar para cada relatorio_docente. Uma para cada semestre.')
-                    
-                            for instance in instances:
-                                if instance.semestre is 1 and serializer.validated_data.get('semestre', 2) is 1:
-                                    return Util.response_bad_request('Objeto não criado: só pode ser adicionada uma atividade_pedagogica_complementar por semestre para cada relatorio_docente.')
-                                if instance.semestre is 2 and serializer.validated_data.get('semestre', 1) is 2:
-                                    return Util.response_bad_request('Objeto não criado: só pode ser adicionada uma atividade_pedagogica_complementar por semestre para cada relatorio_docente.')
-
-                    except AtividadePedagogicaComplementar.DoesNotExist:
-                        return Util.response_bad_request('ERRO: Não foi possível encontrar uma atividade_pedagogica_complementar que faça referência ao mesmo relatorio_docente.')
-                    
-                    try:
-                        relatorio_id = serializer.validated_data.get('relatorio_id', atividade_pedagogica_complementar.relatorio_id)
-                        semestre = serializer.validated_data.get('semestre', atividade_pedagogica_complementar.semestre)
+                        relatorio_id = serializer.validated_data.get('relatorio_id')
+                        semestre = serializer.validated_data.get('semestre')
 
                         calculo_ch_semanal_aulas = CalculoCHSemanalAulas.objects.get(relatorio_id=relatorio_id, semestre=semestre)
-                
-                        ch_semanal_total = serializer.validated_data.get('ch_semanal_graduacao', atividade_pedagogica_complementar.ch_semanal_graduacao) + serializer.validated_data.get('ch_semanal_pos_graduacao', atividade_pedagogica_complementar.ch_semanal_pos_graduacao)
+                        
+                        ch_semanal_total = serializer.validated_data.get('ch_semanal_graduacao') + serializer.validated_data.get('ch_semanal_pos_graduacao')
 
                         if ch_semanal_total > 2 * calculo_ch_semanal_aulas.ch_semanal_total:
-                            return Util.response_bad_request('ERRO: não é possível atualizar uma atividade_pedagogica_complementar em que a soma entre ch_semanal_graduacao e ch_semanal_pos_graduacao seja maior que o dobro do ch_semanal_total do seu calculo_ch_semanal_aulas correspondente')
+                            return Util.response_bad_request('ERRO: não é possível criar uma atividade_pedagogica_complementar em que a soma entre ch_semanal_graduacao e ch_semanal_pos_graduacao seja maior que o dobro do ch_semanal_total do seu calculo_ch_semanal_aulas correspondente')
 
                     except CalculoCHSemanalAulas.DoesNotExist:
-                        return Util.response_bad_request('ERRO: não é possível atualizar uma atividade_pedagogica_complementar para um semestre em específico sem antes criar uma atividade_letiva para o mesmo semestre.')
-
-                    serializer.save()
-                    return Util.response_ok_no_message(serializer.data)
-                else:
-                    return Util.response_bad_request(serializer.errors)
-
-            except AtividadePedagogicaComplementar.DoesNotExist:
-                return Util.response_not_found('Não foi possível encontrar uma atividade_pedagogica_complementar com o id fornecido.')
-
-        return Util.response_bad_request('É necessário fornecer o id da atividade_pedagogica_complementar que você deseja atualizar em atividade_pedagogica_complementar/{id}/')
-
-    def getAll(self, request):
-        atividade_pedagogica_complementar = AtividadePedagogicaComplementar.objects.all()
-        serializer = AtividadePedagogicaComplementarSerializer(atividade_pedagogica_complementar, many=True)
-        return Util.response_ok_no_message(serializer.data)
+                        return Util.response_bad_request('ERRO: não é possível criar uma atividade_pedagogica_complementar para um semestre em específico sem antes criar uma atividade_letiva para o mesmo semestre.')
+            
+                
+                    atividade_pedagogica_complementar = serializer.save()
+                    return Util.response_created(f'id: {atividade_pedagogica_complementar.pk}')
+                
+                return Util.response_bad_request(serializer.errors)
+            
+            except RelatorioDocente.DoesNotExist:
+                return Util.response_not_found('Não foi possível encontrar um relatorio_docente com o nome fornecido que seja pertencente ao usuário autenticado.')
+            
+        return Util.response_bad_request('É necessário fornecer o nome do relatorio_docente no qual você deseja criar uma atividade_pedagogica_complementar em atividade_pedagogica_complementar/{nome_relatorio}/')
     
-    def getById(self, request, id=None):
-        if id:
-            try:
-                instance = AtividadePedagogicaComplementar.objects.get(pk=id)
-                serializer = AtividadePedagogicaComplementarSerializer(instance)
-                return Util.response_ok_no_message(serializer.data)
-            except AtividadePedagogicaComplementar.DoesNotExist:
-                return Util.response_not_found('Não foi possível encontrar uma atividade_pedagogica_complementar com o id fornecido')
-        return Util.response_bad_request('É necessário fornecer o id do objeto que você deseja ler em atividade_pedagogica_complementar/{id}/')
+    def put(self, request, nome_relatorio=None, id_atividade_pedagogica_complementar=None):
+        if nome_relatorio:
+            if id_atividade_pedagogica_complementar:
+                try:
+                    usuario_id = request.user.id
+                    relatorio_docente = RelatorioDocente.objects.get(usuario_id=usuario_id, nome=nome_relatorio)
+                    
+                    relatorio_docente = RelatorioDocente.objects.get(usuario_id = usuario_id, nome = nome_relatorio)
+                    atividade_pedagogica_complementar = AtividadePedagogicaComplementar.objects.get(pk=id_atividade_pedagogica_complementar, relatorio_id = relatorio_docente.pk)
+
+                    data = request.data.copy()
+                    if 'id' in data or 'relatorio_id' in data:
+                        return Util.response_unauthorized('Não é permitido atualizar nenhum id ou relatorio_id')
+
+                    serializer = AtividadePedagogicaComplementarSerializer(atividade_pedagogica_complementar, data=data, partial=True)
+                    if serializer.is_valid():
+                        relatorio_id = atividade_pedagogica_complementar.relatorio_id
+                        try:
+                            instances = AtividadePedagogicaComplementar.objects.filter(relatorio_id=relatorio_id)
+
+                            for instance in instances:
+                                if instance.pk != id_atividade_pedagogica_complementar:
+                                    if instance.semestre is 1 and serializer.validated_data.get('semestre', 2) is 1:
+                                        return Util.response_bad_request('Objeto não atualizado: só pode existir uma atividade_pedagogica_complementar por semestre para cada relatorio_docente.')
+                                    if instance.semestre is 2 and serializer.validated_data.get('semestre', 1) is 2:
+                                        return Util.response_bad_request('Objeto não atualizado: só pode existir uma atividade_pedagogica_complementar por semestre para cada relatorio_docente.')
+
+                        except AtividadePedagogicaComplementar.DoesNotExist:
+                            return Util.response_bad_request('ERRO: Não foi possível encontrar uma atividade_pedagogica_complementar que pertença ao mesmo relatorio_docente.')
+                        
+                        try:
+                            relatorio_id = serializer.validated_data.get('relatorio_id', atividade_pedagogica_complementar.relatorio_id)
+                            semestre = serializer.validated_data.get('semestre', atividade_pedagogica_complementar.semestre)
+
+                            calculo_ch_semanal_aulas = CalculoCHSemanalAulas.objects.get(relatorio_id=relatorio_id, semestre=semestre)
+                    
+                            ch_semanal_total = serializer.validated_data.get('ch_semanal_graduacao', atividade_pedagogica_complementar.ch_semanal_graduacao) + serializer.validated_data.get('ch_semanal_pos_graduacao', atividade_pedagogica_complementar.ch_semanal_pos_graduacao)
+
+                            if ch_semanal_total > 2 * calculo_ch_semanal_aulas.ch_semanal_total:
+                                return Util.response_bad_request('ERRO: não é possível atualizar uma atividade_pedagogica_complementar em que a soma entre ch_semanal_graduacao e ch_semanal_pos_graduacao seja maior que o dobro do ch_semanal_total do seu calculo_ch_semanal_aulas correspondente')
+
+                        except CalculoCHSemanalAulas.DoesNotExist:
+                            return Util.response_bad_request('ERRO: não é possível atualizar uma atividade_pedagogica_complementar para um semestre em específico sem antes criar uma atividade_letiva para o mesmo semestre.')
+                    
+                        atividade_pedagogica_complementar = serializer.save()
+
+                        return Util.response_ok_no_message(serializer.data)
+                    else:
+                        return Util.response_bad_request(serializer.errors)
+                    
+                except RelatorioDocente.DoesNotExist:
+                    return Util.response_not_found('Não foi possível encontrar um relatorio_docente com o nome fornecido que seja pertencente ao usuário autenticado.')
+
+                except AtividadePedagogicaComplementar.DoesNotExist:
+                    return Util.response_not_found('Não foi possível encontrar uma atividade_pedagogica_complementar com o id fornecido.')
+                
+            return Util.response_bad_request('É necessário fornecer o id da atividade_pedagogica_complementar que você deseja atualizar em atividade_pedagogica_complementar/{nome_relatorio}/{id_atividade_pedagogica_complementar}/')
         
-    def delete(self, request, id=None):
-        if id:
-            try:
-                instance = AtividadePedagogicaComplementar.objects.get(pk=id)
-                instance.delete()
-                return Util.response_ok_no_message('Objeto excluído com sucesso.')
-            except AtividadePedagogicaComplementar.DoesNotExist:
-                return Util.response_not_found('Não foi possível encontrar uma atividade_pedagogica_complementar com o id fornecido.')
-        return Util.response_bad_request('É necessário fornecer o id do objeto que você deseja excluir em atividade_pedagogica_complementar/{id}/')
+        return Util.response_bad_request('É necessário fornecer o nome do relatorio_docente no qual você deseja atualizar uma atividade_pedagogica_complementar em atividade_pedagogica_complementar/{nome_relatorio}/{id_atividade_pedagogica_complementar}/')
+
+    def delete(self, request, nome_relatorio=None, id_atividade_pedagogica_complementar=None):
+        if nome_relatorio:
+            if id_atividade_pedagogica_complementar:
+                try:
+                    usuario_id = request.user.id
+                    relatorio_docente = RelatorioDocente.objects.get(usuario_id=usuario_id, nome=nome_relatorio)
+                    atividade_pedagogica_complementar = AtividadePedagogicaComplementar.objects.get(pk=id_atividade_pedagogica_complementar, relatorio_id = relatorio_docente.pk)
+                    atividade_pedagogica_complementar.delete()
+
+                    return Util.response_ok_no_message('Objeto excluído com sucesso.')
+                except AtividadePedagogicaComplementar.DoesNotExist:
+                    return Util.response_not_found('Não foi possível encontrar um atividade_pedagogica_complementar com o id fornecido.')
+                
+            return Util.response_bad_request('É necessário fornecer o id da atividade_pedagogica_complementar que você deseja deletar em atividade_pedagogica_complementar/{nome_relatorio}/{id_atividade_pedagogica_complementar}/')
 
 class AtividadeOrientacaoSupervisaoPreceptoriaTutoriaView(APIView):
     permission_classes = [IsAuthenticated]
-
-    def get(self, request, id=None):
-        if id:
-            return self.getById(request, id)
+        
+    def get(self, request, nome_relatorio=None, id_atividade_orientacao_supervisao_preceptoria_tutoria=None):
+        if nome_relatorio and id_atividade_orientacao_supervisao_preceptoria_tutoria:
+            return self.getById(request, nome_relatorio, id_atividade_orientacao_supervisao_preceptoria_tutoria)
         else:
-            return self.getAll(request)
-
-    def post(self, request):
-        instance = None
-        serializer = AtividadeOrientacaoSupervisaoPreceptoriaTutoriaSerializer(data=request.data)
-        if serializer.is_valid():
-            relatorio_id = serializer.validated_data.get('relatorio_id')
-            try:
-                instances = AtividadeOrientacaoSupervisaoPreceptoriaTutoria.objects.filter(relatorio_id=relatorio_id)
-                if instances.count() > 0:
-                    if instances.count() == 2:
-                        return Util.response_bad_request('Objeto não criado: só podem ser adicionadas duas atividade_orientacao_supervisao_preceptoria_tutoria para cada relatorio_docente. Uma para cada semestre.')
-                    
-                    for instance in instances:
-                        if instance.semestre is 1 and serializer.validated_data.get('semestre') is 1:
-                            return Util.response_bad_request('Objeto não criado: só pode ser adicionada uma atividade_orientacao_supervisao_preceptoria_tutoria por semestre para cada relatorio_docente.')
-                        if instance.semestre is 2 and serializer.validated_data.get('semestre') is 2:
-                            return Util.response_bad_request('Objeto não criado: só pode ser adicionada uma atividade_orientacao_supervisao_preceptoria_tutoria por semestre para cada relatorio_docente.')
-                
-                instance = serializer.save()
-
-            except AtividadeOrientacaoSupervisaoPreceptoriaTutoria.DoesNotExist:
-                instance = serializer.save()
-
-            return Util.response_created(f'id: {instance.pk}')
-        return Util.response_bad_request(serializer.errors)
-
-    def put(self, request, id=None):
-        if id is not None:
-            try:
-                instance = AtividadeOrientacaoSupervisaoPreceptoriaTutoria.objects.get(pk=id)
-                data = request.data.copy()
-                if 'id' in data or 'relatorio_id' in data:
-                    return Util.response_unauthorized('Não é permitido atualizar nenhum id ou relatorio_id')
-
-                serializer = AtividadeOrientacaoSupervisaoPreceptoriaTutoriaSerializer(instance, data=data, partial=True)
-                if serializer.is_valid():
-                    serializer.save()
+            return self.getAll(request, nome_relatorio)
+        
+    def getById(self, request, nome_relatorio=None, id_atividade_orientacao_supervisao_preceptoria_tutoria=None):
+        if nome_relatorio:
+            if id_atividade_orientacao_supervisao_preceptoria_tutoria:
+                try:
+                    usuario_id = request.user.id
+                    relatorio_docente = RelatorioDocente.objects.get(usuario_id = usuario_id, nome=nome_relatorio)
+                    instance = AtividadeOrientacaoSupervisaoPreceptoriaTutoria.objects.get(relatorio_id=relatorio_docente.pk, pk=id_atividade_orientacao_supervisao_preceptoria_tutoria)
+                    serializer = AtividadeOrientacaoSupervisaoPreceptoriaTutoriaSerializer(instance)
                     return Util.response_ok_no_message(serializer.data)
-                else:
-                    return Util.response_bad_request(serializer.errors)
+            
+                except RelatorioDocente.DoesNotExist:
+                    return Util.response_not_found('Não foi possível encontrar um relatorio_docente com o nome fornecido que seja pertencente ao usuário autenticado.')
 
-            except AtividadeOrientacaoSupervisaoPreceptoriaTutoria.DoesNotExist:
-                return Util.response_not_found('Não foi possível encontrar uma atividade_orientacao_supervisao_preceptoria_tutoria com o id fornecido.')
-
-        return Util.response_bad_request('É necessário fornecer o id do objeto que você deseja atualizar em atividade_orientacao_supervisao_preceptoria_tutoria/{id}/')
-
-    def getAll(self, request):
-        instances = AtividadeOrientacaoSupervisaoPreceptoriaTutoria.objects.all()
-        serializer = AtividadeOrientacaoSupervisaoPreceptoriaTutoriaSerializer(instances, many=True)
-        return Util.response_ok_no_message(serializer.data)
+                except AtividadeOrientacaoSupervisaoPreceptoriaTutoria.DoesNotExist:
+                    return Util.response_not_found('Não foi possível encontrar uma atividade_orientacao_supervisao_preceptoria_tutoria com o id fornecido.')
+            
+            return Util.response_bad_request('É necessário fornecer o id da atividade_orientacao_supervisao_preceptoria_tutoria que você deseja ler em atividade_orientacao_supervisao_preceptoria_tutoria/{nome_relatorio}/{id_atividade_orientacao_supervisao_preceptoria_tutoria}/')
         
-    def getById(self, request, id=None):
-        if id:
+        return Util.response_bad_request('É necessário fornecer o nome do relatorio_docente do qual você deseja deseja ler as atividades_orientacao_supervisao_preceptorias_tutorias em atividade_orientacao_supervisao_preceptoria_tutoria/{nome_relatorio}/{id_atividade_orientacao_supervisao_preceptoria_tutoria}/')
+
+    def getAll(self, request, nome_relatorio=None):
+        if nome_relatorio:
             try:
-                instance = AtividadeOrientacaoSupervisaoPreceptoriaTutoria.objects.get(pk=id)
-                serializer = AtividadeOrientacaoSupervisaoPreceptoriaTutoriaSerializer(instance)
+                usuario_id = request.user.id
+                relatorio_docente = RelatorioDocente.objects.get(usuario_id = usuario_id, nome=nome_relatorio)
+                instances = AtividadeOrientacaoSupervisaoPreceptoriaTutoria.objects.filter(relatorio_id=relatorio_docente.pk)
+                serializer = AtividadeOrientacaoSupervisaoPreceptoriaTutoriaSerializer(instances, many=True)
                 return Util.response_ok_no_message(serializer.data)
-            except AtividadeOrientacaoSupervisaoPreceptoriaTutoria.DoesNotExist:
-                return Util.response_not_found('Não foi possível encontrar uma atividade_orientacao_supervisao_preceptoria_tutoria com o id fornecido')
-        return Util.response_bad_request('É necessário fornecer o id do objeto que você deseja ler em atividade_orientacao_supervisao_preceptoria_tutoria/{id}/')
-        
-    def delete(self, request, id=None):
-        if id:
+            
+            except RelatorioDocente.DoesNotExist:
+                    return Util.response_not_found('Não foi possível encontrar um relatorio_docente com o nome fornecido que seja pertencente ao usuário autenticado.')
+            
+        return Util.response_bad_request('É necessário fornecer o nome do relatorio_docente do qual você deseja ler as atividades_orientacao_supervisao_preceptorias_tutorias em atividade_orientacao_supervisao_preceptoria_tutoria/{nome_relatorio}/')
+    
+    def post(self, request, nome_relatorio=None):
+        if nome_relatorio:
             try:
-                instance = AtividadeOrientacaoSupervisaoPreceptoriaTutoria.objects.get(pk=id)
-                instance.delete()
-                return Util.response_ok_no_message('Objeto excluído com sucesso.')
-            except AtividadeOrientacaoSupervisaoPreceptoriaTutoria.DoesNotExist:
-                return Util.response_not_found('Não foi possível encontrar uma atividade_orientacao_supervisao_preceptoria_tutoria com o id fornecido.')
-        return Util.response_bad_request('É necessário fornecer o id do objeto que você deseja excluir em atividade_orientacao_supervisao_preceptoria_tutoria/{id}/')
+                usuario_id = request.user.id
+                relatorio_docente = RelatorioDocente.objects.get(usuario_id=usuario_id, nome=nome_relatorio)
 
+                request.data['relatorio_id'] = relatorio_docente.pk
+                serializer = AtividadeOrientacaoSupervisaoPreceptoriaTutoriaSerializer(data=request.data)
+                if serializer.is_valid():
+                    relatorio_id = relatorio_docente.pk
+                    try:
+                        instances = AtividadeOrientacaoSupervisaoPreceptoriaTutoria.objects.filter(relatorio_id=relatorio_id)
+                        if instances.count() > 0:
+                            if instances.count() == 2:
+                                return Util.response_bad_request('Objeto não criado: só podem ser adicionadas duas atividades_orientacao_supervisao_preceptorias_tutorias para cada relatorio_docente. Uma para cada semestre.')
+                            
+                            for instance in instances:
+                                if instance.semestre is 1 and serializer.validated_data.get('semestre') is 1:
+                                    return Util.response_bad_request('Objeto não criado: só pode ser adicionada uma atividade_orientacao_supervisao_preceptoria_tutoria por semestre para cada relatorio_docente.')
+                                if instance.semestre is 2 and serializer.validated_data.get('semestre') is 2:
+                                    return Util.response_bad_request('Objeto não criado: só pode ser adicionada uma atividade_orientacao_supervisao_preceptoria_tutoria por semestre para cada relatorio_docente.')
+
+                    except AtividadeOrientacaoSupervisaoPreceptoriaTutoria.DoesNotExist:
+                        pass
+
+                    atividade_orientacao_supervisao_preceptoria_tutoria = serializer.save()
+                    return Util.response_created(f'id: {atividade_orientacao_supervisao_preceptoria_tutoria.pk}')
+                return Util.response_bad_request(serializer.errors)
+            
+            except RelatorioDocente.DoesNotExist:
+                return Util.response_not_found('Não foi possível encontrar um relatorio_docente com o nome fornecido que seja pertencente ao usuário autenticado.')
+            
+        return Util.response_bad_request('É necessário fornecer o nome do relatorio_docente no qual você deseja criar uma atividade_orientacao_supervisao_preceptoria_tutoria em atividade_orientacao_supervisao_preceptoria_tutoria/{nome_relatorio}/')
+    
+    def put(self, request, nome_relatorio=None, id_atividade_orientacao_supervisao_preceptoria_tutoria=None):
+        if nome_relatorio:
+            if id_atividade_orientacao_supervisao_preceptoria_tutoria:
+                try:
+                    usuario_id = request.user.id
+                    relatorio_docente = RelatorioDocente.objects.get(usuario_id=usuario_id, nome=nome_relatorio)
+                    
+                    atividade_orientacao_supervisao_preceptoria_tutoria = AtividadeOrientacaoSupervisaoPreceptoriaTutoria.objects.get(pk=id_atividade_orientacao_supervisao_preceptoria_tutoria, relatorio_id = relatorio_docente.pk)
+
+                    data = request.data.copy()
+                    if 'id' in data or 'relatorio_id' in data:
+                        return Util.response_unauthorized('Não é permitido atualizar nenhum id ou relatorio_id')
+
+                    serializer = AtividadeOrientacaoSupervisaoPreceptoriaTutoriaSerializer(atividade_orientacao_supervisao_preceptoria_tutoria, data=data, partial=True)
+                    if serializer.is_valid():
+                        relatorio_id = relatorio_docente.pk
+                        try:
+                            instances = AtividadeOrientacaoSupervisaoPreceptoriaTutoria.objects.filter(relatorio_id=relatorio_id)
+                            if instances.count() > 0:
+                                for instance in instances:
+                                    if instance.pk != id_atividade_orientacao_supervisao_preceptoria_tutoria:
+                                        if instance.semestre is 1 and serializer.validated_data.get('semestre') is 1:
+                                            return Util.response_bad_request('Objeto não atualizado: só pode existir uma atividade_orientacao_supervisao_preceptoria_tutoria por semestre para cada relatorio_docente.')
+                                        if instance.semestre is 2 and serializer.validated_data.get('semestre') is 2:
+                                            return Util.response_bad_request('Objeto não atualizado: só pode existir uma atividade_orientacao_supervisao_preceptoria_tutoria por semestre para cada relatorio_docente.')
+
+                        except AtividadeOrientacaoSupervisaoPreceptoriaTutoria.DoesNotExist:
+                            pass
+
+                        atividade_orientacao_supervisao_preceptoria_tutoria = serializer.save()
+                        return Util.response_ok_no_message(serializer.data)
+                    else:
+                        return Util.response_bad_request(serializer.errors)
+                    
+                except RelatorioDocente.DoesNotExist:
+                    return Util.response_not_found('Não foi possível encontrar um relatorio_docente com o nome fornecido que seja pertencente ao usuário autenticado.')
+
+                except AtividadeOrientacaoSupervisaoPreceptoriaTutoria.DoesNotExist:
+                    return Util.response_not_found('Não foi possível encontrar uma atividade_orientacao_supervisao_preceptoria_tutoria com o id fornecido.')
+                
+            return Util.response_bad_request('É necessário fornecer o id da atividade_orientacao_supervisao_preceptoria_tutoria que você deseja atualizar em atividade_orientacao_supervisao_preceptoria_tutoria/{nome_relatorio}/{id_atividade_orientacao_supervisao_preceptoria_tutoria}/')
+        
+        return Util.response_bad_request('É necessário fornecer o nome do relatorio_docente no qual você deseja atualizar uma atividade_orientacao_supervisao_preceptoria_tutoria em atividade_orientacao_supervisao_preceptoria_tutoria/{nome_relatorio}/{id_atividade_orientacao_supervisao_preceptoria_tutoria}/')
+    
+    def delete(self, request, nome_relatorio=None, id_atividade_orientacao_supervisao_preceptoria_tutoria=None):
+        if nome_relatorio:
+            if id_atividade_orientacao_supervisao_preceptoria_tutoria:
+                try:
+                    usuario_id = request.user.id
+                    relatorio_docente = RelatorioDocente.objects.get(usuario_id=usuario_id, nome=nome_relatorio)
+                    atividade_orientacao_supervisao_preceptoria_tutoria = AtividadeOrientacaoSupervisaoPreceptoriaTutoria.objects.get(pk=id_atividade_orientacao_supervisao_preceptoria_tutoria, relatorio_id = relatorio_docente.pk)
+                    atividade_orientacao_supervisao_preceptoria_tutoria.delete()
+
+                    return Util.response_ok_no_message('Objeto excluído com sucesso.')
+                except AtividadeOrientacaoSupervisaoPreceptoriaTutoria.DoesNotExist:
+                    return Util.response_not_found('Não foi possível encontrar uma atividade_orientacao_supervisao_preceptoria_tutoria com o id fornecido.')
+                
+            return Util.response_bad_request('É necessário fornecer o id da atividade_orientacao_supervisao_preceptoria_tutoria que você deseja deletar em atividade_orientacao_supervisao_preceptoria_tutoria/{nome_relatorio}/{id_atividade_orientacao_supervisao_preceptoria_tutoria}/')
+        
 class DescricaoOrientacaoCoorientacaoAcademicaView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def get(self, request, id=None):
-        if id:
-            return self.getById(request, id)
+    def get(self, request, nome_relatorio=None, id_descricao_orientacao_coorientacao_academica=None):
+        if nome_relatorio and id_descricao_orientacao_coorientacao_academica:
+            return self.getById(request, nome_relatorio, id_descricao_orientacao_coorientacao_academica)
         else:
-            return self.getAll(request)
-
-    def post(self, request):
-        serializer = DescricaoOrientacaoCoorientacaoAcademicaSerializer(data=request.data)
-        if serializer.is_valid():
-            instance = serializer.save() 
-            return Util.response_created(f'id: {instance.pk}')
-        return Util.response_bad_request(serializer.errors)
-
-    def put(self, request, id=None):
-        if id is not None:
-            try:
-                instance = DescricaoOrientacaoCoorientacaoAcademica.objects.get(pk=id)
-                data = request.data.copy()
-                if 'id' in data or 'relatorio_id' in data:
-                    return Util.response_unauthorized('Não é permitido atualizar nenhum id ou relatorio_id')
-
-                serializer = DescricaoOrientacaoCoorientacaoAcademicaSerializer(instance, data=data, partial=True)
-                if serializer.is_valid():
-                    serializer.save()
+            return self.getAll(request, nome_relatorio)
+        
+    def getById(self, request, nome_relatorio=None, id_descricao_orientacao_coorientacao_academica=None):
+        if nome_relatorio:
+            if id_descricao_orientacao_coorientacao_academica:
+                try:
+                    usuario_id = request.user.id
+                    relatorio_docente = RelatorioDocente.objects.get(usuario_id = usuario_id, nome=nome_relatorio)
+                    instance = DescricaoOrientacaoCoorientacaoAcademica.objects.get(relatorio_id=relatorio_docente.pk, pk=id_descricao_orientacao_coorientacao_academica)
+                    serializer = DescricaoOrientacaoCoorientacaoAcademicaSerializer(instance)
                     return Util.response_ok_no_message(serializer.data)
-                else:
-                    return Util.response_bad_request(serializer.errors)
+            
+                except RelatorioDocente.DoesNotExist:
+                    return Util.response_not_found('Não foi possível encontrar um relatorio_docente com o nome fornecido que seja pertencente ao usuário autenticado.')
 
-            except DescricaoOrientacaoCoorientacaoAcademica.DoesNotExist:
-                return Util.response_not_found('Não foi possível encontrar uma descricao_orientacao_coorientacao_academica com o id fornecido.')
-
-        return Util.response_bad_request('É necessário fornecer o id do objeto que você deseja atualizar em descricao_orientacao_coorientacao_academica/{id}/')
-
-    def getAll(self, request):
-        instances = DescricaoOrientacaoCoorientacaoAcademica.objects.all()
-        serializer = DescricaoOrientacaoCoorientacaoAcademicaSerializer(instances, many=True)
-        return Util.response_ok_no_message(serializer.data)
+                except DescricaoOrientacaoCoorientacaoAcademica.DoesNotExist:
+                    return Util.response_not_found('Não foi possível encontrar uma descricao_orientacao_coorientacao_academica com o id fornecido.')
+            
+            return Util.response_bad_request('É necessário fornecer o id da descricao_orientacao_coorientacao_academica que você deseja ler em descricao_orientacao_coorientacao_academica/{nome_relatorio}/{id_descricao_orientacao_coorientacao_academica}/')
         
-    def getById(self, request, id=None):
-        if id:
+        return Util.response_bad_request('É necessário fornecer o nome do relatorio_docente do qual você deseja deseja ler as descricoes_orientacoes_coorientacoes_academicas em descricao_orientacao_coorientacao_academica/{nome_relatorio}/{id_descricao_orientacao_coorientacao_academica}/')
+
+    def getAll(self, request, nome_relatorio=None):
+        if nome_relatorio:
             try:
-                instance = DescricaoOrientacaoCoorientacaoAcademica.objects.get(pk=id)
-                serializer = DescricaoOrientacaoCoorientacaoAcademicaSerializer(instance)
+                usuario_id = request.user.id
+                relatorio_docente = RelatorioDocente.objects.get(usuario_id = usuario_id, nome=nome_relatorio)
+                instances = DescricaoOrientacaoCoorientacaoAcademica.objects.filter(relatorio_id=relatorio_docente.pk)
+                serializer = DescricaoOrientacaoCoorientacaoAcademicaSerializer(instances, many=True)
                 return Util.response_ok_no_message(serializer.data)
-            except DescricaoOrientacaoCoorientacaoAcademica.DoesNotExist:
-                return Util.response_not_found('Não foi possível encontrar uma descricao_orientacao_coorientacao_academica com o id fornecido')
-        return Util.response_bad_request('É necessário fornecer o id do objeto que você deseja ler em descricao_orientacao_coorientacao_academica/{id}/')
-        
-    def delete(self, request, id=None):
-        if id:
+            
+            except RelatorioDocente.DoesNotExist:
+                    return Util.response_not_found('Não foi possível encontrar um relatorio_docente com o nome fornecido que seja pertencente ao usuário autenticado.')
+            
+        return Util.response_bad_request('É necessário fornecer o nome do relatorio_docente do qual você deseja ler as descricoes_orientacoes_coorientacoes_academicas em descricao_orientacao_coorientacao_academica/{nome_relatorio}/')
+    
+    def post(self, request, nome_relatorio=None):
+        if nome_relatorio:
             try:
-                instance = DescricaoOrientacaoCoorientacaoAcademica.objects.get(pk=id)
-                instance.delete()
-                return Util.response_ok_no_message('Objeto excluído com sucesso.')
-            except DescricaoOrientacaoCoorientacaoAcademica.DoesNotExist:
-                return Util.response_not_found('Não foi possível encontrar uma descricao_orientacao_coorientacao_academica com o id fornecido.')
-        return Util.response_bad_request('É necessário fornecer o id do objeto que você deseja excluir em descricao_orientacao_coorientacao_academica/{id}/')
+                usuario_id = request.user.id
+                relatorio_docente = RelatorioDocente.objects.get(usuario_id=usuario_id, nome=nome_relatorio)
+
+                request.data['relatorio_id'] = relatorio_docente.pk
+                serializer = DescricaoOrientacaoCoorientacaoAcademicaSerializer(data=request.data)
+                if serializer.is_valid():
+                    descricao_orientacao_coorientacao_academica = serializer.save()
+                    return Util.response_created(f'id: {descricao_orientacao_coorientacao_academica.pk}')
+                return Util.response_bad_request(serializer.errors)
+            
+            except RelatorioDocente.DoesNotExist:
+                return Util.response_not_found('Não foi possível encontrar um relatorio_docente com o nome fornecido que seja pertencente ao usuário autenticado.')
+            
+        return Util.response_bad_request('É necessário fornecer o nome do relatorio_docente no qual você deseja criar uma descricao_orientacao_coorientacao_academica em descricao_orientacao_coorientacao_academica/{nome_relatorio}/')
+
+    def put(self, request, nome_relatorio=None, id_descricao_orientacao_coorientacao_academica=None):
+        if nome_relatorio:
+            if id_descricao_orientacao_coorientacao_academica:
+                try:
+                    usuario_id = request.user.id
+                    relatorio_docente = RelatorioDocente.objects.get(usuario_id = usuario_id, nome = nome_relatorio)
+
+                    descricao_orientacao_coorientacao_academica = DescricaoOrientacaoCoorientacaoAcademica.objects.get(pk=id_descricao_orientacao_coorientacao_academica, relatorio_id = relatorio_docente.pk)
+
+                    data = request.data.copy()
+                    if 'id' in data or 'relatorio_id' in data:
+                        return Util.response_unauthorized('Não é permitido atualizar nenhum id ou relatorio_id')
+
+                    serializer = DescricaoOrientacaoCoorientacaoAcademicaSerializer(descricao_orientacao_coorientacao_academica, data=data, partial=True)
+                    if serializer.is_valid():
+                        descricao_orientacao_coorientacao_academica = serializer.save()
+                        return Util.response_ok_no_message(serializer.data)
+                    else:
+                        return Util.response_bad_request(serializer.errors)
+                    
+                except RelatorioDocente.DoesNotExist:
+                    return Util.response_not_found('Não foi possível encontrar um relatorio_docente com o nome fornecido que seja pertencente ao usuário autenticado.')
+
+                except DescricaoOrientacaoCoorientacaoAcademica.DoesNotExist:
+                    return Util.response_not_found('Não foi possível encontrar uma descricao_orientacao_coorientacao_academica com o id fornecido.')
+                
+            return Util.response_bad_request('É necessário fornecer o id da descricao_orientacao_coorientacao_academica que você deseja atualizar em descricao_orientacao_coorientacao_academica/{nome_relatorio}/{id_descricao_orientacao_coorientacao_academica}/')
+        
+        return Util.response_bad_request('É necessário fornecer o nome do relatorio_docente no qual você deseja atualizar uma descricao_orientacao_coorientacao_academica em descricao_orientacao_coorientacao_academica/{nome_relatorio}/{id_descricao_orientacao_coorientacao_academica}/')
+        
+    def delete(self, request, nome_relatorio=None, id_descricao_orientacao_coorientacao_academica=None):
+        if nome_relatorio:
+            if id_descricao_orientacao_coorientacao_academica:
+                try:
+                    usuario_id = request.user.id
+                    relatorio_docente = RelatorioDocente.objects.get(usuario_id=usuario_id, nome=nome_relatorio)
+                    descricao_orientacao_coorientacao_academica = DescricaoOrientacaoCoorientacaoAcademica.objects.get(pk=id_descricao_orientacao_coorientacao_academica, relatorio_id = relatorio_docente.pk)
+                    descricao_orientacao_coorientacao_academica.delete()
+
+                    return Util.response_ok_no_message('Objeto excluído com sucesso.')
+                except DescricaoOrientacaoCoorientacaoAcademica.DoesNotExist:
+                    return Util.response_not_found('Não foi possível encontrar uma descricao_orientacao_coorientacao_academica com o id fornecido.')
+                
+            return Util.response_bad_request('É necessário fornecer o id da descricao_orientacao_coorientacao_academica que você deseja deletar em descricao_orientacao_coorientacao_academica/{nome_relatorio}/{id_descricao_orientacao_coorientacao_academica}/')
     
 class SupervisaoAcademicaView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def get(self, request, id=None):
-        if id:
-            return self.getById(request, id)
+    def get(self, request, nome_relatorio=None, id_supervisao_academica=None):
+        if nome_relatorio and id_supervisao_academica:
+            return self.getById(request, nome_relatorio, id_supervisao_academica)
         else:
-            return self.getAll(request)
-
-    def post(self, request):
-        serializer = SupervisaoAcademicaSerializer(data=request.data)
-        if serializer.is_valid():
-            instance = serializer.save() 
-            return Util.response_created(f'id: {instance.pk}')
-        return Util.response_bad_request(serializer.errors)
-
-    def put(self, request, id=None):
-        if id is not None:
-            try:
-                instance = SupervisaoAcademica.objects.get(pk=id)
-                data = request.data.copy()
-                if 'id' in data or 'relatorio_id' in data:
-                    return Util.response_unauthorized('Não é permitido atualizar nenhum id ou relatorio_id')
-
-                serializer = SupervisaoAcademicaSerializer(instance, data=data, partial=True)
-                if serializer.is_valid():
-                    serializer.save()
+            return self.getAll(request, nome_relatorio)
+        
+    def getById(self, request, nome_relatorio=None, id_supervisao_academica=None):
+        if nome_relatorio:
+            if id_supervisao_academica:
+                try:
+                    usuario_id = request.user.id
+                    relatorio_docente = RelatorioDocente.objects.get(usuario_id = usuario_id, nome=nome_relatorio)
+                    instance = SupervisaoAcademica.objects.get(relatorio_id=relatorio_docente.pk, pk=id_supervisao_academica)
+                    serializer = SupervisaoAcademicaSerializer(instance)
                     return Util.response_ok_no_message(serializer.data)
-                else:
-                    return Util.response_bad_request(serializer.errors)
+            
+                except RelatorioDocente.DoesNotExist:
+                    return Util.response_not_found('Não foi possível encontrar um relatorio_docente com o nome fornecido que seja pertencente ao usuário autenticado.')
 
-            except SupervisaoAcademica.DoesNotExist:
-                return Util.response_not_found('Não foi possível encontrar uma supervisao_academica com o id fornecido.')
-
-        return Util.response_bad_request('É necessário fornecer o id do objeto que você deseja atualizar em supervisao_academica/{id}/')
-
-    def getAll(self, request):
-        instances = SupervisaoAcademica.objects.all()
-        serializer = SupervisaoAcademicaSerializer(instances, many=True)
-        return Util.response_ok_no_message(serializer.data)
+                except SupervisaoAcademica.DoesNotExist:
+                    return Util.response_not_found('Não foi possível encontrar uma supervisao_academica com o id fornecido.')
+            
+            return Util.response_bad_request('É necessário fornecer o id da supervisao_academica que você deseja ler em supervisao_academica/{nome_relatorio}/{id_supervisao_academica}/')
         
-    def getById(self, request, id=None):
-        if id:
+        return Util.response_bad_request('É necessário fornecer o nome do relatorio_docente do qual você deseja deseja ler as supervisoes_academicas em supervisao_academica/{nome_relatorio}/{id_supervisao_academica}/')
+
+    def getAll(self, request, nome_relatorio=None):
+        if nome_relatorio:
             try:
-                instance = SupervisaoAcademica.objects.get(pk=id)
-                serializer = SupervisaoAcademicaSerializer(instance)
+                usuario_id = request.user.id
+                relatorio_docente = RelatorioDocente.objects.get(usuario_id = usuario_id, nome=nome_relatorio)
+                instances = SupervisaoAcademica.objects.filter(relatorio_id=relatorio_docente.pk)
+                serializer = SupervisaoAcademicaSerializer(instances, many=True)
                 return Util.response_ok_no_message(serializer.data)
-            except SupervisaoAcademica.DoesNotExist:
-                return Util.response_not_found('Não foi possível encontrar uma supervisao_academica com o id fornecido')
-        return Util.response_bad_request('É necessário fornecer o id do objeto que você deseja ler em supervisao_academica/{id}/')
-        
-    def delete(self, request, id=None):
-        if id:
+            
+            except RelatorioDocente.DoesNotExist:
+                    return Util.response_not_found('Não foi possível encontrar um relatorio_docente com o nome fornecido que seja pertencente ao usuário autenticado.')
+            
+        return Util.response_bad_request('É necessário fornecer o nome do relatorio_docente do qual você deseja ler as supervisoes_academicas em supervisao_academica/{nome_relatorio}/')
+    
+    def post(self, request, nome_relatorio=None):
+        if nome_relatorio:
             try:
-                instance = SupervisaoAcademica.objects.get(pk=id)
-                instance.delete()
-                return Util.response_ok_no_message('Objeto excluído com sucesso.')
-            except SupervisaoAcademica.DoesNotExist:
-                return Util.response_not_found('Não foi possível encontrar uma supervisao_academica com o id fornecido.')
-        return Util.response_bad_request('É necessário fornecer o id do objeto que você deseja excluir em supervisao_academica/{id}/')
+                usuario_id = request.user.id
+                relatorio_docente = RelatorioDocente.objects.get(usuario_id=usuario_id, nome=nome_relatorio)
+
+                request.data['relatorio_id'] = relatorio_docente.pk
+                serializer = SupervisaoAcademicaSerializer(data=request.data)
+                if serializer.is_valid():
+                    supervisao_academica = serializer.save()
+                    return Util.response_created(f'id: {supervisao_academica.pk}')
+                return Util.response_bad_request(serializer.errors)
+            
+            except RelatorioDocente.DoesNotExist:
+                return Util.response_not_found('Não foi possível encontrar um relatorio_docente com o nome fornecido que seja pertencente ao usuário autenticado.')
+            
+        return Util.response_bad_request('É necessário fornecer o nome do relatorio_docente no qual você deseja criar uma supervisao_academica em supervisao_academica/{nome_relatorio}/')
+    
+    def put(self, request, nome_relatorio=None, id_supervisao_academica=None):
+        if nome_relatorio:
+            if id_supervisao_academica:
+                try:
+                    usuario_id = request.user.id
+                    relatorio_docente = RelatorioDocente.objects.get(usuario_id = usuario_id, nome = nome_relatorio)
+
+                    supervisao_academica = SupervisaoAcademica.objects.get(pk=id_supervisao_academica, relatorio_id = relatorio_docente.pk)
+
+                    data = request.data.copy()
+                    if 'id' in data or 'relatorio_id' in data:
+                        return Util.response_unauthorized('Não é permitido atualizar nenhum id ou relatorio_id')
+
+                    serializer = SupervisaoAcademicaSerializer(supervisao_academica, data=data, partial=True)
+                    if serializer.is_valid():
+                        supervisao_academica = serializer.save()
+                        return Util.response_ok_no_message(serializer.data)
+                    else:
+                        return Util.response_bad_request(serializer.errors)
+                    
+                except RelatorioDocente.DoesNotExist:
+                    return Util.response_not_found('Não foi possível encontrar um relatorio_docente com o nome fornecido que seja pertencente ao usuário autenticado.')
+
+                except SupervisaoAcademica.DoesNotExist:
+                    return Util.response_not_found('Não foi possível encontrar uma supervisao_academica com o id fornecido.')
+                
+            return Util.response_bad_request('É necessário fornecer o id da supervisao_academica que você deseja atualizar em supervisao_academica/{nome_relatorio}/{id_supervisao_academica}/')
+        
+        return Util.response_bad_request('É necessário fornecer o nome do relatorio_docente no qual você deseja atualizar uma supervisao_academica em supervisao_academica/{nome_relatorio}/{id_supervisao_academica}/')
+    
+    def delete(self, request, nome_relatorio=None, id_supervisao_academica=None):
+        if nome_relatorio:
+            if id_supervisao_academica:
+                try:
+                    usuario_id = request.user.id
+                    relatorio_docente = RelatorioDocente.objects.get(usuario_id=usuario_id, nome=nome_relatorio)
+                    supervisao_academica = SupervisaoAcademica.objects.get(pk=id_supervisao_academica, relatorio_id = relatorio_docente.pk)
+                    supervisao_academica.delete()
+
+                    return Util.response_ok_no_message('Objeto excluído com sucesso.')
+                
+                except SupervisaoAcademica.DoesNotExist:
+                    return Util.response_not_found('Não foi possível encontrar uma supervisao_academica com o id fornecido.')
+                
+            return Util.response_bad_request('É necessário fornecer o id da supervisao_academica que você deseja deletar em supervisao_academica/{nome_relatorio}/{id_supervisao_academica}/')
+        
 
 class PreceptoriaTutoriaResidenciaView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def get(self, request, id=None):
-        if id:
-            return self.getById(request, id)
+    def get(self, request, nome_relatorio=None, id_preceptoria_tutoria_residencia=None):
+        if nome_relatorio and id_preceptoria_tutoria_residencia:
+            return self.getById(request, nome_relatorio, id_preceptoria_tutoria_residencia)
         else:
-            return self.getAll(request)
-
-    def post(self, request):
-        serializer = PreceptoriaTutoriaResidenciaSerializer(data=request.data)
-        if serializer.is_valid():
-            instance = serializer.save() 
-            return Util.response_created(f'id: {instance.pk}')
-        return Util.response_bad_request(serializer.errors)
-
-    def put(self, request, id=None):
-        if id is not None:
-            try:
-                instance = PreceptoriaTutoriaResidencia.objects.get(pk=id)
-                data = request.data.copy()
-                if 'id' in data or 'relatorio_id' in data:
-                    return Util.response_unauthorized('Não é permitido atualizar nenhum id ou relatorio_id')
-
-                serializer = PreceptoriaTutoriaResidenciaSerializer(instance, data=data, partial=True)
-                if serializer.is_valid():
-                    serializer.save()
+            return self.getAll(request, nome_relatorio)
+        
+    def getById(self, request, nome_relatorio=None, id_preceptoria_tutoria_residencia=None):
+        if nome_relatorio:
+            if id_preceptoria_tutoria_residencia:
+                try:
+                    usuario_id = request.user.id
+                    relatorio_docente = RelatorioDocente.objects.get(usuario_id = usuario_id, nome=nome_relatorio)
+                    instance = PreceptoriaTutoriaResidencia.objects.get(relatorio_id=relatorio_docente.pk, pk=id_preceptoria_tutoria_residencia)
+                    serializer = PreceptoriaTutoriaResidenciaSerializer(instance)
                     return Util.response_ok_no_message(serializer.data)
-                else:
-                    return Util.response_bad_request(serializer.errors)
+            
+                except RelatorioDocente.DoesNotExist:
+                    return Util.response_not_found('Não foi possível encontrar um relatorio_docente com o nome fornecido que seja pertencente ao usuário autenticado.')
 
-            except PreceptoriaTutoriaResidencia.DoesNotExist:
-                return Util.response_not_found('Não foi possível encontrar uma preceptoria_tutoria_residencia com o id fornecido.')
-
-        return Util.response_bad_request('É necessário fornecer o id do objeto que você deseja atualizar em preceptoria_tutoria_residencia/{id}/')
-
-    def getAll(self, request):
-        instances = PreceptoriaTutoriaResidencia.objects.all()
-        serializer = PreceptoriaTutoriaResidenciaSerializer(instances, many=True)
-        return Util.response_ok_no_message(serializer.data)
+                except PreceptoriaTutoriaResidencia.DoesNotExist:
+                    return Util.response_not_found('Não foi possível encontrar uma preceptoria_tutoria_residencia com o id fornecido.')
+            
+            return Util.response_bad_request('É necessário fornecer o id da preceptoria_tutoria_residencia que você deseja ler em preceptoria_tutoria_residencia/{nome_relatorio}/{id_preceptoria_tutoria_residencia}/')
         
-    def getById(self, request, id=None):
-        if id:
+        return Util.response_bad_request('É necessário fornecer o nome do relatorio_docente do qual você deseja deseja ler as preceptorias_tutorias_residencias em preceptoria_tutoria_residencia/{nome_relatorio}/{id_preceptoria_tutoria_residencia}/')
+
+    def getAll(self, request, nome_relatorio=None):
+        if nome_relatorio:
             try:
-                instance = PreceptoriaTutoriaResidencia.objects.get(pk=id)
-                serializer = PreceptoriaTutoriaResidenciaSerializer(instance)
+                usuario_id = request.user.id
+                relatorio_docente = RelatorioDocente.objects.get(usuario_id = usuario_id, nome=nome_relatorio)
+                instances = PreceptoriaTutoriaResidencia.objects.filter(relatorio_id=relatorio_docente.pk)
+                serializer = PreceptoriaTutoriaResidenciaSerializer(instances, many=True)
                 return Util.response_ok_no_message(serializer.data)
-            except PreceptoriaTutoriaResidencia.DoesNotExist:
-                return Util.response_not_found('Não foi possível encontrar uma preceptoria_tutoria_residencia com o id fornecido')
-        return Util.response_bad_request('É necessário fornecer o id do objeto que você deseja ler em preceptoria_tutoria_residencia/{id}/')
-        
-    def delete(self, request, id=None):
-        if id:
+            
+            except RelatorioDocente.DoesNotExist:
+                    return Util.response_not_found('Não foi possível encontrar um relatorio_docente com o nome fornecido que seja pertencente ao usuário autenticado.')
+            
+        return Util.response_bad_request('É necessário fornecer o nome do relatorio_docente do qual você deseja ler as preceptorias_tutorias_residencias em preceptoria_tutoria_residencia/{nome_relatorio}/')
+    
+    def post(self, request, nome_relatorio=None):
+        if nome_relatorio:
             try:
-                instance = PreceptoriaTutoriaResidencia.objects.get(pk=id)
-                instance.delete()
-                return Util.response_ok_no_message('Objeto excluído com sucesso.')
-            except PreceptoriaTutoriaResidencia.DoesNotExist:
-                return Util.response_not_found('Não foi possível encontrar uma preceptoria_tutoria_residencia com o id fornecido.')
-        return Util.response_bad_request('É necessário fornecer o id do objeto que você deseja excluir em preceptoria_tutoria_residencia/{id}/')
+                usuario_id = request.user.id
+                relatorio_docente = RelatorioDocente.objects.get(usuario_id=usuario_id, nome=nome_relatorio)
+
+                request.data['relatorio_id'] = relatorio_docente.pk
+                serializer = PreceptoriaTutoriaResidenciaSerializer(data=request.data)
+                if serializer.is_valid():
+                    preceptoria_tutoria_residencia = serializer.save()
+                    return Util.response_created(f'id: {preceptoria_tutoria_residencia.pk}')
+                return Util.response_bad_request(serializer.errors)
+            
+            except RelatorioDocente.DoesNotExist:
+                return Util.response_not_found('Não foi possível encontrar um relatorio_docente com o nome fornecido que seja pertencente ao usuário autenticado.')
+            
+        return Util.response_bad_request('É necessário fornecer o nome do relatorio_docente no qual você deseja criar uma preceptoria_tutoria_residencia em preceptoria_tutoria_residencia/{nome_relatorio}/')
+    
+    def put(self, request, nome_relatorio=None, id_preceptoria_tutoria_residencia=None):
+        if nome_relatorio:
+            if id_preceptoria_tutoria_residencia:
+                try:
+                    usuario_id = request.user.id
+                    relatorio_docente = RelatorioDocente.objects.get(usuario_id = usuario_id, nome = nome_relatorio)
+
+                    preceptoria_tutoria_residencia = PreceptoriaTutoriaResidencia.objects.get(pk=id_preceptoria_tutoria_residencia, relatorio_id = relatorio_docente.pk)
+
+                    data = request.data.copy()
+                    if 'id' in data or 'relatorio_id' in data:
+                        return Util.response_unauthorized('Não é permitido atualizar nenhum id ou relatorio_id')
+
+                    serializer = PreceptoriaTutoriaResidenciaSerializer(preceptoria_tutoria_residencia, data=data, partial=True)
+                    if serializer.is_valid():
+                        preceptoria_tutoria_residencia = serializer.save()
+                        return Util.response_ok_no_message(serializer.data)
+                    else:
+                        return Util.response_bad_request(serializer.errors)
+                    
+                except RelatorioDocente.DoesNotExist:
+                    return Util.response_not_found('Não foi possível encontrar um relatorio_docente com o nome fornecido que seja pertencente ao usuário autenticado.')
+
+                except PreceptoriaTutoriaResidencia.DoesNotExist:
+                    return Util.response_not_found('Não foi possível encontrar uma preceptoria_tutoria_residencia com o id fornecido.')
+                
+            return Util.response_bad_request('É necessário fornecer o id da preceptoria_tutoria_residencia que você deseja atualizar em preceptoria_tutoria_residencia/{nome_relatorio}/{id_preceptoria_tutoria_residencia}/')
+        
+        return Util.response_bad_request('É necessário fornecer o nome do relatorio_docente no qual você deseja atualizar uma preceptoria_tutoria_residencia em preceptoria_tutoria_residencia/{nome_relatorio}/{id_preceptoria_tutoria_residencia}/')
+    
+    def delete(self, request, nome_relatorio=None, id_preceptoria_tutoria_residencia=None):
+        if nome_relatorio:
+            if id_preceptoria_tutoria_residencia:
+                try:
+                    usuario_id = request.user.id
+                    relatorio_docente = RelatorioDocente.objects.get(usuario_id=usuario_id, nome=nome_relatorio)
+                    preceptoria_tutoria_residencia = PreceptoriaTutoriaResidencia.objects.get(pk=id_preceptoria_tutoria_residencia, relatorio_id = relatorio_docente.pk)
+                    preceptoria_tutoria_residencia.delete()
+
+                    return Util.response_ok_no_message('Objeto excluído com sucesso.')
+                
+                except PreceptoriaTutoriaResidencia.DoesNotExist:
+                    return Util.response_not_found('Não foi possível encontrar uma preceptoria_tutoria_residencia com o id fornecido.')
+                
+            return Util.response_bad_request('É necessário fornecer o id da preceptoria_tutoria_residencia que você deseja deletar em preceptoria_tutoria_residencia/{nome_relatorio}/{id_preceptoria_tutoria_residencia}/')
 
 class BancaExaminadoraView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def get(self, request, id=None):
-        if id:
-            return self.getById(request, id)
+    def get(self, request, nome_relatorio=None, id_banca_examinadora=None):
+        if nome_relatorio and id_banca_examinadora:
+            return self.getById(request, nome_relatorio, id_banca_examinadora)
         else:
-            return self.getAll(request)
-
-    def post(self, request):
-        serializer = BancaExaminadoraSerializer(data=request.data)
-        if serializer.is_valid():
-            instance = serializer.save() 
-            return Util.response_created(f'id: {instance.pk}')
-        return Util.response_bad_request(serializer.errors)
-
-    def put(self, request, id=None):
-        if id is not None:
-            try:
-                instance = BancaExaminadora.objects.get(pk=id)
-                data = request.data.copy()
-                if 'id' in data or 'relatorio_id' in data:
-                    return Util.response_unauthorized('Não é permitido atualizar nenhum id ou relatorio_id')
-
-                serializer = BancaExaminadoraSerializer(instance, data=data, partial=True)
-                if serializer.is_valid():
-                    serializer.save()
+            return self.getAll(request, nome_relatorio)
+        
+    def getById(self, request, nome_relatorio=None, id_banca_examinadora=None):
+        if nome_relatorio:
+            if id_banca_examinadora:
+                try:
+                    usuario_id = request.user.id
+                    relatorio_docente = RelatorioDocente.objects.get(usuario_id = usuario_id, nome=nome_relatorio)
+                    instance = BancaExaminadora.objects.get(relatorio_id=relatorio_docente.pk, pk=id_banca_examinadora)
+                    serializer = BancaExaminadoraSerializer(instance)
                     return Util.response_ok_no_message(serializer.data)
-                else:
-                    return Util.response_bad_request(serializer.errors)
+            
+                except RelatorioDocente.DoesNotExist:
+                    return Util.response_not_found('Não foi possível encontrar um relatorio_docente com o nome fornecido que seja pertencente ao usuário autenticado.')
 
-            except BancaExaminadora.DoesNotExist:
-                return Util.response_not_found('Não foi possível encontrar uma banca_examinadora com o id fornecido.')
-
-        return Util.response_bad_request('É necessário fornecer o id do objeto que você deseja atualizar em banca_examinadora/{id}/')
-
-    def getAll(self, request):
-        instances = BancaExaminadora.objects.all()
-        serializer = BancaExaminadoraSerializer(instances, many=True)
-        return Util.response_ok_no_message(serializer.data)
+                except BancaExaminadora.DoesNotExist:
+                    return Util.response_not_found('Não foi possível encontrar uma banca_examinadora com o id fornecido.')
+            
+            return Util.response_bad_request('É necessário fornecer o id da banca_examinadora que você deseja ler em banca_examinadora/{nome_relatorio}/{id_banca_examinadora}/')
         
-    def getById(self, request, id=None):
-        if id:
+        return Util.response_bad_request('É necessário fornecer o nome do relatorio_docente do qual você deseja deseja ler as bancas_examinadoras em banca_examinadora/{nome_relatorio}/{id_banca_examinadora}/')
+
+    def getAll(self, request, nome_relatorio=None):
+        if nome_relatorio:
             try:
-                instance = BancaExaminadora.objects.get(pk=id)
-                serializer = BancaExaminadoraSerializer(instance)
+                usuario_id = request.user.id
+                relatorio_docente = RelatorioDocente.objects.get(usuario_id = usuario_id, nome=nome_relatorio)
+                instances = BancaExaminadora.objects.filter(relatorio_id=relatorio_docente.pk)
+                serializer = BancaExaminadoraSerializer(instances, many=True)
                 return Util.response_ok_no_message(serializer.data)
-            except BancaExaminadora.DoesNotExist:
-                return Util.response_not_found('Não foi possível encontrar uma banca_examinadora com o id fornecido')
-        return Util.response_bad_request('É necessário fornecer o id do objeto que você deseja ler em banca_examinadora/{id}/')
-        
-    def delete(self, request, id=None):
-        if id:
+            
+            except RelatorioDocente.DoesNotExist:
+                    return Util.response_not_found('Não foi possível encontrar um relatorio_docente com o nome fornecido que seja pertencente ao usuário autenticado.')
+            
+        return Util.response_bad_request('É necessário fornecer o nome do relatorio_docente do qual você deseja ler as bancas_examinadoras em banca_examinadora/{nome_relatorio}/')
+    
+    def post(self, request, nome_relatorio=None):
+        if nome_relatorio:
             try:
-                instance = BancaExaminadora.objects.get(pk=id)
-                instance.delete()
-                return Util.response_ok_no_message('Objeto excluído com sucesso.')
-            except BancaExaminadora.DoesNotExist:
-                return Util.response_not_found('Não foi possível encontrar uma banca_examinadora com o id fornecido.')
-        return Util.response_bad_request('É necessário fornecer o id do objeto que você deseja excluir em banca_examinadora/{id}/')
+                usuario_id = request.user.id
+                relatorio_docente = RelatorioDocente.objects.get(usuario_id=usuario_id, nome=nome_relatorio)
 
-class CHSemanalAtividadeEnsinoView(APIView):
-    permission_classes = [IsAuthenticated]
+                request.data['relatorio_id'] = relatorio_docente.pk
+                serializer = BancaExaminadoraSerializer(data=request.data)
+                if serializer.is_valid():
+                    banca_examinadora = serializer.save()
+                    return Util.response_created(f'id: {banca_examinadora.pk}')
+                return Util.response_bad_request(serializer.errors)
+            
+            except RelatorioDocente.DoesNotExist:
+                return Util.response_not_found('Não foi possível encontrar um relatorio_docente com o nome fornecido que seja pertencente ao usuário autenticado.')
+            
+        return Util.response_bad_request('É necessário fornecer o nome do relatorio_docente no qual você deseja criar uma banca_examinadora em banca_examinadora/{nome_relatorio}/')
+    
+    def put(self, request, nome_relatorio=None, id_banca_examinadora=None):
+        if nome_relatorio:
+            if id_banca_examinadora:
+                try:
+                    usuario_id = request.user.id
+                    relatorio_docente = RelatorioDocente.objects.get(usuario_id = usuario_id, nome = nome_relatorio)
 
-    def get(self, request, id=None):
-        if id:
-            return self.getById(request, id)
-        else:
-            return self.getAll(request)
+                    banca_examinadora = BancaExaminadora.objects.get(pk=id_banca_examinadora, relatorio_id = relatorio_docente.pk)
 
-    def post(self, request):
-        instance = None
-        serializer = CHSemanalAtividadeEnsinoSerializer(data=request.data)
-        if serializer.is_valid():
-            relatorio_id = serializer.validated_data.get('relatorio_id')
-            try:
-                instances = CHSemanalAtividadeEnsino.objects.filter(relatorio_id=relatorio_id)
-                if instances.count() > 0:
-                    if instances.count() == 1:
-                        return Util.response_bad_request('Objeto não criado: só podem ser adicionada uma ch_semanal_atividade_ensino para cada relatorio_docente.')
+                    data = request.data.copy()
+                    if 'id' in data or 'relatorio_id' in data:
+                        return Util.response_unauthorized('Não é permitido atualizar nenhum id ou relatorio_id')
+
+                    serializer = BancaExaminadoraSerializer(banca_examinadora, data=data, partial=True)
+                    if serializer.is_valid():
+                        banca_examinadora = serializer.save()
+                        return Util.response_ok_no_message(serializer.data)
+                    else:
+                        return Util.response_bad_request(serializer.errors)
+                    
+                except RelatorioDocente.DoesNotExist:
+                    return Util.response_not_found('Não foi possível encontrar um relatorio_docente com o nome fornecido que seja pertencente ao usuário autenticado.')
+
+                except BancaExaminadora.DoesNotExist:
+                    return Util.response_not_found('Não foi possível encontrar uma banca_examinadora com o id fornecido.')
                 
-                instance = serializer.save()
-
-            except CHSemanalAtividadeEnsino.DoesNotExist:
-                instance = serializer.save()
-            return Util.response_created(f'id: {instance.pk}')
-        return Util.response_bad_request(serializer.errors)
-
-    def put(self, request, id=None):
-        if id is not None:
-            try:
-                instance = CHSemanalAtividadeEnsino.objects.get(pk=id)
-                data = request.data.copy()
-                if 'id' in data or 'relatorio_id' in data:
-                    return Util.response_unauthorized('Não é permitido atualizar nenhum id ou relatorio_id')
-
-                serializer = CHSemanalAtividadeEnsinoSerializer(instance, data=data, partial=True)
-                if serializer.is_valid():
-                    serializer.save()
-                    return Util.response_ok_no_message(serializer.data)
-                else:
-                    return Util.response_bad_request(serializer.errors)
-
-            except CHSemanalAtividadeEnsino.DoesNotExist:
-                return Util.response_not_found('Não foi possível encontrar uma ch_semanal_atividade_ensino com o id fornecido.')
-
-        return Util.response_bad_request('É necessário fornecer o id do objeto que você deseja atualizar em ch_semanal_atividade_ensino/{id}/')
-
-    def getAll(self, request):
-        instances = CHSemanalAtividadeEnsino.objects.all()
-        serializer = CHSemanalAtividadeEnsinoSerializer(instances, many=True)
-        return Util.response_ok_no_message(serializer.data)
+            return Util.response_bad_request('É necessário fornecer o id da banca_examinadora que você deseja atualizar em banca_examinadora/{nome_relatorio}/{id_banca_examinadora}/')
         
-    def getById(self, request, id=None):
-        if id:
-            try:
-                instance = CHSemanalAtividadeEnsino.objects.get(pk=id)
-                serializer = CHSemanalAtividadeEnsinoSerializer(instance)
-                return Util.response_ok_no_message(serializer.data)
-            except CHSemanalAtividadeEnsino.DoesNotExist:
-                return Util.response_not_found('Não foi possível encontrar uma ch_semanal_atividade_ensino com o id fornecido')
-        return Util.response_bad_request('É necessário fornecer o id do objeto que você deseja ler em ch_semanal_atividade_ensino/{id}/')
-        
-    def delete(self, request, id=None):
-        if id:
-            try:
-                instance = CHSemanalAtividadeEnsino.objects.get(pk=id)
-                instance.delete()
-                return Util.response_ok_no_message('Objeto excluído com sucesso.')
-            except CHSemanalAtividadeEnsino.DoesNotExist:
-                return Util.response_not_found('Não foi possível encontrar uma ch_semanal_atividade_ensino com o id fornecido.')
-        return Util.response_bad_request('É necessário fornecer o id do objeto que você deseja excluir em ch_semanal_atividade_ensino/{id}/')
+        return Util.response_bad_request('É necessário fornecer o nome do relatorio_docente no qual você deseja atualizar uma banca_examinadora em banca_examinadora/{nome_relatorio}/{id_banca_examinadora}/')
+    
+    def delete(self, request, nome_relatorio=None, id_banca_examinadora=None):
+        if nome_relatorio:
+            if id_banca_examinadora:
+                try:
+                    usuario_id = request.user.id
+                    relatorio_docente = RelatorioDocente.objects.get(usuario_id=usuario_id, nome=nome_relatorio)
+                    banca_examinadora = BancaExaminadora.objects.get(pk=id_banca_examinadora, relatorio_id = relatorio_docente.pk)
+                    banca_examinadora.delete()
+
+                    return Util.response_ok_no_message('Objeto excluído com sucesso.')
+                
+                except BancaExaminadora.DoesNotExist:
+                    return Util.response_not_found('Não foi possível encontrar uma banca_examinadora com o id fornecido.')
+                
+            return Util.response_bad_request('É necessário fornecer o id da banca_examinadora que você deseja deletar em banca_examinadora/{nome_relatorio}/{id_banca_examinadora}/')
 
 class AvaliacaoDiscenteView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def get(self, request, id=None):
-        if id:
-            return self.getById(request, id)
+    def get(self, request, nome_relatorio=None, id_avaliacao_discente=None):
+        if nome_relatorio and id_avaliacao_discente:
+            return self.getById(request, nome_relatorio, id_avaliacao_discente)
         else:
-            return self.getAll(request)
-
-    def post(self, request):
-        serializer = AvaliacaoDiscenteSerializer(data=request.data)
-        if serializer.is_valid():
-            instance = serializer.save() 
-            return Util.response_created(f'id: {instance.pk}')
-        return Util.response_bad_request(serializer.errors)
-
-    def put(self, request, id=None):
-        if id is not None:
-            try:
-                instance = AvaliacaoDiscente.objects.get(pk=id)
-                data = request.data.copy()
-                if 'id' in data or 'relatorio_id' in data:
-                    return Util.response_unauthorized('Não é permitido atualizar nenhum id ou relatorio_id')
-
-                serializer = AvaliacaoDiscenteSerializer(instance, data=data, partial=True)
-                if serializer.is_valid():
-                    serializer.save()
+            return self.getAll(request, nome_relatorio)
+        
+    def getById(self, request, nome_relatorio=None, id_avaliacao_discente=None):
+        if nome_relatorio:
+            if id_avaliacao_discente:
+                try:
+                    usuario_id = request.user.id
+                    relatorio_docente = RelatorioDocente.objects.get(usuario_id = usuario_id, nome=nome_relatorio)
+                    instance = AvaliacaoDiscente.objects.get(relatorio_id=relatorio_docente.pk, pk=id_avaliacao_discente)
+                    serializer = AvaliacaoDiscenteSerializer(instance)
                     return Util.response_ok_no_message(serializer.data)
-                else:
-                    return Util.response_bad_request(serializer.errors)
+            
+                except RelatorioDocente.DoesNotExist:
+                    return Util.response_not_found('Não foi possível encontrar um relatorio_docente com o nome fornecido que seja pertencente ao usuário autenticado.')
 
-            except AvaliacaoDiscente.DoesNotExist:
-                return Util.response_not_found('Não foi possível encontrar uma avaliacao_discente com o id fornecido.')
-
-        return Util.response_bad_request('É necessário fornecer o id do objeto que você deseja atualizar em avaliacao_discente/{id}/')
-
-    def getAll(self, request):
-        instances = AvaliacaoDiscente.objects.all()
-        serializer = AvaliacaoDiscenteSerializer(instances, many=True)
-        return Util.response_ok_no_message(serializer.data)
+                except AvaliacaoDiscente.DoesNotExist:
+                    return Util.response_not_found('Não foi possível encontrar uma avaliacao_discente com o id fornecido.')
+            
+            return Util.response_bad_request('É necessário fornecer o id da avaliacao_discente que você deseja ler em avaliacao_discente/{nome_relatorio}/{id_avaliacao_discente}/')
         
-    def getById(self, request, id=None):
-        if id:
+        return Util.response_bad_request('É necessário fornecer o nome do relatorio_docente do qual você deseja deseja ler as avaliacoes_discentes em avaliacao_discente/{nome_relatorio}/{id_avaliacao_discente}/')
+
+    def getAll(self, request, nome_relatorio=None):
+        if nome_relatorio:
             try:
-                instance = AvaliacaoDiscente.objects.get(pk=id)
-                serializer = AvaliacaoDiscenteSerializer(instance)
+                usuario_id = request.user.id
+                relatorio_docente = RelatorioDocente.objects.get(usuario_id = usuario_id, nome=nome_relatorio)
+                instances = AvaliacaoDiscente.objects.filter(relatorio_id=relatorio_docente.pk)
+                serializer = AvaliacaoDiscenteSerializer(instances, many=True)
                 return Util.response_ok_no_message(serializer.data)
-            except AvaliacaoDiscente.DoesNotExist:
-                return Util.response_not_found('Não foi possível encontrar uma avaliacao_discente com o id fornecido')
-        return Util.response_bad_request('É necessário fornecer o id do objeto que você deseja ler em avaliacao_discente/{id}/')
-        
-    def delete(self, request, id=None):
-        if id:
+            
+            except RelatorioDocente.DoesNotExist:
+                    return Util.response_not_found('Não foi possível encontrar um relatorio_docente com o nome fornecido que seja pertencente ao usuário autenticado.')
+            
+        return Util.response_bad_request('É necessário fornecer o nome do relatorio_docente do qual você deseja ler as avaliacoes_discentes em avaliacao_discente/{nome_relatorio}/')
+    
+    def post(self, request, nome_relatorio=None):
+        if nome_relatorio:
             try:
-                instance = AvaliacaoDiscente.objects.get(pk=id)
-                instance.delete()
-                return Util.response_ok_no_message('Objeto excluído com sucesso.')
-            except AvaliacaoDiscente.DoesNotExist:
-                return Util.response_not_found('Não foi possível encontrar uma avaliacao_discente com o id fornecido.')
-        return Util.response_bad_request('É necessário fornecer o id do objeto que você deseja excluir em avaliacao_discente/{id}/')
+                usuario_id = request.user.id
+                relatorio_docente = RelatorioDocente.objects.get(usuario_id=usuario_id, nome=nome_relatorio)
+
+                request.data['relatorio_id'] = relatorio_docente.pk
+                serializer = AvaliacaoDiscenteSerializer(data=request.data)
+                if serializer.is_valid():
+                    avaliacao_discente = serializer.save()
+                    return Util.response_created(f'id: {avaliacao_discente.pk}')
+                return Util.response_bad_request(serializer.errors)
+            
+            except RelatorioDocente.DoesNotExist:
+                return Util.response_not_found('Não foi possível encontrar um relatorio_docente com o nome fornecido que seja pertencente ao usuário autenticado.')
+            
+        return Util.response_bad_request('É necessário fornecer o nome do relatorio_docente no qual você deseja criar uma avaliacao_discente em avaliacao_discente/{nome_relatorio}/')
+    
+    def put(self, request, nome_relatorio=None, id_avaliacao_discente=None):
+        if nome_relatorio:
+            if id_avaliacao_discente:
+                try:
+                    usuario_id = request.user.id
+                    relatorio_docente = RelatorioDocente.objects.get(usuario_id = usuario_id, nome = nome_relatorio)
+
+                    avaliacao_discente = AvaliacaoDiscente.objects.get(pk=id_avaliacao_discente, relatorio_id = relatorio_docente.pk)
+
+                    data = request.data.copy()
+                    if 'id' in data or 'relatorio_id' in data:
+                        return Util.response_unauthorized('Não é permitido atualizar nenhum id ou relatorio_id')
+
+                    serializer = AvaliacaoDiscenteSerializer(avaliacao_discente, data=data, partial=True)
+                    if serializer.is_valid():
+                        avaliacao_discente = serializer.save()
+                        return Util.response_ok_no_message(serializer.data)
+                    else:
+                        return Util.response_bad_request(serializer.errors)
+                    
+                except RelatorioDocente.DoesNotExist:
+                    return Util.response_not_found('Não foi possível encontrar um relatorio_docente com o nome fornecido que seja pertencente ao usuário autenticado.')
+
+                except AvaliacaoDiscente.DoesNotExist:
+                    return Util.response_not_found('Não foi possível encontrar uma avaliacao_discente com o id fornecido.')
+                
+            return Util.response_bad_request('É necessário fornecer o id da avaliacao_discente que você deseja atualizar em avaliacao_discente/{nome_relatorio}/{id_avaliacao_discente}/')
+        
+        return Util.response_bad_request('É necessário fornecer o nome do relatorio_docente no qual você deseja atualizar uma avaliacao_discente em avaliacao_discente/{nome_relatorio}/{id_avaliacao_discente}/')
+    
+    def delete(self, request, nome_relatorio=None, id_avaliacao_discente=None):
+        if nome_relatorio:
+            if id_avaliacao_discente:
+                try:
+                    usuario_id = request.user.id
+                    relatorio_docente = RelatorioDocente.objects.get(usuario_id=usuario_id, nome=nome_relatorio)
+                    avaliacao_discente = AvaliacaoDiscente.objects.get(pk=id_avaliacao_discente, relatorio_id = relatorio_docente.pk)
+                    avaliacao_discente.delete()
+
+                    return Util.response_ok_no_message('Objeto excluído com sucesso.')
+                
+                except AvaliacaoDiscente.DoesNotExist:
+                    return Util.response_not_found('Não foi possível encontrar uma avaliacao_discente com o id fornecido.')
+                
+            return Util.response_bad_request('É necessário fornecer o id da avaliacao_discente que você deseja deletar em avaliacao_discente/{nome_relatorio}/{id_avaliacao_discente}/')
 
 class ProjetoPesquisaProducaoIntelectualView(APIView):
     permission_classes = [IsAuthenticated]
