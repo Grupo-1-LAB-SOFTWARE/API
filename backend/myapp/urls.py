@@ -77,11 +77,9 @@ urlpatterns = [
 
     path('projeto_pesquisa_producao_intelectual/<str:nome_relatorio>/<int:id_projeto_pesquisa_producao_intelectual>/', ProjetoPesquisaProducaoIntelectualView.as_view(), name='projeto_pesquisa_producao_intelectual/nome_relatorio/id_projeto_pesquisa_producao_intelectual'),
 
-    path('trabalho_completo_publicado_periodico_boletim_tecnico', TrabalhoCompletoPublicadoPeriodicoBoletimTecnicoView.as_view(), name='trabalho_completo_publicado_periodico_boletim_tecnico'),
+    path('trabalho_completo_publicado_periodico_boletim_tecnico/<str:nome_relatorio>/', TrabalhoCompletoPublicadoPeriodicoBoletimTecnicoView.as_view(), name='trabalho_completo_publicado_periodico_boletim_tecnico/nome_relatorio'),
 
-    path('trabalho_completo_publicado_periodico_boletim_tecnico/', TrabalhoCompletoPublicadoPeriodicoBoletimTecnicoView.as_view(), name='trabalho_completo_publicado_periodico_boletim_tecnico/'),
-
-    path('trabalho_completo_publicado_periodico_boletim_tecnico/<int:id>', TrabalhoCompletoPublicadoPeriodicoBoletimTecnicoView.as_view(), name='trabalho_completo_publicado_periodico_boletim_tecnico/id/'),
+    path('trabalho_completo_publicado_periodico_boletim_tecnico/<str:nome_relatorio>/<int:id_trabalho_completo_publicado_periodico_boletim_tecnico>', TrabalhoCompletoPublicadoPeriodicoBoletimTecnicoView.as_view(), name='trabalho_completo_publicado_periodico_boletim_tecnico/nome_relatorio/id_trabalho_completo_publicado_periodico_boletim_tecnico/'),
 
     path('livro_capitulo_verbete_publicado', LivroCapituloVerbetePublicadoView.as_view(), name='livro_capitulo_verbete_publicado'),
 

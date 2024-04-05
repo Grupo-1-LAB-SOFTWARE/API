@@ -1396,63 +1396,109 @@ class ProjetoPesquisaProducaoIntelectualView(APIView):
 class TrabalhoCompletoPublicadoPeriodicoBoletimTecnicoView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def get(self, request, id=None):
-        if id:
-            return self.getById(request, id)
+    def get(self, request, nome_relatorio=None, id_trabalho_completo_publicado_periodico_boletim_tecnico=None):
+        if nome_relatorio and id_trabalho_completo_publicado_periodico_boletim_tecnico:
+            return self.getById(request, nome_relatorio, id_trabalho_completo_publicado_periodico_boletim_tecnico)
         else:
-            return self.getAll(request)
-
-    def post(self, request):
-        serializer = TrabalhoCompletoPublicadoPeriodicoBoletimTecnicoSerializer(data=request.data)
-        if serializer.is_valid():
-            instance = serializer.save() 
-            return Util.response_created(f'id: {instance.pk}')
-        return Util.response_bad_request(serializer.errors)
-
-    def put(self, request, id=None):
-        if id is not None:
-            try:
-                instance = TrabalhoCompletoPublicadoPeriodicoBoletimTecnico.objects.get(pk=id)
-                data = request.data.copy()
-                if 'id' in data or 'relatorio_id' in data:
-                    return Util.response_unauthorized('Não é permitido atualizar nenhum id ou relatorio_id')
-
-                serializer = TrabalhoCompletoPublicadoPeriodicoBoletimTecnicoSerializer(instance, data=data, partial=True)
-                if serializer.is_valid():
-                    serializer.save()
+            return self.getAll(request, nome_relatorio)
+        
+    def getById(self, request, nome_relatorio=None, id_trabalho_completo_publicado_periodico_boletim_tecnico=None):
+        if nome_relatorio:
+            if id_trabalho_completo_publicado_periodico_boletim_tecnico:
+                try:
+                    usuario_id = request.user.id
+                    relatorio_docente = RelatorioDocente.objects.get(usuario_id = usuario_id, nome=nome_relatorio)
+                    instance = TrabalhoCompletoPublicadoPeriodicoBoletimTecnico.objects.get(relatorio_id=relatorio_docente.pk, pk=id_trabalho_completo_publicado_periodico_boletim_tecnico)
+                    serializer = TrabalhoCompletoPublicadoPeriodicoBoletimTecnicoSerializer(instance)
                     return Util.response_ok_no_message(serializer.data)
-                else:
-                    return Util.response_bad_request(serializer.errors)
+            
+                except RelatorioDocente.DoesNotExist:
+                    return Util.response_not_found('Não foi possível encontrar um relatorio_docente com o nome fornecido que seja pertencente ao usuário autenticado.')
 
-            except TrabalhoCompletoPublicadoPeriodicoBoletimTecnico.DoesNotExist:
-                return Util.response_not_found('Não foi possível encontrar um trabalho_completo_publicado_periodico_boletim_tecnico com o id fornecido.')
-
-        return Util.response_bad_request('É necessário fornecer o id do objeto que você deseja atualizar em trabalho_completo_publicado_periodico_boletim_tecnico/{id}/')
-
-    def getAll(self, request):
-        instances = TrabalhoCompletoPublicadoPeriodicoBoletimTecnico.objects.all()
-        serializer = TrabalhoCompletoPublicadoPeriodicoBoletimTecnicoSerializer(instances, many=True)
-        return Util.response_ok_no_message(serializer.data)
+                except TrabalhoCompletoPublicadoPeriodicoBoletimTecnico.DoesNotExist:
+                    return Util.response_not_found('Não foi possível encontrar uma trabalho_completo_publicado_periodico_boletim_tecnico com o id fornecido.')
+            
+            return Util.response_bad_request('É necessário fornecer o id da trabalho_completo_publicado_periodico_boletim_tecnico que você deseja ler em trabalho_completo_publicado_periodico_boletim_tecnico/{nome_relatorio}/{id_trabalho_completo_publicado_periodico_boletim_tecnico}/')
         
-    def getById(self, request, id=None):
-        if id:
+        return Util.response_bad_request('É necessário fornecer o nome do relatorio_docente do qual você deseja deseja ler os trabalho_completo_publicado_periodico_boletim_tecnicos em trabalho_completo_publicado_periodico_boletim_tecnico/{nome_relatorio}/{id_banca_examinadora}/')
+
+    def getAll(self, request, nome_relatorio=None):
+        if nome_relatorio:
             try:
-                instance = TrabalhoCompletoPublicadoPeriodicoBoletimTecnico.objects.get(pk=id)
-                serializer = TrabalhoCompletoPublicadoPeriodicoBoletimTecnicoSerializer(instance)
+                usuario_id = request.user.id
+                relatorio_docente = RelatorioDocente.objects.get(usuario_id = usuario_id, nome=nome_relatorio)
+                instances = TrabalhoCompletoPublicadoPeriodicoBoletimTecnico.objects.filter(relatorio_id=relatorio_docente.pk)
+                serializer = TrabalhoCompletoPublicadoPeriodicoBoletimTecnicoSerializer(instances, many=True)
                 return Util.response_ok_no_message(serializer.data)
-            except TrabalhoCompletoPublicadoPeriodicoBoletimTecnico.DoesNotExist:
-                return Util.response_not_found('Não foi possível encontrar um trabalho_completo_publicado_periodico_boletim_tecnico com o id fornecido')
-        return Util.response_bad_request('É necessário fornecer o id do objeto que você deseja ler em trabalho_completo_publicado_periodico_boletim_tecnico/{id}/')
-        
-    def delete(self, request, id=None):
-        if id:
+            
+            except RelatorioDocente.DoesNotExist:
+                    return Util.response_not_found('Não foi possível encontrar um relatorio_docente com o nome fornecido que seja pertencente ao usuário autenticado.')
+            
+        return Util.response_bad_request('É necessário fornecer o nome do relatorio_docente do qual você deseja ler as trabalho_completo_publicado_periodico_boletim_tecnico em trabalho_completo_publicado_periodico_boletim_tecnico/{nome_relatorio}/')
+    
+    def post(self, request, nome_relatorio=None):
+        if nome_relatorio:
             try:
-                instance = TrabalhoCompletoPublicadoPeriodicoBoletimTecnico.objects.get(pk=id)
-                instance.delete()
-                return Util.response_ok_no_message('Objeto excluído com sucesso.')
-            except TrabalhoCompletoPublicadoPeriodicoBoletimTecnico.DoesNotExist:
-                return Util.response_not_found('Não foi possível encontrar um trabalho_completo_publicado_periodico_boletim_tecnico com o id fornecido.')
-        return Util.response_bad_request('É necessário fornecer o id do objeto que você deseja excluir em trabalho_completo_publicado_periodico_boletim_tecnico/{id}/')
+                usuario_id = request.user.id
+                relatorio_docente = RelatorioDocente.objects.get(usuario_id=usuario_id, nome=nome_relatorio)
+
+                request.data['relatorio_id'] = relatorio_docente.pk
+                serializer = TrabalhoCompletoPublicadoPeriodicoBoletimTecnicoSerializer(data=request.data)
+                if serializer.is_valid():
+                    trabalho_completo_publicado_periodico_boletim_tecnico = serializer.save()
+                    return Util.response_created(f'id: {trabalho_completo_publicado_periodico_boletim_tecnico.pk}')
+                return Util.response_bad_request(serializer.errors)
+            
+            except RelatorioDocente.DoesNotExist:
+                return Util.response_not_found('Não foi possível encontrar um relatorio_docente com o nome fornecido que seja pertencente ao usuário autenticado.')
+            
+        return Util.response_bad_request('É necessário fornecer o nome do relatorio_docente no qual você deseja criar uma trabalho_completo_publicado_periodico_boletim_tecnico em trabalho_completo_publicado_periodico_boletim_tecnico/{nome_relatorio}/')
+    
+    def put(self, request, nome_relatorio=None, id_trabalho_completo_publicado_periodico_boletim_tecnico=None):
+        if nome_relatorio:
+            if id_trabalho_completo_publicado_periodico_boletim_tecnico:
+                try:
+                    usuario_id = request.user.id
+                    relatorio_docente = RelatorioDocente.objects.get(usuario_id = usuario_id, nome = nome_relatorio)
+
+                    trabalho_completo_publicado_periodico_boletim_tecnico = TrabalhoCompletoPublicadoPeriodicoBoletimTecnico.objects.get(pk=id_trabalho_completo_publicado_periodico_boletim_tecnico, relatorio_id = relatorio_docente.pk)
+
+                    data = request.data.copy()
+                    if 'id' in data or 'relatorio_id' in data:
+                        return Util.response_unauthorized('Não é permitido atualizar nenhum id ou relatorio_id')
+
+                    serializer = TrabalhoCompletoPublicadoPeriodicoBoletimTecnicoSerializer(trabalho_completo_publicado_periodico_boletim_tecnico, data=data, partial=True)
+                    if serializer.is_valid():
+                        trabalho_completo_publicado_periodico_boletim_tecnico = serializer.save()
+                        return Util.response_ok_no_message(serializer.data)
+                    else:
+                        return Util.response_bad_request(serializer.errors)
+                    
+                except RelatorioDocente.DoesNotExist:
+                    return Util.response_not_found('Não foi possível encontrar um relatorio_docente com o nome fornecido que seja pertencente ao usuário autenticado.')
+
+                except TrabalhoCompletoPublicadoPeriodicoBoletimTecnico.DoesNotExist:
+                    return Util.response_not_found('Não foi possível encontrar uma trabalho_completo_publicado_periodico_boletim_tecnico com o id fornecido.')
+                
+            return Util.response_bad_request('É necessário fornecer o id da trabalho_completo_publicado_periodico_boletim_tecnico que você deseja atualizar em trabalho_completo_publicado_periodico_boletim_tecnico/{nome_relatorio}/{id_trabalho_completo_publicado_periodico_boletim_tecnico}/')
+        
+        return Util.response_bad_request('É necessário fornecer o nome do relatorio_docente no qual você deseja atualizar uma trabalho_completo_publicado_periodico_boletim_tecnico em trabalho_completo_publicado_periodico_boletim_tecnico/{nome_relatorio}/{id_trabalho_completo_publicado_periodico_boletim_tecnico}/')
+    
+    def delete(self, request, nome_relatorio=None, id_trabalho_completo_publicado_periodico_boletim_tecnico=None):
+        if nome_relatorio:
+            if id_trabalho_completo_publicado_periodico_boletim_tecnico:
+                try:
+                    usuario_id = request.user.id
+                    relatorio_docente = RelatorioDocente.objects.get(usuario_id=usuario_id, nome=nome_relatorio)
+                    trabalho_completo_publicado_periodico_boletim_tecnico = TrabalhoCompletoPublicadoPeriodicoBoletimTecnico.objects.get(pk=id_trabalho_completo_publicado_periodico_boletim_tecnico, relatorio_id = relatorio_docente.pk)
+                    trabalho_completo_publicado_periodico_boletim_tecnico.delete()
+
+                    return Util.response_ok_no_message('Objeto excluído com sucesso.')
+                
+                except BancaExaminadora.DoesNotExist:
+                    return Util.response_not_found('Não foi possível encontrar uma trabalho_completo_publicado_periodico_boletim_tecnico com o id fornecido.')
+                
+            return Util.response_bad_request('É necessário fornecer o id da trabalho_completo_publicado_periodico_boletim_tecnico que você deseja deletar em trabalho_completo_publicado_periodico_boletim_tecnico/{nome_relatorio}/{id_trabalho_completo_publicado_periodico_boletim_tecnico}/')
 
 class LivroCapituloVerbetePublicadoView(APIView):
     permission_classes = [IsAuthenticated]
