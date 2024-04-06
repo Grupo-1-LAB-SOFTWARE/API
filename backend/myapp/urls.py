@@ -107,11 +107,9 @@ urlpatterns = [
 
     path('estagio_extensao/<str:nome_relatorio>/<int:id>', EstagioExtensaoView.as_view(), name='estagio_extensao/nome_relatorio/id_estagio_extensao/'),
 
-    path('atividade_ensino_nao_formal', AtividadeEnsinoNaoFormalView.as_view(), name='atividade_ensino_nao_formal'),
-
-    path('atividade_ensino_nao_formal/', AtividadeEnsinoNaoFormalView.as_view(), name='atividade_ensino_nao_formal/'),
+    path('atividade_ensino_nao_formal/<str:nome_relatorio>/', AtividadeEnsinoNaoFormalView.as_view(), name='atividade_ensino_nao_formal/nome_relatorio'),
     
-    path('atividade_ensino_nao_formal/<int:id>/', AtividadeEnsinoNaoFormalView.as_view(), name='atividade_ensino_nao_formal/id/'),
+    path('atividade_ensino_nao_formal/<str:nome_relatorio>/<int:id>/', AtividadeEnsinoNaoFormalView.as_view(), name='atividade_ensino_nao_formal/nome_relatorio/id_atividade_ensino_nao_formal/'),
 
     path('outra_atividade_extensao', OutraAtividadeExtensaoView.as_view(), name='outra_atividade_extensao'),
 
