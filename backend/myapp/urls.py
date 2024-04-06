@@ -99,11 +99,9 @@ urlpatterns = [
 
     path('ch_semanal_atividades_pesquisa/<int:id>/', CHSemanalAtividadesPesquisaView.as_view(), name='ch_semanal_atividades_pesquisa/id/'),
 
-    path('projeto_extensao', ProjetoExtensaoView.as_view(), name='projeto_extensao'),
+    path('projeto_extensao/<str:nome_relatorio>/', ProjetoExtensaoView.as_view(), name='projeto_extensao/nome_relatorio'),
 
-    path('projeto_extensao/', ProjetoExtensaoView.as_view(), name='projeto_extensao/'),
-
-    path('projeto_extensao/<int:id>/', ProjetoExtensaoView.as_view(), name='projeto_extensao/id/'),
+    path('projeto_extensao/<str:nome_relatorio>/<int:id>/', ProjetoExtensaoView.as_view(), name='projeto_extensao/nome_relatorio/id_projeto_extensao/'),
 
     path('estagio_extensao', EstagioExtensaoView.as_view(), name='estagio_extensao'),
     
