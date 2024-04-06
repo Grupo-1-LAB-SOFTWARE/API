@@ -134,12 +134,10 @@ urlpatterns = [
     path('qualificacao_docente_academica_profissional/<str:nome_relatorio>/', QualificacaoDocenteAcademicaProfissionalView.as_view(), name='qualificacao_docente_academica_profissional/nome_relatorio'),
 
     path('qualificacao_docente_academica_profissional/<str:nome_relatorio>/<int:id>/', QualificacaoDocenteAcademicaProfissionalView.as_view(), name='qualificacao_docente_academica_profissional/nome_relatorio/id_qualificacao_docente_academica_profisional/'),
-
-    path('outra_informacao', OutraInformacaoView.as_view(), name='outra_informacao'),
     
-    path('outra_informacao/', OutraInformacaoView.as_view(), name='outra_informacao/'),
+    path('outra_informacao/<str:nome_relatorio>/', OutraInformacaoView.as_view(), name='outra_informacao/nome_relatorio'),
 
-    path('outra_informacao/<int:id>/', OutraInformacaoView.as_view(), name='outra_informacao/id/'),
+    path('outra_informacao/<str:nome_relatorio>/<int:id>/', OutraInformacaoView.as_view(), name='outra_informacao/nome_relatorio/id_outra_informacao/'),
 
     path('afastamento', AfastamentoView.as_view(), name='afastamento'),
     
