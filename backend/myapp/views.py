@@ -1893,31 +1893,6 @@ class OutraAtividadePesquisaProducaoIntelectualView(APIView):
             return Util.response_bad_request('É necessário fornecer o id da outra_atividade_pesquisa_producao_intelectual que você deseja deletar em outra_atividade_pesquisa_producao_intelectual/{nome_relatorio}/{id_outra_atividade_pesquisa_producao_intelectual}/')
 
 
-    def getAll(self, request):
-        instances = OutraAtividadePesquisaProducaoIntelectual.objects.all()
-        serializer = OutraAtividadePesquisaProducaoIntelectualSerializer(instances, many=True)
-        return Util.response_ok_no_message(serializer.data)
-        
-    def getById(self, request, id=None):
-        if id:
-            try:
-                instance = OutraAtividadePesquisaProducaoIntelectual.objects.get(pk=id)
-                serializer = OutraAtividadePesquisaProducaoIntelectualSerializer(instance)
-                return Util.response_ok_no_message(serializer.data)
-            except OutraAtividadePesquisaProducaoIntelectual.DoesNotExist:
-                return Util.response_not_found('Não foi possível encontrar uma outra_atividade_pesquisa_producao_intelectual com o id fornecido')
-        return Util.response_bad_request('É necessário fornecer o id do objeto que você deseja ler em outra_atividade_pesquisa_producao_intelectual/{id}/')
-        
-    def delete(self, request, id=None):
-        if id:
-            try:
-                instance = OutraAtividadePesquisaProducaoIntelectual.objects.get(pk=id)
-                instance.delete()
-                return Util.response_ok_no_message('Objeto excluído com sucesso.')
-            except OutraAtividadePesquisaProducaoIntelectual.DoesNotExist:
-                return Util.response_not_found('Não foi possível encontrar uma outra_atividade_pesquisa_producao_intelectual com o id fornecido.')
-        return Util.response_bad_request('É necessário fornecer o id do objeto que você deseja excluir em outra_atividade_pesquisa_producao_intelectual/{id}/')
-
 
 class CHSemanalAtividadesPesquisaView(APIView):
     permission_classes = [IsAuthenticated]
