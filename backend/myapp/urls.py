@@ -127,11 +127,9 @@ urlpatterns = [
 
     path('distribuicao_ch_semanal/<int:id>/', DistribuicaoCHSemanalView.as_view(), name='distribuicao_ch_semanal/id/'),
 
-    path('atividade_gestao_representacao', AtividadeGestaoRepresentacaoView.as_view(), name='atividade_gestao_representacao'),
+    path('atividade_gestao_representacao/<str:nome_relatorio>/', AtividadeGestaoRepresentacaoView.as_view(), name='atividade_gestao_representacao/nome_relatorio'),
 
-    path('atividade_gestao_representacao/', AtividadeGestaoRepresentacaoView.as_view(), name='atividade_gestao_representacao/'),
-
-    path('atividade_gestao_representacao/<int:id>/', AtividadeGestaoRepresentacaoView.as_view(), name='atividade_gestao_representacao/id/'),
+    path('atividade_gestao_representacao/<str:nome_relatorio>/<int:id>/', AtividadeGestaoRepresentacaoView.as_view(), name='atividade_gestao_representacao/nome_relatorio/id_atividade_gestao_representacao/'),
     
     path('qualificacao_docente_academica_profissional', QualificacaoDocenteAcademicaProfissionalView.as_view(), name='qualificacao_docente_academica_profissional'),
     

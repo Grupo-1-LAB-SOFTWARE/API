@@ -2613,38 +2613,118 @@ class DistribuicaoCHSemanalView(APIView):
 class AtividadeGestaoRepresentacaoView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def get(self, request, id=None):
-        if id:
-            return self.getById(request, id)
+    def get(self, request, nome_relatorio=None, id_atividade_gestao_representacao=None):
+        if nome_relatorio and id_atividade_gestao_representacao:
+            return self.getById(request, nome_relatorio, id_atividade_gestao_representacao)
         else:
-            return self.getAll(request)
-
-    def post(self, request):
-        serializer = AtividadeGestaoRepresentacaoSerializer(data=request.data)
-        if serializer.is_valid():
-            instance = serializer.save() 
-            return Util.response_created(f'id: {instance.pk}')
-        return Util.response_bad_request(serializer.errors)
-
-    def put(self, request, id=None):
-        if id is not None:
-            try:
-                instance = AtividadeGestaoRepresentacao.objects.get(pk=id)
-                data = request.data.copy()
-                if 'id' in data or 'relatorio_id' in data:
-                    return Util.response_unauthorized('Não é permitido atualizar nenhum id ou relatorio_id')
-
-                serializer = AtividadeGestaoRepresentacaoSerializer(instance, data=data, partial=True)
-                if serializer.is_valid():
-                    serializer.save()
+            return self.getAll(request, nome_relatorio)
+       
+    def getById(self, request, nome_relatorio=None, id_atividade_gestao_representacao=None):
+        if nome_relatorio:
+            if id_atividade_gestao_representacao:
+                try:
+                    usuario_id = request.user.id
+                    relatorio_docente = RelatorioDocente.objects.get(usuario_id = usuario_id, nome=nome_relatorio)
+                    instance = AtividadeGestaoRepresentacaoSerializer.objects.get(relatorio_id=relatorio_docente.pk, pk=id_atividade_gestao_representacao)
+                    serializer = AtividadeGestaoRepresentacaoSerializer(instance)
                     return Util.response_ok_no_message(serializer.data)
-                else:
-                    return Util.response_bad_request(serializer.errors)
+           
+                except RelatorioDocente.DoesNotExist:
+                    return Util.response_not_found('Não foi possível encontrar um relatorio_docente com o nome fornecido que seja pertencente ao usuário autenticado.')
 
-            except AtividadeGestaoRepresentacao.DoesNotExist:
-                return Util.response_not_found('Não foi possível encontrar uma atividade_gestao_representacao com o id fornecido.')
 
-        return Util.response_bad_request('É necessário fornecer o id do objeto que você deseja atualizar em atividade_gestao_representacao/{id}/')
+                except AtividadeGestaoRepresentacao.DoesNotExist:
+                    return Util.response_not_found('Não foi possível encontrar uma atividade_gestao_representacao com o id fornecido.')
+           
+            return Util.response_bad_request('É necessário fornecer o id da atividade_gestao_representacao que você deseja ler em atividade_gestao_representacao/{nome_relatorio}/{id_atividade_gestao_representacao}/')
+       
+        return Util.response_bad_request('É necessário fornecer o nome do relatorio_docente do qual você deseja deseja ler os atividade_gestao_representacao em atividade_gestao_representacao/{nome_relatorio}/{id_atividade_gestao_representacao}/')
+
+
+    def getAll(self, request, nome_relatorio=None):
+        if nome_relatorio:
+            try:
+                usuario_id = request.user.id
+                relatorio_docente = RelatorioDocente.objects.get(usuario_id = usuario_id, nome=nome_relatorio)
+                instances = AtividadeGestaoRepresentacao.objects.filter(relatorio_id=relatorio_docente.pk)
+                serializer = AtividadeGestaoRepresentacaoSerializer(instances, many=True)
+                return Util.response_ok_no_message(serializer.data)
+           
+            except RelatorioDocente.DoesNotExist:
+                    return Util.response_not_found('Não foi possível encontrar um relatorio_docente com o nome fornecido que seja pertencente ao usuário autenticado.')
+           
+        return Util.response_bad_request('É necessário fornecer o nome do relatorio_docente do qual você deseja ler as atividade_gestao_representacao em atividade_gestao_representacao/{nome_relatorio}/')
+   
+    def post(self, request, nome_relatorio=None):
+        if nome_relatorio:
+            try:
+                usuario_id = request.user.id
+                relatorio_docente = RelatorioDocente.objects.get(usuario_id=usuario_id, nome=nome_relatorio)
+
+
+                request.data['relatorio_id'] = relatorio_docente.pk
+                serializer = AtividadeGestaoRepresentacaoSerializer(data=request.data)
+                if serializer.is_valid():
+                    atividade_gestao_representacao = serializer.save()
+                    return Util.response_created(f'id: {atividade_gestao_representacao.pk}')
+                return Util.response_bad_request(serializer.errors)
+           
+            except RelatorioDocente.DoesNotExist:
+                return Util.response_not_found('Não foi possível encontrar um relatorio_docente com o nome fornecido que seja pertencente ao usuário autenticado.')
+           
+        return Util.response_bad_request('É necessário fornecer o nome do relatorio_docente no qual você deseja criar uma atividade_gestao_representacao em atividade_gestao_representacao/{nome_relatorio}/')
+   
+    def put(self, request, nome_relatorio=None, id_atividade_gestao_representacao=None):
+        if nome_relatorio:
+            if id_atividade_gestao_representacao:
+                try:
+                    usuario_id = request.user.id
+                    relatorio_docente = RelatorioDocente.objects.get(usuario_id = usuario_id, nome = nome_relatorio)
+
+
+                    atividade_gestao_representacao = AtividadeGestaoRepresentacao.objects.get(pk=id_atividade_gestao_representacao, relatorio_id = relatorio_docente.pk)
+
+
+                    data = request.data.copy()
+                    if 'id' in data or 'relatorio_id' in data:
+                        return Util.response_unauthorized('Não é permitido atualizar nenhum id ou relatorio_id')
+
+
+                    serializer = AtividadeGestaoRepresentacaoSerializer(atividade_gestao_representacao, data=data, partial=True)
+                    if serializer.is_valid():
+                        atividade_gestao_representacao = serializer.save()
+                        return Util.response_ok_no_message(serializer.data)
+                    else:
+                        return Util.response_bad_request(serializer.errors)
+                   
+                except RelatorioDocente.DoesNotExist:
+                    return Util.response_not_found('Não foi possível encontrar um relatorio_docente com o nome fornecido que seja pertencente ao usuário autenticado.')
+
+
+                except AtividadeGestaoRepresentacao.DoesNotExist:
+                    return Util.response_not_found('Não foi possível encontrar uma atividade_gestao_representacao com o id fornecido.')
+               
+            return Util.response_bad_request('É necessário fornecer o id da atividade_gestao_representacaoo que você deseja atualizar em atividade_gestao_representacao/{nome_relatorio}/{id_atividade_gestao_representacao}/')
+       
+        return Util.response_bad_request('É necessário fornecer o nome do relatorio_docente no qual você deseja atualizar uma atividade_gestao_representacao em atividade_gestao_representacao/{nome_relatorio}/{id_atividade_gestao_representacao}/')
+   
+    def delete(self, request, nome_relatorio=None, id_atividade_gestao_representacao=None):
+        if atividade_gestao_representacao:
+            if id_atividade_gestao_representacao:
+                try:
+                    usuario_id = request.user.id
+                    relatorio_docente = RelatorioDocente.objects.get(usuario_id=usuario_id, nome=nome_relatorio)
+                    atividade_gestao_representacao = AtividadeGestaoRepresentacao.objects.get(pk=id_atividade_gestao_representacao, relatorio_id = relatorio_docente.pk)
+                    atividade_gestao_representacao.delete()
+
+
+                    return Util.response_ok_no_message('Objeto excluído com sucesso.')
+               
+                except AtividadeGestaoRepresentacao.DoesNotExist:
+                    return Util.response_not_found('Não foi possível encontrar uma atividade_gestao_representacao com o id fornecido.')
+               
+            return Util.response_bad_request('É necessário fornecer o id da atividade_gestao_representacao que você deseja deletar em atividade_gestao_representacao/{nome_relatorio}/{id_atividade_gestao_representacao}/')
+
 
     def getAll(self, request):
         instances = AtividadeGestaoRepresentacao.objects.all()
