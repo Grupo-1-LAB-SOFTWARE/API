@@ -2155,11 +2155,7 @@ class EstagioExtensaoView(APIView):
                 try:
                     usuario_id = request.user.id
                     relatorio_docente = RelatorioDocente.objects.get(usuario_id = usuario_id, nome = nome_relatorio)
-
-
                     estagio_extensao = EstagioExtensao.objects.get(pk=id_estagio_extensao, relatorio_id = relatorio_docente.pk)
-
-
                     data = request.data.copy()
                     if 'id' in data or 'relatorio_id' in data:
                         return Util.response_unauthorized('Não é permitido atualizar nenhum id ou relatorio_id')
@@ -2179,7 +2175,7 @@ class EstagioExtensaoView(APIView):
                 except EstagioExtensao.DoesNotExist:
                     return Util.response_not_found('Não foi possível encontrar um estagio_extensao com o id fornecido.')
                
-            return Util.response_bad_request('É necessário fornecer o id da estagio_extensaoo que você deseja atualizar em estagio_extensao/{nome_relatorio}/{id_estagio_extensao}/')
+            return Util.response_bad_request('É necessário fornecer o id da estagio_extensao que você deseja atualizar em estagio_extensao/{nome_relatorio}/{id_estagio_extensao}/')
        
         return Util.response_bad_request('É necessário fornecer o nome do relatorio_docente no qual você deseja atualizar uma estagio_extensao em estagio_extensao/{nome_relatorio}/{id_estagio_extensao}/')
    

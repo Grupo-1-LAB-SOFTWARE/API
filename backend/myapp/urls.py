@@ -131,7 +131,7 @@ urlpatterns = [
     
     path('qualificacao_docente_academica_profissional/<str:nome_relatorio>/', QualificacaoDocenteAcademicaProfissionalView.as_view(), name='qualificacao_docente_academica_profissional/nome_relatorio/'),
 
-    path('qualificacao_docente_academica_profissional/<str:nome_relatorio>/<int:id_qualificacao_docente_academica_profisional>/', QualificacaoDocenteAcademicaProfissionalView.as_view(), name='qualificacao_docente_academica_profissional/nome_relatorio/id_qualificacao_docente_academica_profisional/'),
+    path('qualificacao_docente_academica_profissional/<str:nome_relatorio>/<int:id_qualificacao_docente_academica_profissional>/', QualificacaoDocenteAcademicaProfissionalView.as_view(), name='qualificacao_docente_academica_profissional/nome_relatorio/id_qualificacao_docente_academica_profisional/'),
     
     path('outra_informacao/<str:nome_relatorio>/', OutraInformacaoView.as_view(), name='outra_informacao/nome_relatorio/'),
 
