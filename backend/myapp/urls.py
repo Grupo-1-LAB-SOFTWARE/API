@@ -138,12 +138,10 @@ urlpatterns = [
     path('outra_informacao/<str:nome_relatorio>/', OutraInformacaoView.as_view(), name='outra_informacao/nome_relatorio'),
 
     path('outra_informacao/<str:nome_relatorio>/<int:id>/', OutraInformacaoView.as_view(), name='outra_informacao/nome_relatorio/id_outra_informacao/'),
-
-    path('afastamento', AfastamentoView.as_view(), name='afastamento'),
     
-    path('afastamento/', AfastamentoView.as_view(), name='afastamento/'),
+    path('afastamento/<str:nome_relatorio>/', AfastamentoView.as_view(), name='afastamento/nome_relatorio'),
 
-    path('afastamento/<int:id>/', AfastamentoView.as_view(), name='afastamento/id/'),
+    path('afastamento/<str:nome_relatorio>/<int:id>/', AfastamentoView.as_view(), name='afastamento/nome_relatorio/id_afastamento/'),
 
     path('documento_comprobatorio', DocumentoComprobatorioView.as_view(), name='documento_comprobatorio'),
     

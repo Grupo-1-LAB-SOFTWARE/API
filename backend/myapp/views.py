@@ -2987,63 +2987,118 @@ class OutraInformacaoView(APIView):
 class AfastamentoView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def get(self, request, id=None):
-        if id:
-            return self.getById(request, id)
+    def get(self, request, nome_relatorio=None, id_afastamento=None):
+        if nome_relatorio and id_afastamento:
+            return self.getById(request, nome_relatorio, id_afastamento)
         else:
-            return self.getAll(request)
-
-    def post(self, request):
-        serializer = AfastamentoSerializer(data=request.data)
-        if serializer.is_valid():
-            instance = serializer.save() 
-            return Util.response_created(f'id: {instance.pk}')
-        return Util.response_bad_request(serializer.errors)
-
-    def put(self, request, id=None):
-        if id is not None:
-            try:
-                instance = Afastamento.objects.get(pk=id)
-                data = request.data.copy()
-                if 'id' in data or 'relatorio_id' in data:
-                    return Util.response_unauthorized('Não é permitido atualizar nenhum id ou relatorio_id')
-
-                serializer = AfastamentoSerializer(instance, data=data, partial=True)
-                if serializer.is_valid():
-                    serializer.save()
+            return self.getAll(request, nome_relatorio)
+       
+    def getById(self, request, nome_relatorio=None, id_afastamento=None):
+        if nome_relatorio:
+            if id_afastamento:
+                try:
+                    usuario_id = request.user.id
+                    relatorio_docente = RelatorioDocente.objects.get(usuario_id = usuario_id, nome=nome_relatorio)
+                    instance = AfastamentoSerializer.objects.get(relatorio_id=relatorio_docente.pk, pk=id_afastamento)
+                    serializer = AfastamentoSerializer(instance)
                     return Util.response_ok_no_message(serializer.data)
-                else:
-                    return Util.response_bad_request(serializer.errors)
+           
+                except RelatorioDocente.DoesNotExist:
+                    return Util.response_not_found('Não foi possível encontrar um relatorio_docente com o nome fornecido que seja pertencente ao usuário autenticado.')
 
-            except Afastamento.DoesNotExist:
-                return Util.response_not_found('Não foi possível encontrar um afastamento com o id fornecido.')
 
-        return Util.response_bad_request('É necessário fornecer o id do objeto que você deseja atualizar em afastamento/{id}/')
+                except Afastamento.DoesNotExist:
+                    return Util.response_not_found('Não foi possível encontrar uma afastamento com o id fornecido.')
+           
+            return Util.response_bad_request('É necessário fornecer o id da afastamento que você deseja ler em afastamento/{nome_relatorio}/{id_afastamento}/')
+       
+        return Util.response_bad_request('É necessário fornecer o nome do relatorio_docente do qual você deseja deseja ler os afastamento em afastamento/{nome_relatorio}/{id_afastamento}/')
 
-    def getAll(self, request):
-        instances = Afastamento.objects.all()
-        serializer = AfastamentoSerializer(instances, many=True)
-        return Util.response_ok_no_message(serializer.data)
 
-    def getById(self, request, id=None):
-        if id:
+    def getAll(self, request, nome_relatorio=None):
+        if nome_relatorio:
             try:
-                instance = Afastamento.objects.get(pk=id)
-                serializer = AfastamentoSerializer(instance)
+                usuario_id = request.user.id
+                relatorio_docente = RelatorioDocente.objects.get(usuario_id = usuario_id, nome=nome_relatorio)
+                instances = Afastamento.objects.filter(relatorio_id=relatorio_docente.pk)
+                serializer = AfastamentoSerializer(instances, many=True)
                 return Util.response_ok_no_message(serializer.data)
-            except Afastamento.DoesNotExist:
-                return Util.response_not_found('Não foi possível encontrar um afastamento com o id fornecido')
-        return Util.response_bad_request('É necessário fornecer o id do objeto que você deseja ler em afastamento/{id}/')
-        
-    def delete(self, request, id=None):
-        if id:
+           
+            except RelatorioDocente.DoesNotExist:
+                    return Util.response_not_found('Não foi possível encontrar um relatorio_docente com o nome fornecido que seja pertencente ao usuário autenticado.')
+           
+        return Util.response_bad_request('É necessário fornecer o nome do relatorio_docente do qual você deseja ler as afastamento em afastamento/{nome_relatorio}/')
+   
+    def post(self, request, nome_relatorio=None):
+        if nome_relatorio:
             try:
-                instance = Afastamento.objects.get(pk=id)
-                instance.delete()
-                return Util.response_ok_no_message('Objeto excluído com sucesso.')
-            except Afastamento.DoesNotExist:
-                return Util.response_not_found('Não foi possível encontrar um afastamento com o id fornecido.')
-        return Util.response_bad_request('É necessário fornecer o id do objeto que você deseja excluir em afastamento/{id}/')
+                usuario_id = request.user.id
+                relatorio_docente = RelatorioDocente.objects.get(usuario_id=usuario_id, nome=nome_relatorio)
+
+
+                request.data['relatorio_id'] = relatorio_docente.pk
+                serializer = AfastamentoSerializer(data=request.data)
+                if serializer.is_valid():
+                    afastamento = serializer.save()
+                    return Util.response_created(f'id: {afastamento.pk}')
+                return Util.response_bad_request(serializer.errors)
+           
+            except RelatorioDocente.DoesNotExist:
+                return Util.response_not_found('Não foi possível encontrar um relatorio_docente com o nome fornecido que seja pertencente ao usuário autenticado.')
+           
+        return Util.response_bad_request('É necessário fornecer o nome do relatorio_docente no qual você deseja criar uma afastamento em afastamento/{nome_relatorio}/')
+   
+    def put(self, request, nome_relatorio=None, id_afastamento=None):
+        if nome_relatorio:
+            if id_afastamento:
+                try:
+                    usuario_id = request.user.id
+                    relatorio_docente = RelatorioDocente.objects.get(usuario_id = usuario_id, nome = nome_relatorio)
+
+
+                    afastamento = Afastamento.objects.get(pk=id_afastamento, relatorio_id = relatorio_docente.pk)
+
+
+                    data = request.data.copy()
+                    if 'id' in data or 'relatorio_id' in data:
+                        return Util.response_unauthorized('Não é permitido atualizar nenhum id ou relatorio_id')
+
+
+                    serializer = AfastamentoSerializer(afastamento, data=data, partial=True)
+                    if serializer.is_valid():
+                        afastamento = serializer.save()
+                        return Util.response_ok_no_message(serializer.data)
+                    else:
+                        return Util.response_bad_request(serializer.errors)
+                   
+                except RelatorioDocente.DoesNotExist:
+                    return Util.response_not_found('Não foi possível encontrar um relatorio_docente com o nome fornecido que seja pertencente ao usuário autenticado.')
+
+
+                except Afastamento.DoesNotExist:
+                    return Util.response_not_found('Não foi possível encontrar uma afastamento com o id fornecido.')
+               
+            return Util.response_bad_request('É necessário fornecer o id da afastamentoo que você deseja atualizar em afastamento/{nome_relatorio}/{id_afastamento}/')
+       
+        return Util.response_bad_request('É necessário fornecer o nome do relatorio_docente no qual você deseja atualizar uma afastamento em afastamento/{nome_relatorio}/{id_afastamento}/')
+   
+    def delete(self, request, nome_relatorio=None, id_afastamento=None):
+        if afastamento:
+            if id_afastamento:
+                try:
+                    usuario_id = request.user.id
+                    relatorio_docente = RelatorioDocente.objects.get(usuario_id=usuario_id, nome=nome_relatorio)
+                    afastamento = Afastamento.objects.get(pk=id_afastamento, relatorio_id = relatorio_docente.pk)
+                    afastamento.delete()
+
+
+                    return Util.response_ok_no_message('Objeto excluído com sucesso.')
+               
+                except Afastamento.DoesNotExist:
+                    return Util.response_not_found('Não foi possível encontrar uma afastamento com o id fornecido.')
+               
+            return Util.response_bad_request('É necessário fornecer o id da afastamento que você deseja deletar em afastamento/{nome_relatorio}/{id_afastamento}/')
+
     
 class DocumentoComprobatorioView(APIView):
     permission_classes = [IsAuthenticated]
