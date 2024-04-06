@@ -1482,7 +1482,7 @@ class TrabalhoCompletoPublicadoPeriodicoBoletimTecnicoView(APIView):
             
             return Util.response_bad_request('É necessário fornecer o id da trabalho_completo_publicado_periodico_boletim_tecnico que você deseja ler em trabalho_completo_publicado_periodico_boletim_tecnico/{nome_relatorio}/{id_trabalho_completo_publicado_periodico_boletim_tecnico}/')
         
-        return Util.response_bad_request('É necessário fornecer o nome do relatorio_docente do qual você deseja deseja ler os trabalho_completo_publicado_periodico_boletim_tecnicos em trabalho_completo_publicado_periodico_boletim_tecnico/{nome_relatorio}/{id_banca_examinadora}/')
+        return Util.response_bad_request('É necessário fornecer o nome do relatorio_docente do qual você deseja deseja ler os trabalho_completo_publicado_periodico_boletim_tecnicos em trabalho_completo_publicado_periodico_boletim_tecnico/{nome_relatorio}/{trabalho_completo_publicado_periodico_boletim_tecnico}/')
 
     def getAll(self, request, nome_relatorio=None):
         if nome_relatorio:
@@ -1557,7 +1557,7 @@ class TrabalhoCompletoPublicadoPeriodicoBoletimTecnicoView(APIView):
 
                     return Util.response_ok_no_message('Objeto excluído com sucesso.')
                 
-                except BancaExaminadora.DoesNotExist:
+                except TrabalhoCompletoPublicadoPeriodicoBoletimTecnico.DoesNotExist:
                     return Util.response_not_found('Não foi possível encontrar uma trabalho_completo_publicado_periodico_boletim_tecnico com o id fornecido.')
                 
             return Util.response_bad_request('É necessário fornecer o id da trabalho_completo_publicado_periodico_boletim_tecnico que você deseja deletar em trabalho_completo_publicado_periodico_boletim_tecnico/{nome_relatorio}/{id_trabalho_completo_publicado_periodico_boletim_tecnico}/')
@@ -1659,7 +1659,7 @@ class LivroCapituloVerbetePublicadoView(APIView):
                 try:
                     usuario_id = request.user.id
                     relatorio_docente = RelatorioDocente.objects.get(usuario_id=usuario_id, nome=nome_relatorio)
-                    livro_capitulo_verbete_publicado = BancaExaminadora.objects.get(pk=id_livro_capitulo_verbete_publicado, relatorio_id = relatorio_docente.pk)
+                    livro_capitulo_verbete_publicado = LivroCapituloVerbetePublicado.objects.get(pk=id_livro_capitulo_verbete_publicado, relatorio_id = relatorio_docente.pk)
                     livro_capitulo_verbete_publicado.delete()
 
                     return Util.response_ok_no_message('Objeto excluído com sucesso.')
@@ -1754,9 +1754,9 @@ class TrabalhoCompletoResumoPublicadoApresentadoCongressosView(APIView):
                     return Util.response_not_found('Não foi possível encontrar um relatorio_docente com o nome fornecido que seja pertencente ao usuário autenticado.')
 
                 except TrabalhoCompletoResumoPublicadoApresentadoCongressos.DoesNotExist:
-                    return Util.response_not_found('Não foi possível encontrar uma banca_examinadora com o id fornecido.')
+                    return Util.response_not_found('Não foi possível encontrar uma trabalho_completo_publicado_periodico_boletim_tecnico com o id fornecido.')
                 
-            return Util.response_bad_request('É necessário fornecer o id da banca_examinadora que você deseja atualizar em trabalho_completo_resumo_publicado_apresentado_congressos/{nome_relatorio}/{id_trabalho_completo_resumo_publicado_apresentado_congressos}/')
+            return Util.response_bad_request('É necessário fornecer o id da trabalho_completo_publicado_periodico_boletim_tecnico que você deseja atualizar em trabalho_completo_resumo_publicado_apresentado_congressos/{nome_relatorio}/{id_trabalho_completo_resumo_publicado_apresentado_congressos}/')
         
         return Util.response_bad_request('É necessário fornecer o nome do relatorio_docente no qual você deseja atualizar uma trabalho_completo_resumo_publicado_apresentado_congressos em trabalho_completo_resumo_publicado_apresentado_congressos/{nome_relatorio}/{id_trabalho_completo_resumo_publicado_apresentado_congressos}/')
     
@@ -2113,63 +2113,118 @@ class ProjetoExtensaoView(APIView):
 class EstagioExtensaoView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def get(self, request, id=None):
-        if id:
-            return self.getById(request, id)
+    def get(self, request, nome_relatorio=None, id_estagio_extensao=None):
+        if nome_relatorio and id_estagio_extensao:
+            return self.getById(request, nome_relatorio, id_estagio_extensao)
         else:
-            return self.getAll(request)
-
-    def post(self, request):
-        serializer = EstagioExtensaoSerializer(data=request.data)
-        if serializer.is_valid():
-            instance = serializer.save() 
-            return Util.response_created(f'id: {instance.pk}')
-        return Util.response_bad_request(serializer.errors)
-
-    def put(self, request, id=None):
-        if id is not None:
-            try:
-                instance = EstagioExtensao.objects.get(pk=id)
-                data = request.data.copy()
-                if 'id' in data or 'relatorio_id' in data:
-                    return Util.response_unauthorized('Não é permitido atualizar nenhum id ou relatorio_id')
-
-                serializer = EstagioExtensaoSerializer(instance, data=data, partial=True)
-                if serializer.is_valid():
-                    serializer.save()
+            return self.getAll(request, nome_relatorio)
+       
+    def getById(self, request, nome_relatorio=None, id_estagio_extensao=None):
+        if nome_relatorio:
+            if id_estagio_extensao:
+                try:
+                    usuario_id = request.user.id
+                    relatorio_docente = RelatorioDocente.objects.get(usuario_id = usuario_id, nome=nome_relatorio)
+                    instance = EstagioExtensaoSerializer.objects.get(relatorio_id=relatorio_docente.pk, pk=id_estagio_extensao)
+                    serializer = EstagioExtensaoSerializer(instance)
                     return Util.response_ok_no_message(serializer.data)
-                else:
-                    return Util.response_bad_request(serializer.errors)
+           
+                except RelatorioDocente.DoesNotExist:
+                    return Util.response_not_found('Não foi possível encontrar um relatorio_docente com o nome fornecido que seja pertencente ao usuário autenticado.')
 
-            except EstagioExtensao.DoesNotExist:
-                return Util.response_not_found('Não foi possível encontrar um estagio_extensao com o id fornecido.')
 
-        return Util.response_bad_request('É necessário fornecer o id do objeto que você deseja atualizar em estagio_extensao/{id}/')
+                except EstagioExtensao.DoesNotExist:
+                    return Util.response_not_found('Não foi possível encontrar uma estagio_extensao com o id fornecido.')
+           
+            return Util.response_bad_request('É necessário fornecer o id da estagio_extensao que você deseja ler em estagio_extensao/{nome_relatorio}/{id_estagio_extensao}/')
+       
+        return Util.response_bad_request('É necessário fornecer o nome do relatorio_docente do qual você deseja deseja ler os estagio_extensao em estagio_extensao/{nome_relatorio}/{id_estagio_extensao}/')
 
-    def getAll(self, request):
-        instances = EstagioExtensao.objects.all()
-        serializer = EstagioExtensaoSerializer(instances, many=True)
-        return Util.response_ok_no_message(serializer.data)
-        
-    def getById(self, request, id=None):
-        if id:
+
+    def getAll(self, request, nome_relatorio=None):
+        if nome_relatorio:
             try:
-                instance = EstagioExtensao.objects.get(pk=id)
-                serializer = EstagioExtensaoSerializer(instance)
+                usuario_id = request.user.id
+                relatorio_docente = RelatorioDocente.objects.get(usuario_id = usuario_id, nome=nome_relatorio)
+                instances = EstagioExtensao.objects.filter(relatorio_id=relatorio_docente.pk)
+                serializer = EstagioExtensaoSerializer(instances, many=True)
                 return Util.response_ok_no_message(serializer.data)
-            except EstagioExtensao.DoesNotExist:
-                return Util.response_not_found('Não foi possível encontrar um estagio_extensao com o id fornecido')
-        return Util.response_bad_request('É necessário fornecer o id do objeto que você deseja ler em estagio_extensao/{id}/')
-        
-    def delete(self, request, id=None):
-        if id:
+           
+            except RelatorioDocente.DoesNotExist:
+                    return Util.response_not_found('Não foi possível encontrar um relatorio_docente com o nome fornecido que seja pertencente ao usuário autenticado.')
+           
+        return Util.response_bad_request('É necessário fornecer o nome do relatorio_docente do qual você deseja ler as estagio_extensao em estagio_extensao/{nome_relatorio}/')
+   
+    def post(self, request, nome_relatorio=None):
+        if nome_relatorio:
             try:
-                instance = EstagioExtensao.objects.get(pk=id)
-                instance.delete()
-                return Util.response_ok_no_message('Objeto excluído com sucesso.')
-            except EstagioExtensao.DoesNotExist:
-                return Util.response_not_found('Não foi possível encontrar um estagio_extensao com o id fornecido.')
-        return Util.response_bad_request('É necessário fornecer o id do objeto que você deseja excluir em estagio_extensao/{id}/')
+                usuario_id = request.user.id
+                relatorio_docente = RelatorioDocente.objects.get(usuario_id=usuario_id, nome=nome_relatorio)
+
+
+                request.data['relatorio_id'] = relatorio_docente.pk
+                serializer = EstagioExtensaoSerializer(data=request.data)
+                if serializer.is_valid():
+                    estagio_extensao = serializer.save()
+                    return Util.response_created(f'id: {estagio_extensao.pk}')
+                return Util.response_bad_request(serializer.errors)
+           
+            except RelatorioDocente.DoesNotExist:
+                return Util.response_not_found('Não foi possível encontrar um relatorio_docente com o nome fornecido que seja pertencente ao usuário autenticado.')
+           
+        return Util.response_bad_request('É necessário fornecer o nome do relatorio_docente no qual você deseja criar uma estagio_extensao em estagio_extensao/{nome_relatorio}/')
+   
+    def put(self, request, nome_relatorio=None, id_estagio_extensao=None):
+        if nome_relatorio:
+            if id_estagio_extensao:
+                try:
+                    usuario_id = request.user.id
+                    relatorio_docente = RelatorioDocente.objects.get(usuario_id = usuario_id, nome = nome_relatorio)
+
+
+                    estagio_extensao = EstagioExtensao.objects.get(pk=id_estagio_extensao, relatorio_id = relatorio_docente.pk)
+
+
+                    data = request.data.copy()
+                    if 'id' in data or 'relatorio_id' in data:
+                        return Util.response_unauthorized('Não é permitido atualizar nenhum id ou relatorio_id')
+
+
+                    serializer = EstagioExtensaoSerializer(estagio_extensao, data=data, partial=True)
+                    if serializer.is_valid():
+                        estagio_extensao = serializer.save()
+                        return Util.response_ok_no_message(serializer.data)
+                    else:
+                        return Util.response_bad_request(serializer.errors)
+                   
+                except RelatorioDocente.DoesNotExist:
+                    return Util.response_not_found('Não foi possível encontrar um relatorio_docente com o nome fornecido que seja pertencente ao usuário autenticado.')
+
+
+                except EstagioExtensao.DoesNotExist:
+                    return Util.response_not_found('Não foi possível encontrar uma estagio_extensao com o id fornecido.')
+               
+            return Util.response_bad_request('É necessário fornecer o id da estagio_extensaoo que você deseja atualizar em estagio_extensao/{nome_relatorio}/{id_estagio_extensao}/')
+       
+        return Util.response_bad_request('É necessário fornecer o nome do relatorio_docente no qual você deseja atualizar uma estagio_extensao em estagio_extensao/{nome_relatorio}/{id_estagio_extensao}/')
+   
+    def delete(self, request, nome_relatorio=None, id_estagio_extensao=None):
+        if estagio_extensao:
+            if id_estagio_extensao:
+                try:
+                    usuario_id = request.user.id
+                    relatorio_docente = RelatorioDocente.objects.get(usuario_id=usuario_id, nome=nome_relatorio)
+                    estagio_extensao = EstagioExtensao.objects.get(pk=id_estagio_extensao, relatorio_id = relatorio_docente.pk)
+                    estagio_extensao.delete()
+
+
+                    return Util.response_ok_no_message('Objeto excluído com sucesso.')
+               
+                except EstagioExtensao.DoesNotExist:
+                    return Util.response_not_found('Não foi possível encontrar uma estagio_extensao com o id fornecido.')
+               
+            return Util.response_bad_request('É necessário fornecer o id da estagio_extensao que você deseja deletar em estagio_extensao/{nome_relatorio}/{id_estagio_extensao}/')
+
         
 class AtividadeEnsinoNaoFormalView(APIView):
     permission_classes = [IsAuthenticated]

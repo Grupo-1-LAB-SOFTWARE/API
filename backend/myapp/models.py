@@ -275,7 +275,7 @@ class EstagioExtensao(models.Model):
     relatorio_id = models.ForeignKey(RelatorioDocente, on_delete=models.CASCADE)
     numero_doc = models.IntegerField()
     area_conhecimento = models.CharField(max_length=400)
-    insituicao_ou_local = models.CharField(max_length=400)
+    instituicao_ou_local = models.CharField(max_length=400)
     periodo = models.CharField(max_length=100)
     ch_semanal = models.FloatField()
 
