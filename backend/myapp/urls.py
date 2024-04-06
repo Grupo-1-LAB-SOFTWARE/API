@@ -35,15 +35,15 @@ urlpatterns = [
 
     path('relatorio_docente/admin/', RelatorioDocenteAdminView.as_view(), name='relatorio_docente/admin/'),
 
-    path('relatorio_docente/admin/<int:id>/', RelatorioDocenteAdminView.as_view(), name='relatorio_docente/admin/id/'),
+    path('relatorio_docente/admin/<int:relatorio_id>/', RelatorioDocenteAdminView.as_view(), name='relatorio_docente/admin/relatorio_id/'),
 
-    path('relatorio_docente/admin/usuario/<int:user_id>/', RelatorioDocenteAdminView.as_view(), name='relatorio_docente/admin/usuario/id/'),
+    path('relatorio_docente/admin/usuario/<str:username>/', RelatorioDocenteAdminView.as_view(), name='relatorio_docente/admin/usuario/username/'),
 
     path('relatorio_docente', RelatorioDocenteView.as_view(), name='relatorio_docente'),
 
     path('relatorio_docente/', RelatorioDocenteView.as_view(), name='relatorio_docente/'),
 
-    path('relatorio_docente/<str:nome>/', RelatorioDocenteView.as_view(), name='relatorio_docente/nome/'),
+    path('relatorio_docente/<str:nome_relatorio>/', RelatorioDocenteView.as_view(), name='relatorio_docente/nome/'),
 
     path('atividade_pedagogica_complementar/<str:nome_relatorio>/', AtividadePedagogicaComplementarView.as_view(), name='atividade_pedagogica_complementar/nome_relatorio/'),
 
@@ -73,25 +73,25 @@ urlpatterns = [
 
     path('avaliacao_discente/<str:nome_relatorio>/<int:id_avaliacao_discente>/', AvaliacaoDiscenteView.as_view(), name='avaliacao_discente/nome_relatorio/id_avaliacao_discente/'),
    
-    path('projeto_pesquisa_producao_intelectual/<str:nome_relatorio>/', ProjetoPesquisaProducaoIntelectualView.as_view(), name='projeto_pesquisa_producao_intelectual/nome_relatorio'),
+    path('projeto_pesquisa_producao_intelectual/<str:nome_relatorio>/', ProjetoPesquisaProducaoIntelectualView.as_view(), name='projeto_pesquisa_producao_intelectual/nome_relatorio/'),
 
-    path('projeto_pesquisa_producao_intelectual/<str:nome_relatorio>/<int:id_projeto_pesquisa_producao_intelectual>/', ProjetoPesquisaProducaoIntelectualView.as_view(), name='projeto_pesquisa_producao_intelectual/nome_relatorio/id_projeto_pesquisa_producao_intelectual'),
+    path('projeto_pesquisa_producao_intelectual/<str:nome_relatorio>/<int:id_projeto_pesquisa_producao_intelectual>/', ProjetoPesquisaProducaoIntelectualView.as_view(), name='projeto_pesquisa_producao_intelectual/nome_relatorio/id_projeto_pesquisa_producao_intelectual/'),
 
-    path('trabalho_completo_publicado_periodico_boletim_tecnico/<str:nome_relatorio>/', TrabalhoCompletoPublicadoPeriodicoBoletimTecnicoView.as_view(), name='trabalho_completo_publicado_periodico_boletim_tecnico/nome_relatorio'),
+    path('trabalho_completo_publicado_periodico_boletim_tecnico/<str:nome_relatorio>/', TrabalhoCompletoPublicadoPeriodicoBoletimTecnicoView.as_view(), name='trabalho_completo_publicado_periodico_boletim_tecnico/nome_relatorio/'),
 
-    path('trabalho_completo_publicado_periodico_boletim_tecnico/<str:nome_relatorio>/<int:id_trabalho_completo_publicado_periodico_boletim_tecnico>', TrabalhoCompletoPublicadoPeriodicoBoletimTecnicoView.as_view(), name='trabalho_completo_publicado_periodico_boletim_tecnico/nome_relatorio/id_trabalho_completo_publicado_periodico_boletim_tecnico/'),
+    path('trabalho_completo_publicado_periodico_boletim_tecnico/<str:nome_relatorio>/<int:id_trabalho_completo_publicado_periodico_boletim_tecnico>/', TrabalhoCompletoPublicadoPeriodicoBoletimTecnicoView.as_view(), name='trabalho_completo_publicado_periodico_boletim_tecnico/nome_relatorio/id_trabalho_completo_publicado_periodico_boletim_tecnico/'),
 
-    path('livro_capitulo_verbete_publicado/<str:nome_relatorio>/', LivroCapituloVerbetePublicadoView.as_view(), name='livro_capitulo_verbete_publicado/nome_relatorio'),
+    path('livro_capitulo_verbete_publicado/<str:nome_relatorio>/', LivroCapituloVerbetePublicadoView.as_view(), name='livro_capitulo_verbete_publicado/nome_relatorio/'),
 
     path('livro_capitulo_verbete_publicado/<str:nome_relatorio>/<int:id_livro_capitulo_verbete_publicado>/', LivroCapituloVerbetePublicadoView.as_view(), name='livro_capitulo_verbete_publicado/nome_relatorio/id_livro_capitulo_verbete_publicado/'),
 
-    path('trabalho_completo_resumo_publicado_apresentado_congressos/<str:nome_relatorio>/', TrabalhoCompletoResumoPublicadoApresentadoCongressosView.as_view(), name='trabalho_completo_resumo_publicado_apresentado_congressos/nome_relatorio'),
+    path('trabalho_completo_resumo_publicado_apresentado_congressos/<str:nome_relatorio>/', TrabalhoCompletoResumoPublicadoApresentadoCongressosView.as_view(), name='trabalho_completo_resumo_publicado_apresentado_congressos/nome_relatorio/'),
 
     path('trabalho_completo_resumo_publicado_apresentado_congressos/<str:nome_relatorio>/<int:id_trabalho_completo_resumo_publicado_apresentado_congressos>/', TrabalhoCompletoResumoPublicadoApresentadoCongressosView.as_view(), name='trabalho_completo_resumo_publicado_apresentado_congressos/nome_relatorio/id_trabalho_completo_resumo_publicado_apresentado_congressos/'),
 
     path('outra_atividade_pesquisa_producao_intelectual/<str:nome_relatorio>/', OutraAtividadePesquisaProducaoIntelectualView.as_view(), name='outra_atividade_pesquisa_producao_intelectual/nome_relatorio/'),
 
-    path('outra_atividade_pesquisa_producao_intelectual/<str:nome_relatorio>/<int:id>/', OutraAtividadePesquisaProducaoIntelectualView.as_view(), name='outra_atividade_pesquisa_producao_intelectual/<str:nome_relatorio>/id_outra_atividade_pesquisa_producao_intelectual/'),
+    path('outra_atividade_pesquisa_producao_intelectual/<str:nome_relatorio>/<int:id_outra_atividade_pesquisa_producao_intelectual>/', OutraAtividadePesquisaProducaoIntelectualView.as_view(), name='outra_atividade_pesquisa_producao_intelectual/<str:nome_relatorio>/id_outra_atividade_pesquisa_producao_intelectual/'),
 
     path('ch_semanal_atividades_pesquisa', CHSemanalAtividadesPesquisaView.as_view(), name='ch_semanal_atividades_pesquisa'),
 
@@ -99,27 +99,25 @@ urlpatterns = [
 
     path('ch_semanal_atividades_pesquisa/<int:id>/', CHSemanalAtividadesPesquisaView.as_view(), name='ch_semanal_atividades_pesquisa/id/'),
 
-    path('projeto_extensao/<str:nome_relatorio>/', ProjetoExtensaoView.as_view(), name='projeto_extensao/nome_relatorio'),
+    path('projeto_extensao/<str:nome_relatorio>/', ProjetoExtensaoView.as_view(), name='projeto_extensao/nome_relatorio/'),
 
-    path('projeto_extensao/<str:nome_relatorio>/<int:id>/', ProjetoExtensaoView.as_view(), name='projeto_extensao/nome_relatorio/id_projeto_extensao/'),
+    path('projeto_extensao/<str:nome_relatorio>/<int:id_projeto_extensao>/', ProjetoExtensaoView.as_view(), name='projeto_extensao/nome_relatorio/id_projeto_extensao/'),
     
-    path('estagio_extensao/<str:nome_relatorio>/', EstagioExtensaoView.as_view(), name='estagio_extensao/nome_relatorio'),
+    path('estagio_extensao/<str:nome_relatorio>/', EstagioExtensaoView.as_view(), name='estagio_extensao/nome_relatorio/'),
 
-    path('estagio_extensao/<str:nome_relatorio>/<int:id>', EstagioExtensaoView.as_view(), name='estagio_extensao/nome_relatorio/id_estagio_extensao/'),
+    path('estagio_extensao/<str:nome_relatorio>/<int:id_estagio_extensao>', EstagioExtensaoView.as_view(), name='estagio_extensao/nome_relatorio/id_estagio_extensao/'),
 
-    path('atividade_ensino_nao_formal/<str:nome_relatorio>/', AtividadeEnsinoNaoFormalView.as_view(), name='atividade_ensino_nao_formal/nome_relatorio'),
+    path('atividade_ensino_nao_formal/<str:nome_relatorio>/', AtividadeEnsinoNaoFormalView.as_view(), name='atividade_ensino_nao_formal/nome_relatorio/'),
     
-    path('atividade_ensino_nao_formal/<str:nome_relatorio>/<int:id>/', AtividadeEnsinoNaoFormalView.as_view(), name='atividade_ensino_nao_formal/nome_relatorio/id_atividade_ensino_nao_formal/'),
+    path('atividade_ensino_nao_formal/<str:nome_relatorio>/<int:id_atividade_ensino_nao_formal>/', AtividadeEnsinoNaoFormalView.as_view(), name='atividade_ensino_nao_formal/nome_relatorio/id_atividade_ensino_nao_formal/'),
 
-    path('outra_atividade_extensao/<str:nome_relatorio>/', OutraAtividadeExtensaoView.as_view(), name='outra_atividade_extensao/nome_relatorio'),
+    path('outra_atividade_extensao/<str:nome_relatorio>/', OutraAtividadeExtensaoView.as_view(), name='outra_atividade_extensao/nome_relatorio/'),
 
-    path('outra_atividade_extensao/<str:nome_relatorio>/<int:id>/', OutraAtividadeExtensaoView.as_view(), name='outra_atividade_extensao/nome_relatorio/id_outra_atividade_extensao/'),
+    path('outra_atividade_extensao/<str:nome_relatorio>/<int:id_outra_atividade_extensao>/', OutraAtividadeExtensaoView.as_view(), name='outra_atividade_extensao/nome_relatorio/id_outra_atividade_extensao/'),
 
-    path('ch_semanal_atividades_extensao', CHSemanalAtividadesExtensaoView.as_view(), name='ch_semanal_atividades_extensao'),
+    path('ch_semanal_atividades_extensao/<str:nome_relatorio>/', CHSemanalAtividadesExtensaoView.as_view(), name='ch_semanal_atividades_extensao/nome_relatorio/'),
 
-    path('ch_semanal_atividades_extensao/', CHSemanalAtividadesExtensaoView.as_view(), name='ch_semanal_atividades_extensao/'),
-
-    path('ch_semanal_atividades_extensao/<int:id>/', CHSemanalAtividadesExtensaoView.as_view(), name='ch_semanal_atividades_extensao/id/'),
+    path('ch_semanal_atividades_extensao/<str:nome_relatorio>/<int:id_ch_semanal_atividades_extensao>/', CHSemanalAtividadesExtensaoView.as_view(), name='ch_semanal_atividades_extensao/nome_relatorio/id_ch_semanal_atividades_extensao/'),
 
     path('distribuicao_ch_semanal', DistribuicaoCHSemanalView.as_view(), name='distribuicao_ch_semanal'),
 
@@ -127,21 +125,21 @@ urlpatterns = [
 
     path('distribuicao_ch_semanal/<int:id>/', DistribuicaoCHSemanalView.as_view(), name='distribuicao_ch_semanal/id/'),
 
-    path('atividade_gestao_representacao/<str:nome_relatorio>/', AtividadeGestaoRepresentacaoView.as_view(), name='atividade_gestao_representacao/nome_relatorio'),
+    path('atividade_gestao_representacao/<str:nome_relatorio>/', AtividadeGestaoRepresentacaoView.as_view(), name='atividade_gestao_representacao/nome_relatorio/'),
 
-    path('atividade_gestao_representacao/<str:nome_relatorio>/<int:id>/', AtividadeGestaoRepresentacaoView.as_view(), name='atividade_gestao_representacao/nome_relatorio/id_atividade_gestao_representacao/'),
+    path('atividade_gestao_representacao/<str:nome_relatorio>/<int:id_atividade_gestao_representacao>/', AtividadeGestaoRepresentacaoView.as_view(), name='atividade_gestao_representacao/nome_relatorio/id_atividade_gestao_representacao/'),
     
-    path('qualificacao_docente_academica_profissional/<str:nome_relatorio>/', QualificacaoDocenteAcademicaProfissionalView.as_view(), name='qualificacao_docente_academica_profissional/nome_relatorio'),
+    path('qualificacao_docente_academica_profissional/<str:nome_relatorio>/', QualificacaoDocenteAcademicaProfissionalView.as_view(), name='qualificacao_docente_academica_profissional/nome_relatorio/'),
 
-    path('qualificacao_docente_academica_profissional/<str:nome_relatorio>/<int:id>/', QualificacaoDocenteAcademicaProfissionalView.as_view(), name='qualificacao_docente_academica_profissional/nome_relatorio/id_qualificacao_docente_academica_profisional/'),
+    path('qualificacao_docente_academica_profissional/<str:nome_relatorio>/<int:id_qualificacao_docente_academica_profisional>/', QualificacaoDocenteAcademicaProfissionalView.as_view(), name='qualificacao_docente_academica_profissional/nome_relatorio/id_qualificacao_docente_academica_profisional/'),
     
-    path('outra_informacao/<str:nome_relatorio>/', OutraInformacaoView.as_view(), name='outra_informacao/nome_relatorio'),
+    path('outra_informacao/<str:nome_relatorio>/', OutraInformacaoView.as_view(), name='outra_informacao/nome_relatorio/'),
 
-    path('outra_informacao/<str:nome_relatorio>/<int:id>/', OutraInformacaoView.as_view(), name='outra_informacao/nome_relatorio/id_outra_informacao/'),
+    path('outra_informacao/<str:nome_relatorio>/<int:id_outra_informacao>/', OutraInformacaoView.as_view(), name='outra_informacao/nome_relatorio/id_outra_informacao/'),
     
-    path('afastamento/<str:nome_relatorio>/', AfastamentoView.as_view(), name='afastamento/nome_relatorio'),
+    path('afastamento/<str:nome_relatorio>/', AfastamentoView.as_view(), name='afastamento/nome_relatorio/'),
 
-    path('afastamento/<str:nome_relatorio>/<int:id>/', AfastamentoView.as_view(), name='afastamento/nome_relatorio/id_afastamento/'),
+    path('afastamento/<str:nome_relatorio>/<int:id_afastamento>/', AfastamentoView.as_view(), name='afastamento/nome_relatorio/id_afastamento/'),
 
     path('documento_comprobatorio', DocumentoComprobatorioView.as_view(), name='documento_comprobatorio'),
     
@@ -153,5 +151,5 @@ urlpatterns = [
     
     path('extrair_dados_atividades_letivas', ExtrairDadosAtividadesLetivasPDFAPIView.as_view(), name='extrair_dados_atividades_letivas'),
 
-    path('extrair_dados_atividades_letivas', ExtrairDadosAtividadesLetivasPDFAPIView.as_view(), name='extrair_dados_atividades_letivas'),
+    path('extrair_dados_atividades_letivas/', ExtrairDadosAtividadesLetivasPDFAPIView.as_view(), name='extrair_dados_atividades_letivas/'),
 ]
