@@ -2754,63 +2754,118 @@ class AtividadeGestaoRepresentacaoView(APIView):
 class QualificacaoDocenteAcademicaProfissionalView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def get(self, request, id=None):
-        if id:
-            return self.getById(request, id)
+    def get(self, request, nome_relatorio=None, id_qualificacao_docente_academica_profissional=None):
+        if nome_relatorio and id_qualificacao_docente_academica_profissional:
+            return self.getById(request, nome_relatorio, id_qualificacao_docente_academica_profissional)
         else:
-            return self.getAll(request)
-
-    def post(self, request):
-        serializer = QualificacaoDocenteAcademicaProfissionalSerializer(data=request.data)
-        if serializer.is_valid():
-            instance = serializer.save() 
-            return Util.response_created(f'id: {instance.pk}')
-        return Util.response_bad_request(serializer.errors)
-
-    def put(self, request, id=None):
-        if id is not None:
-            try:
-                instance = QualificacaoDocenteAcademicaProfissional.objects.get(pk=id)
-                data = request.data.copy()
-                if 'id' in data or 'relatorio_id' in data:
-                    return Util.response_unauthorized('Não é permitido atualizar nenhum id ou relatorio_id')
-
-                serializer = QualificacaoDocenteAcademicaProfissionalSerializer(instance, data=data, partial=True)
-                if serializer.is_valid():
-                    serializer.save()
+            return self.getAll(request, nome_relatorio)
+       
+    def getById(self, request, nome_relatorio=None, id_qualificacao_docente_academica_profissional=None):
+        if nome_relatorio:
+            if id_qualificacao_docente_academica_profissional:
+                try:
+                    usuario_id = request.user.id
+                    relatorio_docente = RelatorioDocente.objects.get(usuario_id = usuario_id, nome=nome_relatorio)
+                    instance = QualificacaoDocenteAcademicaProfissionalSerializer.objects.get(relatorio_id=relatorio_docente.pk, pk=id_qualificacao_docente_academica_profissional)
+                    serializer = QualificacaoDocenteAcademicaProfissionalSerializer(instance)
                     return Util.response_ok_no_message(serializer.data)
-                else:
-                    return Util.response_bad_request(serializer.errors)
+           
+                except RelatorioDocente.DoesNotExist:
+                    return Util.response_not_found('Não foi possível encontrar um relatorio_docente com o nome fornecido que seja pertencente ao usuário autenticado.')
 
-            except QualificacaoDocenteAcademicaProfissional.DoesNotExist:
-                return Util.response_not_found('Não foi possível encontrar uma qualificacao_docente_academica_profissional com o id fornecido.')
 
-        return Util.response_bad_request('É necessário fornecer o id do objeto que você deseja atualizar em qualificacao_docente_academica_profissional/{id}/')
+                except QualificacaoDocenteAcademicaProfissional.DoesNotExist:
+                    return Util.response_not_found('Não foi possível encontrar uma qualificacao_docente_academica_profissional com o id fornecido.')
+           
+            return Util.response_bad_request('É necessário fornecer o id da qualificacao_docente_academica_profissional que você deseja ler em qualificacao_docente_academica_profissional/{nome_relatorio}/{id_qualificacao_docente_academica_profissional}/')
+       
+        return Util.response_bad_request('É necessário fornecer o nome do relatorio_docente do qual você deseja deseja ler os qualificacao_docente_academica_profissional em qualificacao_docente_academica_profissional/{nome_relatorio}/{id_qualificacao_docente_academica_profissional}/')
 
-    def getAll(self, request):
-        instances = QualificacaoDocenteAcademicaProfissional.objects.all()
-        serializer = QualificacaoDocenteAcademicaProfissionalSerializer(instances, many=True)
-        return Util.response_ok_no_message(serializer.data)
 
-    def getById(self, request, id=None):
-        if id:
+    def getAll(self, request, nome_relatorio=None):
+        if nome_relatorio:
             try:
-                instance = QualificacaoDocenteAcademicaProfissional.objects.get(pk=id)
-                serializer = QualificacaoDocenteAcademicaProfissionalSerializer(instance)
+                usuario_id = request.user.id
+                relatorio_docente = RelatorioDocente.objects.get(usuario_id = usuario_id, nome=nome_relatorio)
+                instances = QualificacaoDocenteAcademicaProfissional.objects.filter(relatorio_id=relatorio_docente.pk)
+                serializer = QualificacaoDocenteAcademicaProfissionalSerializer(instances, many=True)
                 return Util.response_ok_no_message(serializer.data)
-            except QualificacaoDocenteAcademicaProfissional.DoesNotExist:
-                return Util.response_not_found('Não foi possível encontrar uma qualificacao_docente_academica_profissional com o id fornecido')
-        return Util.response_bad_request('É necessário fornecer o id do objeto que você deseja ler em qualificacao_docente_academica_profissional/{id}/')
-        
-    def delete(self, request, id=None):
-        if id:
+           
+            except RelatorioDocente.DoesNotExist:
+                    return Util.response_not_found('Não foi possível encontrar um relatorio_docente com o nome fornecido que seja pertencente ao usuário autenticado.')
+           
+        return Util.response_bad_request('É necessário fornecer o nome do relatorio_docente do qual você deseja ler as qualificacao_docente_academica_profissional em qualificacao_docente_academica_profissional/{nome_relatorio}/')
+   
+    def post(self, request, nome_relatorio=None):
+        if nome_relatorio:
             try:
-                instance = QualificacaoDocenteAcademicaProfissional.objects.get(pk=id)
-                instance.delete()
-                return Util.response_ok_no_message('Objeto excluído com sucesso.')
-            except QualificacaoDocenteAcademicaProfissional.DoesNotExist:
-                return Util.response_not_found('Não foi possível encontrar uma qualificacao_docente_academica_profissional com o id fornecido.')
-        return Util.response_bad_request('É necessário fornecer o id do objeto que você deseja excluir em qualificacao_docente_academica_profissional/{id}/')
+                usuario_id = request.user.id
+                relatorio_docente = RelatorioDocente.objects.get(usuario_id=usuario_id, nome=nome_relatorio)
+
+
+                request.data['relatorio_id'] = relatorio_docente.pk
+                serializer = QualificacaoDocenteAcademicaProfissionalSerializer(data=request.data)
+                if serializer.is_valid():
+                    qualificacao_docente_academica_profissional = serializer.save()
+                    return Util.response_created(f'id: {qualificacao_docente_academica_profissional.pk}')
+                return Util.response_bad_request(serializer.errors)
+           
+            except RelatorioDocente.DoesNotExist:
+                return Util.response_not_found('Não foi possível encontrar um relatorio_docente com o nome fornecido que seja pertencente ao usuário autenticado.')
+           
+        return Util.response_bad_request('É necessário fornecer o nome do relatorio_docente no qual você deseja criar uma qualificacao_docente_academica_profissional em qualificacao_docente_academica_profissional/{nome_relatorio}/')
+   
+    def put(self, request, nome_relatorio=None, id_qualificacao_docente_academica_profissional=None):
+        if nome_relatorio:
+            if id_qualificacao_docente_academica_profissional:
+                try:
+                    usuario_id = request.user.id
+                    relatorio_docente = RelatorioDocente.objects.get(usuario_id = usuario_id, nome = nome_relatorio)
+
+
+                    qualificacao_docente_academica_profissional = QualificacaoDocenteAcademicaProfissional.objects.get(pk=id_qualificacao_docente_academica_profissional, relatorio_id = relatorio_docente.pk)
+
+
+                    data = request.data.copy()
+                    if 'id' in data or 'relatorio_id' in data:
+                        return Util.response_unauthorized('Não é permitido atualizar nenhum id ou relatorio_id')
+
+
+                    serializer = QualificacaoDocenteAcademicaProfissionalSerializer(qualificacao_docente_academica_profissional, data=data, partial=True)
+                    if serializer.is_valid():
+                        qualificacao_docente_academica_profissional = serializer.save()
+                        return Util.response_ok_no_message(serializer.data)
+                    else:
+                        return Util.response_bad_request(serializer.errors)
+                   
+                except RelatorioDocente.DoesNotExist:
+                    return Util.response_not_found('Não foi possível encontrar um relatorio_docente com o nome fornecido que seja pertencente ao usuário autenticado.')
+
+
+                except QualificacaoDocenteAcademicaProfissional.DoesNotExist:
+                    return Util.response_not_found('Não foi possível encontrar uma qualificacao_docente_academica_profissional com o id fornecido.')
+               
+            return Util.response_bad_request('É necessário fornecer o id da qualificacao_docente_academica_profissionalo que você deseja atualizar em qualificacao_docente_academica_profissional/{nome_relatorio}/{id_qualificacao_docente_academica_profissional}/')
+       
+        return Util.response_bad_request('É necessário fornecer o nome do relatorio_docente no qual você deseja atualizar uma qualificacao_docente_academica_profissional em qualificacao_docente_academica_profissional/{nome_relatorio}/{id_qualificacao_docente_academica_profissional}/')
+   
+    def delete(self, request, nome_relatorio=None, id_qualificacao_docente_academica_profissional=None):
+        if qualificacao_docente_academica_profissional:
+            if id_qualificacao_docente_academica_profissional:
+                try:
+                    usuario_id = request.user.id
+                    relatorio_docente = RelatorioDocente.objects.get(usuario_id=usuario_id, nome=nome_relatorio)
+                    qualificacao_docente_academica_profissional = QualificacaoDocenteAcademicaProfissional.objects.get(pk=id_qualificacao_docente_academica_profissional, relatorio_id = relatorio_docente.pk)
+                    qualificacao_docente_academica_profissional.delete()
+
+
+                    return Util.response_ok_no_message('Objeto excluído com sucesso.')
+               
+                except QualificacaoDocenteAcademicaProfissional.DoesNotExist:
+                    return Util.response_not_found('Não foi possível encontrar uma qualificacao_docente_academica_profissional com o id fornecido.')
+               
+            return Util.response_bad_request('É necessário fornecer o id da qualificacao_docente_academica_profissional que você deseja deletar em qualificacao_docente_academica_profissional/{nome_relatorio}/{id_qualificacao_docente_academica_profissional}/')
+
     
 
 class OutraInformacaoView(APIView):
