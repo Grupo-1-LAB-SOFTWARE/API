@@ -1792,7 +1792,7 @@ class OutraAtividadePesquisaProducaoIntelectualView(APIView):
                 try:
                     usuario_id = request.user.id
                     relatorio_docente = RelatorioDocente.objects.get(usuario_id = usuario_id, nome=nome_relatorio)
-                    instance = OutraAtividadePesquisaProducaoIntelectualSerializer.objects.get(relatorio_id=relatorio_docente.pk, pk=id_outra_atividade_pesquisa_producao_intelectual)
+                    instance = OutraAtividadePesquisaProducaoIntelectual.objects.get(relatorio_id=relatorio_docente.pk, pk=id_outra_atividade_pesquisa_producao_intelectual)
                     serializer = OutraAtividadePesquisaProducaoIntelectualSerializer(instance)
                     return Util.response_ok_no_message(serializer.data)
            
@@ -1983,7 +1983,7 @@ class ProjetoExtensaoView(APIView):
                 try:
                     usuario_id = request.user.id
                     relatorio_docente = RelatorioDocente.objects.get(usuario_id = usuario_id, nome=nome_relatorio)
-                    instance = ProjetoExtensaoSerializer.objects.get(relatorio_id=relatorio_docente.pk, pk=id_projeto_extensao)
+                    instance = ProjetoExtensao.objects.get(relatorio_id=relatorio_docente.pk, pk=id_projeto_extensao)
                     serializer = ProjetoExtensaoSerializer(instance)
                     return Util.response_ok_no_message(serializer.data)
            
@@ -2100,7 +2100,7 @@ class EstagioExtensaoView(APIView):
                 try:
                     usuario_id = request.user.id
                     relatorio_docente = RelatorioDocente.objects.get(usuario_id = usuario_id, nome=nome_relatorio)
-                    instance = EstagioExtensaoSerializer.objects.get(relatorio_id=relatorio_docente.pk, pk=id_estagio_extensao)
+                    instance = EstagioExtensao.objects.get(relatorio_id=relatorio_docente.pk, pk=id_estagio_extensao)
                     serializer = EstagioExtensaoSerializer(instance)
                     return Util.response_ok_no_message(serializer.data)
            
@@ -2216,7 +2216,7 @@ class AtividadeEnsinoNaoFormalView(APIView):
                 try:
                     usuario_id = request.user.id
                     relatorio_docente = RelatorioDocente.objects.get(usuario_id = usuario_id, nome=nome_relatorio)
-                    instance = AtividadeEnsinoNaoFormalSerializer.objects.get(relatorio_id=relatorio_docente.pk, pk=id_atividade_ensino_nao_formal)
+                    instance = AtividadeEnsinoNaoFormal.objects.get(relatorio_id=relatorio_docente.pk, pk=id_atividade_ensino_nao_formal)
                     serializer = AtividadeEnsinoNaoFormalSerializer(instance)
                     return Util.response_ok_no_message(serializer.data)
            
@@ -2333,7 +2333,7 @@ class OutraAtividadeExtensaoView(APIView):
                 try:
                     usuario_id = request.user.id
                     relatorio_docente = RelatorioDocente.objects.get(usuario_id = usuario_id, nome=nome_relatorio)
-                    instance = OutraAtividadeExtensaoSerializer.objects.get(relatorio_id=relatorio_docente.pk, pk=id_outra_atividade_extensao)
+                    instance = OutraAtividadeExtensao.objects.get(relatorio_id=relatorio_docente.pk, pk=id_outra_atividade_extensao)
                     serializer = OutraAtividadeExtensaoSerializer(instance)
                     return Util.response_ok_no_message(serializer.data)
            
@@ -2600,7 +2600,7 @@ class AtividadeGestaoRepresentacaoView(APIView):
                 try:
                     usuario_id = request.user.id
                     relatorio_docente = RelatorioDocente.objects.get(usuario_id = usuario_id, nome=nome_relatorio)
-                    instance = AtividadeGestaoRepresentacaoSerializer.objects.get(relatorio_id=relatorio_docente.pk, pk=id_atividade_gestao_representacao)
+                    instance = AtividadeGestaoRepresentacao.objects.get(relatorio_id=relatorio_docente.pk, pk=id_atividade_gestao_representacao)
                     serializer = AtividadeGestaoRepresentacaoSerializer(instance)
                     return Util.response_ok_no_message(serializer.data)
            
@@ -2741,7 +2741,7 @@ class QualificacaoDocenteAcademicaProfissionalView(APIView):
                 try:
                     usuario_id = request.user.id
                     relatorio_docente = RelatorioDocente.objects.get(usuario_id = usuario_id, nome=nome_relatorio)
-                    instance = QualificacaoDocenteAcademicaProfissionalSerializer.objects.get(relatorio_id=relatorio_docente.pk, pk=id_qualificacao_docente_academica_profissional)
+                    instance = QualificacaoDocenteAcademicaProfissional.objects.get(relatorio_id=relatorio_docente.pk, pk=id_qualificacao_docente_academica_profissional)
                     serializer = QualificacaoDocenteAcademicaProfissionalSerializer(instance)
                     return Util.response_ok_no_message(serializer.data)
            
@@ -2858,7 +2858,7 @@ class OutraInformacaoView(APIView):
                 try:
                     usuario_id = request.user.id
                     relatorio_docente = RelatorioDocente.objects.get(usuario_id = usuario_id, nome=nome_relatorio)
-                    instance = OutraInformacaoSerializer.objects.get(relatorio_id=relatorio_docente.pk, pk=id_outra_informacao)
+                    instance = OutraInformacao.objects.get(relatorio_id=relatorio_docente.pk, pk=id_outra_informacao)
                     serializer = OutraInformacaoSerializer(instance)
                     return Util.response_ok_no_message(serializer.data)
            
@@ -2974,7 +2974,7 @@ class AfastamentoView(APIView):
                 try:
                     usuario_id = request.user.id
                     relatorio_docente = RelatorioDocente.objects.get(usuario_id = usuario_id, nome=nome_relatorio)
-                    instance = AfastamentoSerializer.objects.get(relatorio_id=relatorio_docente.pk, pk=id_afastamento)
+                    instance = Afastamento.objects.get(relatorio_id=relatorio_docente.pk, pk=id_afastamento)
                     serializer = AfastamentoSerializer(instance)
                     return Util.response_ok_no_message(serializer.data)
            
