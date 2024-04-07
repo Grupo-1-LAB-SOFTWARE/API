@@ -1792,7 +1792,7 @@ class OutraAtividadePesquisaProducaoIntelectualView(APIView):
                 try:
                     usuario_id = request.user.id
                     relatorio_docente = RelatorioDocente.objects.get(usuario_id = usuario_id, nome=nome_relatorio)
-                    instance = OutraAtividadePesquisaProducaoIntelectualSerializer.objects.get(relatorio_id=relatorio_docente.pk, pk=id_outra_atividade_pesquisa_producao_intelectual)
+                    instance = OutraAtividadePesquisaProducaoIntelectual.objects.get(relatorio_id=relatorio_docente.pk, pk=id_outra_atividade_pesquisa_producao_intelectual)
                     serializer = OutraAtividadePesquisaProducaoIntelectualSerializer(instance)
                     return Util.response_ok_no_message(serializer.data)
            
@@ -1876,7 +1876,7 @@ class OutraAtividadePesquisaProducaoIntelectualView(APIView):
         return Util.response_bad_request('É necessário fornecer o nome do relatorio_docente no qual você deseja atualizar uma outra_atividade_pesquisa_producao_intelectual em outra_atividade_pesquisa_producao_intelectual/{nome_relatorio}/{id_outra_atividade_pesquisa_producao_intelectual}/')
    
     def delete(self, request, nome_relatorio=None, id_outra_atividade_pesquisa_producao_intelectual=None):
-        if outra_atividade_pesquisa_producao_intelectual:
+        if nome_relatorio:
             if id_outra_atividade_pesquisa_producao_intelectual:
                 try:
                     usuario_id = request.user.id
@@ -1983,7 +1983,7 @@ class ProjetoExtensaoView(APIView):
                 try:
                     usuario_id = request.user.id
                     relatorio_docente = RelatorioDocente.objects.get(usuario_id = usuario_id, nome=nome_relatorio)
-                    instance = ProjetoExtensaoSerializer.objects.get(relatorio_id=relatorio_docente.pk, pk=id_projeto_extensao)
+                    instance = ProjetoExtensao.objects.get(relatorio_id=relatorio_docente.pk, pk=id_projeto_extensao)
                     serializer = ProjetoExtensaoSerializer(instance)
                     return Util.response_ok_no_message(serializer.data)
            
@@ -2067,7 +2067,7 @@ class ProjetoExtensaoView(APIView):
         return Util.response_bad_request('É necessário fornecer o nome do relatorio_docente no qual você deseja atualizar uma projeto_extensao em projeto_extensao/{nome_relatorio}/{id_projeto_extensao}/')
    
     def delete(self, request, nome_relatorio=None, id_projeto_extensao=None):
-        if projeto_extensao:
+        if nome_relatorio:
             if id_projeto_extensao:
                 try:
                     usuario_id = request.user.id
@@ -2100,7 +2100,7 @@ class EstagioExtensaoView(APIView):
                 try:
                     usuario_id = request.user.id
                     relatorio_docente = RelatorioDocente.objects.get(usuario_id = usuario_id, nome=nome_relatorio)
-                    instance = EstagioExtensaoSerializer.objects.get(relatorio_id=relatorio_docente.pk, pk=id_estagio_extensao)
+                    instance = EstagioExtensao.objects.get(relatorio_id=relatorio_docente.pk, pk=id_estagio_extensao)
                     serializer = EstagioExtensaoSerializer(instance)
                     return Util.response_ok_no_message(serializer.data)
            
@@ -2155,11 +2155,7 @@ class EstagioExtensaoView(APIView):
                 try:
                     usuario_id = request.user.id
                     relatorio_docente = RelatorioDocente.objects.get(usuario_id = usuario_id, nome = nome_relatorio)
-
-
                     estagio_extensao = EstagioExtensao.objects.get(pk=id_estagio_extensao, relatorio_id = relatorio_docente.pk)
-
-
                     data = request.data.copy()
                     if 'id' in data or 'relatorio_id' in data:
                         return Util.response_unauthorized('Não é permitido atualizar nenhum id ou relatorio_id')
@@ -2179,12 +2175,12 @@ class EstagioExtensaoView(APIView):
                 except EstagioExtensao.DoesNotExist:
                     return Util.response_not_found('Não foi possível encontrar um estagio_extensao com o id fornecido.')
                
-            return Util.response_bad_request('É necessário fornecer o id da estagio_extensaoo que você deseja atualizar em estagio_extensao/{nome_relatorio}/{id_estagio_extensao}/')
+            return Util.response_bad_request('É necessário fornecer o id da estagio_extensao que você deseja atualizar em estagio_extensao/{nome_relatorio}/{id_estagio_extensao}/')
        
         return Util.response_bad_request('É necessário fornecer o nome do relatorio_docente no qual você deseja atualizar uma estagio_extensao em estagio_extensao/{nome_relatorio}/{id_estagio_extensao}/')
    
     def delete(self, request, nome_relatorio=None, id_estagio_extensao=None):
-        if estagio_extensao:
+        if nome_relatorio:
             if id_estagio_extensao:
                 try:
                     usuario_id = request.user.id
@@ -2300,7 +2296,7 @@ class AtividadeEnsinoNaoFormalView(APIView):
         return Util.response_bad_request('É necessário fornecer o nome do relatorio_docente no qual você deseja atualizar uma atividade_ensino_nao_formal em atividade_ensino_nao_formal/{nome_relatorio}/{id_atividade_ensino_nao_formal}/')
    
     def delete(self, request, nome_relatorio=None, id_atividade_ensino_nao_formal=None):
-        if atividade_ensino_nao_formal:
+        if nome_relatorio:
             if id_atividade_ensino_nao_formal:
                 try:
                     usuario_id = request.user.id
@@ -2410,20 +2406,19 @@ class OutraAtividadeExtensaoView(APIView):
         return Util.response_bad_request('É necessário fornecer o nome do relatorio_docente no qual você deseja atualizar uma outra_atividade_extensao em outra_atividade_extensao/{nome_relatorio}/{id_outra_atividade_extensao}/')
    
     def delete(self, request, nome_relatorio=None, id_outra_atividade_extensao=None):
-        if id_outra_atividade_extensao:
-            try:
-                usuario_id = request.user.id
-                relatorio_docente = RelatorioDocente.objects.get(usuario_id=usuario_id, nome=nome_relatorio)
-                outra_atividade_extensao = OutraAtividadeExtensao.objects.get(pk=id_outra_atividade_extensao, relatorio_id = relatorio_docente.pk)
-                outra_atividade_extensao.delete()
-
-
-                return Util.response_ok_no_message('Objeto excluído com sucesso.')
+        if nome_relatorio:
+            if id_outra_atividade_extensao:
+                try:
+                    usuario_id = request.user.id
+                    relatorio_docente = RelatorioDocente.objects.get(usuario_id=usuario_id, nome=nome_relatorio)
+                    outra_atividade_extensao = OutraAtividadeExtensao.objects.get(pk=id_outra_atividade_extensao, relatorio_id = relatorio_docente.pk)
+                    outra_atividade_extensao.delete()
+                    return Util.response_ok_no_message('Objeto excluído com sucesso.')
                
-            except OutraAtividadeExtensao.DoesNotExist:
-                return Util.response_not_found('Não foi possível encontrar uma outra_atividade_extensao com o id fornecido.')
+                except OutraAtividadeExtensao.DoesNotExist:
+                    return Util.response_not_found('Não foi possível encontrar uma outra_atividade_extensao com o id fornecido.')
                
-        return Util.response_bad_request('É necessário fornecer o id da outra_atividade_extensao que você deseja deletar em outra_atividade_extensao/{nome_relatorio}/{id_outra_atividade_extensao}/')
+            return Util.response_bad_request('É necessário fornecer o id da outra_atividade_extensao que você deseja deletar em outra_atividade_extensao/{nome_relatorio}/{id_outra_atividade_extensao}/')
 
     
 class CHSemanalAtividadesExtensaoView(APIView):
@@ -2641,7 +2636,7 @@ class AtividadeGestaoRepresentacaoView(APIView):
                 try:
                     usuario_id = request.user.id
                     relatorio_docente = RelatorioDocente.objects.get(usuario_id = usuario_id, nome=nome_relatorio)
-                    instance = AtividadeGestaoRepresentacaoSerializer.objects.get(relatorio_id=relatorio_docente.pk, pk=id_atividade_gestao_representacao)
+                    instance = AtividadeGestaoRepresentacao.objects.get(relatorio_id=relatorio_docente.pk, pk=id_atividade_gestao_representacao)
                     serializer = AtividadeGestaoRepresentacaoSerializer(instance)
                     return Util.response_ok_no_message(serializer.data)
            
@@ -2725,7 +2720,7 @@ class AtividadeGestaoRepresentacaoView(APIView):
         return Util.response_bad_request('É necessário fornecer o nome do relatorio_docente no qual você deseja atualizar uma atividade_gestao_representacao em atividade_gestao_representacao/{nome_relatorio}/{id_atividade_gestao_representacao}/')
    
     def delete(self, request, nome_relatorio=None, id_atividade_gestao_representacao=None):
-        if atividade_gestao_representacao:
+        if nome_relatorio:
             if id_atividade_gestao_representacao:
                 try:
                     usuario_id = request.user.id
@@ -2740,32 +2735,7 @@ class AtividadeGestaoRepresentacaoView(APIView):
                     return Util.response_not_found('Não foi possível encontrar uma atividade_gestao_representacao com o id fornecido.')
                
             return Util.response_bad_request('É necessário fornecer o id da atividade_gestao_representacao que você deseja deletar em atividade_gestao_representacao/{nome_relatorio}/{id_atividade_gestao_representacao}/')
-
-
-    def getAll(self, request):
-        instances = AtividadeGestaoRepresentacao.objects.all()
-        serializer = AtividadeGestaoRepresentacaoSerializer(instances, many=True)
-        return Util.response_ok_no_message(serializer.data)
-
-    def getById(self, request, id=None):
-        if id:
-            try:
-                instance = AtividadeGestaoRepresentacao.objects.get(pk=id)
-                serializer = AtividadeGestaoRepresentacaoSerializer(instance)
-                return Util.response_ok_no_message(serializer.data)
-            except AtividadeGestaoRepresentacao.DoesNotExist:
-                return Util.response_not_found('Não foi possível encontrar uma atividade_gestao_representacao com o id fornecido')
-        return Util.response_bad_request('É necessário fornecer o id do objeto que você deseja ler em atividade_gestao_representacao/{id}/')
         
-    def delete(self, request, id=None):
-        if id:
-            try:
-                instance = AtividadeGestaoRepresentacao.objects.get(pk=id)
-                instance.delete()
-                return Util.response_ok_no_message('Objeto excluído com sucesso.')
-            except AtividadeGestaoRepresentacao.DoesNotExist:
-                return Util.response_not_found('Não foi possível encontrar uma atividade_gestao_representacao com o id fornecido.')
-        return Util.response_bad_request('É necessário fornecer o id do objeto que você deseja excluir em atividade_gestao_representacao/{id}/')
     
 class QualificacaoDocenteAcademicaProfissionalView(APIView):
     permission_classes = [IsAuthenticated]
@@ -2782,7 +2752,7 @@ class QualificacaoDocenteAcademicaProfissionalView(APIView):
                 try:
                     usuario_id = request.user.id
                     relatorio_docente = RelatorioDocente.objects.get(usuario_id = usuario_id, nome=nome_relatorio)
-                    instance = QualificacaoDocenteAcademicaProfissionalSerializer.objects.get(relatorio_id=relatorio_docente.pk, pk=id_qualificacao_docente_academica_profissional)
+                    instance = QualificacaoDocenteAcademicaProfissional.objects.get(relatorio_id=relatorio_docente.pk, pk=id_qualificacao_docente_academica_profissional)
                     serializer = QualificacaoDocenteAcademicaProfissionalSerializer(instance)
                     return Util.response_ok_no_message(serializer.data)
            
@@ -2866,7 +2836,7 @@ class QualificacaoDocenteAcademicaProfissionalView(APIView):
         return Util.response_bad_request('É necessário fornecer o nome do relatorio_docente no qual você deseja atualizar uma qualificacao_docente_academica_profissional em qualificacao_docente_academica_profissional/{nome_relatorio}/{id_qualificacao_docente_academica_profissional}/')
    
     def delete(self, request, nome_relatorio=None, id_qualificacao_docente_academica_profissional=None):
-        if qualificacao_docente_academica_profissional:
+        if nome_relatorio:
             if id_qualificacao_docente_academica_profissional:
                 try:
                     usuario_id = request.user.id
