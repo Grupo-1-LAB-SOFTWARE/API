@@ -339,5 +339,6 @@ class Afastamento(models.Model):
 
 class DocumentoComprobatorio(models.Model):
     relatorio_id = models.ForeignKey(RelatorioDocente, on_delete=models.CASCADE)
+    nome_pdf = models.CharField(max_length=1000)
     binary_pdf = models.BinaryField()
 
