@@ -91,7 +91,7 @@ urlpatterns = [
 
     path('outra_atividade_pesquisa_producao_intelectual/<str:nome_relatorio>/', OutraAtividadePesquisaProducaoIntelectualView.as_view(), name='outra_atividade_pesquisa_producao_intelectual/nome_relatorio/'),
 
-    path('outra_atividade_pesquisa_producao_intelectual/<str:nome_relatorio>/<int:id_outra_atividade_pesquisa_producao_intelectual>/', OutraAtividadePesquisaProducaoIntelectualView.as_view(), name='outra_atividade_pesquisa_producao_intelectual/<str:nome_relatorio>/id_outra_atividade_pesquisa_producao_intelectual/'),
+    path('outra_atividade_pesquisa_producao_intelectual/<str:nome_relatorio>/<int:id_outra_atividade_pesquisa_producao_intelectual>/', OutraAtividadePesquisaProducaoIntelectualView.as_view(), name='outra_atividade_pesquisa_producao_intelectual/nome_relatorio>/id_outra_atividade_pesquisa_producao_intelectual/'),
 
     path('ch_semanal_atividades_pesquisa', CHSemanalAtividadesPesquisaView.as_view(), name='ch_semanal_atividades_pesquisa'),
 
@@ -105,7 +105,7 @@ urlpatterns = [
     
     path('estagio_extensao/<str:nome_relatorio>/', EstagioExtensaoView.as_view(), name='estagio_extensao/nome_relatorio/'),
 
-    path('estagio_extensao/<str:nome_relatorio>/<int:id_estagio_extensao>', EstagioExtensaoView.as_view(), name='estagio_extensao/nome_relatorio/id_estagio_extensao/'),
+    path('estagio_extensao/<str:nome_relatorio>/<int:id_estagio_extensao>/', EstagioExtensaoView.as_view(), name='estagio_extensao/nome_relatorio/id_estagio_extensao/'),
 
     path('atividade_ensino_nao_formal/<str:nome_relatorio>/', AtividadeEnsinoNaoFormalView.as_view(), name='atividade_ensino_nao_formal/nome_relatorio/'),
     
