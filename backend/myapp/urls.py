@@ -43,7 +43,7 @@ urlpatterns = [
 
     path('relatorio_docente/', RelatorioDocenteView.as_view(), name='relatorio_docente/'),
 
-    path('relatorio_docente/<str:nome_relatorio>/', RelatorioDocenteView.as_view(), name='relatorio_docente/nome/'),
+    path('relatorio_docente/<str:nome_relatorio>/', RelatorioDocenteView.as_view(), name='relatorio_docente/nome_relatorio/'),
 
     path('atividade_pedagogica_complementar/<str:nome_relatorio>/', AtividadePedagogicaComplementarView.as_view(), name='atividade_pedagogica_complementar/nome_relatorio/'),
 
@@ -93,11 +93,9 @@ urlpatterns = [
 
     path('outra_atividade_pesquisa_producao_intelectual/<str:nome_relatorio>/<int:id_outra_atividade_pesquisa_producao_intelectual>/', OutraAtividadePesquisaProducaoIntelectualView.as_view(), name='outra_atividade_pesquisa_producao_intelectual/nome_relatorio>/id_outra_atividade_pesquisa_producao_intelectual/'),
 
-    path('ch_semanal_atividades_pesquisa', CHSemanalAtividadesPesquisaView.as_view(), name='ch_semanal_atividades_pesquisa'),
+    path('ch_semanal_atividades_pesquisa/<str:nome_relatorio>/', CHSemanalAtividadesPesquisaView.as_view(), name='ch_semanal_atividades_pesquisa/nome_relatorio/'),
 
-    path('ch_semanal_atividades_pesquisa/', CHSemanalAtividadesPesquisaView.as_view(), name='ch_semanal_atividades_pesquisa/'),
-
-    path('ch_semanal_atividades_pesquisa/<int:id>/', CHSemanalAtividadesPesquisaView.as_view(), name='ch_semanal_atividades_pesquisa/id/'),
+    path('ch_semanal_atividades_pesquisa/<str:nome_relatorio>/<int:id_ch_semanal_atividades_pesquisa>/', CHSemanalAtividadesPesquisaView.as_view(), name='ch_semanal_atividades_pesquisa/nome_relatorio>/id_ch_semanal_atividades_pesquisa/'),
 
     path('projeto_extensao/<str:nome_relatorio>/', ProjetoExtensaoView.as_view(), name='projeto_extensao/nome_relatorio/'),
 
@@ -119,11 +117,9 @@ urlpatterns = [
 
     path('ch_semanal_atividades_extensao/<str:nome_relatorio>/<int:id_ch_semanal_atividades_extensao>/', CHSemanalAtividadesExtensaoView.as_view(), name='ch_semanal_atividades_extensao/nome_relatorio/id_ch_semanal_atividades_extensao/'),
 
-    path('distribuicao_ch_semanal', DistribuicaoCHSemanalView.as_view(), name='distribuicao_ch_semanal'),
+    path('distribuicao_ch_semanal/<str:nome_relatorio>/', DistribuicaoCHSemanalView.as_view(), name='distribuicao_ch_semanal/nome_relatorio/'),
 
-    path('distribuicao_ch_semanal/', DistribuicaoCHSemanalView.as_view(), name='distribuicao_ch_semanal/'),
-
-    path('distribuicao_ch_semanal/<int:id>/', DistribuicaoCHSemanalView.as_view(), name='distribuicao_ch_semanal/id/'),
+    path('distribuicao_ch_semanal/<str:nome_relatorio>/<int:id_distribuicao_ch_semanal>/', DistribuicaoCHSemanalView.as_view(), name='distribuicao_ch_semanal/nome_relatorio/id_distribuicao_ch_semanal/'),
 
     path('atividade_gestao_representacao/<str:nome_relatorio>/', AtividadeGestaoRepresentacaoView.as_view(), name='atividade_gestao_representacao/nome_relatorio/'),
 
@@ -141,13 +137,11 @@ urlpatterns = [
 
     path('afastamento/<str:nome_relatorio>/<int:id_afastamento>/', AfastamentoView.as_view(), name='afastamento/nome_relatorio/id_afastamento/'),
 
-    path('documento_comprobatorio', DocumentoComprobatorioView.as_view(), name='documento_comprobatorio'),
-    
-    path('documento_comprobatorio/', DocumentoComprobatorioView.as_view(), name='documento_comprobatorio/'),
+    path('documento_comprobatorio/<str:nome_relatorio>/', DocumentoComprobatorioView.as_view(), name='documento_comprobatorio/nome_relatorio/'),
 
-    path('documento_comprobatorio/<int:id>/', DocumentoComprobatorioView.as_view(), name='documento_comprobatorio/id/'),
+    path('documento_comprobatorio/<str:nome_relatorio>/<int:id_documento_comprobatorio>/', DocumentoComprobatorioView.as_view(), name='documento_comprobatorio/nome_relatorio/id_documento_comprobatorio/'),
     
-    path('download_relatorio_docente/<int:relatorio_id>/', DownloadRelatorioDocenteView.as_view(), name='download_relatorio_docente/relatorio_id/'),
+    path('download_relatorio_docente/<str:nome_relatorio>/', DownloadRelatorioDocenteView.as_view(), name='download_relatorio_docente/nome_relatorio/'),
     
     path('extrair_dados_atividades_letivas', ExtrairDadosAtividadesLetivasPDFAPIView.as_view(), name='extrair_dados_atividades_letivas'),
 

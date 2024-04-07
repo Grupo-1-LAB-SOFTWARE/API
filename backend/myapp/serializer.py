@@ -529,6 +529,7 @@ class AtividadeOrientacaoSupervisaoPreceptoriaTutoriaSerializer(serializers.Mode
                 ch_semanal_atividade_ensino.ch_semanal_primeiro_semestre = ch_semanal_atividade_ensino.ch_semanal_primeiro_semestre - antigo_ch_semanal_total
 
                 ch_semanal_atividade_ensino.ch_semanal_primeiro_semestre = ch_semanal_atividade_ensino.ch_semanal_primeiro_semestre + instance.ch_semanal_total
+                
             else:
                 ch_semanal_atividade_ensino.ch_semanal_segundo_semestre = ch_semanal_atividade_ensino.ch_semanal_segundo_semestre - antigo_ch_semanal_total
 
@@ -934,6 +935,7 @@ class OutraInformacaoSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class DocumentoComprobatorioSerializer(serializers.ModelSerializer):
+    nome_pdf = serializers.CharField(read_only=True)
     binary_pdf = serializers.FileField(max_length=None, use_url=True, write_only=True)
     
     class Meta:
@@ -944,6 +946,7 @@ class DocumentoComprobatorioSerializer(serializers.ModelSerializer):
         documento_pdf = validated_data.pop('binary_pdf', None)
         documento_comprobatorio = DocumentoComprobatorio.objects.create(
             binary_pdf=documento_pdf.read(),
+            nome_pdf = documento_pdf.name,
             **validated_data
         )
         return documento_comprobatorio
