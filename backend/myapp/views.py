@@ -635,6 +635,8 @@ class AtividadePedagogicaComplementarView(APIView):
                     return Util.response_not_found('Não foi possível encontrar um atividade_pedagogica_complementar com o id fornecido.')
                 
             return Util.response_bad_request('É necessário fornecer o id da atividade_pedagogica_complementar que você deseja deletar em atividade_pedagogica_complementar/{nome_relatorio}/{id_atividade_pedagogica_complementar}/')
+        
+        return Util.response_bad_request('É necessário fornecer o nome do relatorio_docente no qual você deseja deletar uma atividade_pedagogica_complementar em atividade_pedagogica_complementar/{nome_relatorio}/{id_atividade_pedagogica_complementar}/')
 
 class AtividadeOrientacaoSupervisaoPreceptoriaTutoriaView(APIView):
     permission_classes = [IsAuthenticated]
@@ -793,6 +795,8 @@ class AtividadeOrientacaoSupervisaoPreceptoriaTutoriaView(APIView):
                 
             return Util.response_bad_request('É necessário fornecer o id da atividade_orientacao_supervisao_preceptoria_tutoria que você deseja deletar em atividade_orientacao_supervisao_preceptoria_tutoria/{nome_relatorio}/{id_atividade_orientacao_supervisao_preceptoria_tutoria}/')
         
+        return Util.response_bad_request('É necessário fornecer o nome do relatorio_docente no qual você deseja deletar uma atividade_orientacao_supervisao_preceptoria_tutoria em atividade_orientacao_supervisao_preceptoria_tutoria/{nome_relatorio}/{id_atividade_orientacao_supervisao_preceptoria_tutoria}/')
+        
 class DescricaoOrientacaoCoorientacaoAcademicaView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -898,6 +902,8 @@ class DescricaoOrientacaoCoorientacaoAcademicaView(APIView):
                     return Util.response_not_found('Não foi possível encontrar uma descricao_orientacao_coorientacao_academica com o id fornecido.')
                 
             return Util.response_bad_request('É necessário fornecer o id da descricao_orientacao_coorientacao_academica que você deseja deletar em descricao_orientacao_coorientacao_academica/{nome_relatorio}/{id_descricao_orientacao_coorientacao_academica}/')
+        
+        return Util.response_bad_request('É necessário fornecer o nome do relatorio_docente no qual você deseja deletar uma descricao_orientacao_coorientacao_academica em descricao_orientacao_coorientacao_academica/{nome_relatorio}/{id_descricao_orientacao_coorientacao_academica}/')
     
 class SupervisaoAcademicaView(APIView):
     permission_classes = [IsAuthenticated]
@@ -1006,6 +1012,8 @@ class SupervisaoAcademicaView(APIView):
                 
             return Util.response_bad_request('É necessário fornecer o id da supervisao_academica que você deseja deletar em supervisao_academica/{nome_relatorio}/{id_supervisao_academica}/')
         
+        return Util.response_bad_request('É necessário fornecer o nome do relatorio_docente no qual você deseja deletar uma supervisao_academica em supervisao_academica/{nome_relatorio}/{id_supervisao_academica}/')
+        
 
 class PreceptoriaTutoriaResidenciaView(APIView):
     permission_classes = [IsAuthenticated]
@@ -1113,6 +1121,8 @@ class PreceptoriaTutoriaResidenciaView(APIView):
                     return Util.response_not_found('Não foi possível encontrar uma preceptoria_tutoria_residencia com o id fornecido.')
                 
             return Util.response_bad_request('É necessário fornecer o id da preceptoria_tutoria_residencia que você deseja deletar em preceptoria_tutoria_residencia/{nome_relatorio}/{id_preceptoria_tutoria_residencia}/')
+        
+        return Util.response_bad_request('É necessário fornecer o nome do relatorio_docente no qual você deseja deletar uma preceptoria_tutoria_residencia em preceptoria_tutoria_residencia/{nome_relatorio}/{id_preceptoria_tutoria_residencia}/')
 
 class BancaExaminadoraView(APIView):
     permission_classes = [IsAuthenticated]
@@ -1241,6 +1251,8 @@ class BancaExaminadoraView(APIView):
                     return Util.response_not_found('Não foi possível encontrar uma banca_examinadora com o id fornecido.')
                 
             return Util.response_bad_request('É necessário fornecer o id da banca_examinadora que você deseja deletar em banca_examinadora/{nome_relatorio}/{id_banca_examinadora}/')
+        
+        return Util.response_bad_request('É necessário fornecer o nome do relatorio_docente no qual você deseja deletar uma banca_examinadora em banca_examinadora/{nome_relatorio}/{id_banca_examinadora}/')
 
 class AvaliacaoDiscenteView(APIView):
     permission_classes = [IsAuthenticated]
@@ -1348,6 +1360,9 @@ class AvaliacaoDiscenteView(APIView):
                     return Util.response_not_found('Não foi possível encontrar uma avaliacao_discente com o id fornecido.')
                 
             return Util.response_bad_request('É necessário fornecer o id da avaliacao_discente que você deseja deletar em avaliacao_discente/{nome_relatorio}/{id_avaliacao_discente}/')
+        
+        return Util.response_bad_request('É necessário fornecer o nome do relatorio_docente no qual você deseja deletar uma avaliacao_discente em avaliacao_discente/{nome_relatorio}/{id_avaliacao_discente}/')
+    
 
 class ProjetoPesquisaProducaoIntelectualView(APIView):
     permission_classes = [IsAuthenticated]
@@ -1453,6 +1468,8 @@ class ProjetoPesquisaProducaoIntelectualView(APIView):
                     return Util.response_not_found('Não foi possível encontrar uma projeto_pesquisa_producao_intelectual com o id fornecido.')
                 
             return Util.response_bad_request('É necessário fornecer o id da projeto_pesquisa_producao_intelectual que você deseja deletar em projeto_pesquisa_producao_intelectual/{nome_relatorio}/{id_projeto_pesquisa_producao_intelectual}/')
+        
+        return Util.response_bad_request('É necessário fornecer o nome do relatorio_docente no qual você deseja deletar um projeto_pesquisa_producao_intelectual em projeto_pesquisa_producao_intelectual/{nome_relatorio}/{id_projeto_pesquisa_producao_intelectual}/')
 
 
 class TrabalhoCompletoPublicadoPeriodicoBoletimTecnicoView(APIView):
@@ -1561,6 +1578,8 @@ class TrabalhoCompletoPublicadoPeriodicoBoletimTecnicoView(APIView):
                     return Util.response_not_found('Não foi possível encontrar uma trabalho_completo_publicado_periodico_boletim_tecnico com o id fornecido.')
                 
             return Util.response_bad_request('É necessário fornecer o id da trabalho_completo_publicado_periodico_boletim_tecnico que você deseja deletar em trabalho_completo_publicado_periodico_boletim_tecnico/{nome_relatorio}/{id_trabalho_completo_publicado_periodico_boletim_tecnico}/')
+        
+        return Util.response_bad_request('É necessário fornecer o nome do relatorio_docente no qual você deseja deletar um trabalho_completo_publicado_periodico_boletim_tecnico em trabalho_completo_publicado_periodico_boletim_tecnico/{nome_relatorio}/{id_trabalho_completo_publicado_periodico_boletim_tecnico}/')
 
 class LivroCapituloVerbetePublicadoView(APIView):
     permission_classes = [IsAuthenticated]
@@ -1668,6 +1687,8 @@ class LivroCapituloVerbetePublicadoView(APIView):
                     return Util.response_not_found('Não foi possível encontrar uma livro_capitulo_verbete_publicado com o id fornecido.')
                 
             return Util.response_bad_request('É necessário fornecer o id da livro_capitulo_verbete_publicado que você deseja deletar em livro_capitulo_verbete_publicado/{nome_relatorio}/{id_livro_capitulo_verbete_publicado}/')
+        
+        return Util.response_bad_request('É necessário fornecer o nome do relatorio_docente no qual você deseja deletar um livro_capitulo_verbete_publicado em livro_capitulo_verbete_publicado/{nome_relatorio}/{id_livro_capitulo_verbete_publicado}/')
 
 class TrabalhoCompletoResumoPublicadoApresentadoCongressosView(APIView):
     permission_classes = [IsAuthenticated]
@@ -1766,7 +1787,7 @@ class TrabalhoCompletoResumoPublicadoApresentadoCongressosView(APIView):
                 try:
                     usuario_id = request.user.id
                     relatorio_docente = RelatorioDocente.objects.get(usuario_id=usuario_id, nome=nome_relatorio)
-                    trabalho_completo_resumo_publicado_apresentado_congressos = TrabalhoCompletoResumoPublicadoApresentadoCongressos.objects.get(pk=trabalho_completo_resumo_publicado_apresentado_congressos, relatorio_id = relatorio_docente.pk)
+                    trabalho_completo_resumo_publicado_apresentado_congressos = TrabalhoCompletoResumoPublicadoApresentadoCongressos.objects.get(pk=id_trabalho_completo_resumo_publicado_apresentado_congressos, relatorio_id = relatorio_docente.pk)
                     trabalho_completo_resumo_publicado_apresentado_congressos.delete()
 
                     return Util.response_ok_no_message('Objeto excluído com sucesso.')
@@ -1775,6 +1796,8 @@ class TrabalhoCompletoResumoPublicadoApresentadoCongressosView(APIView):
                     return Util.response_not_found('Não foi possível encontrar uma trabalho_completo_resumo_publicado_apresentado_congressos com o id fornecido.')
                 
             return Util.response_bad_request('É necessário fornecer o id da trabalho_completo_resumo_publicado_apresentado_congressos que você deseja deletar em trabalho_completo_resumo_publicado_apresentado_congressos/{nome_relatorio}/{id_trabalho_completo_resumo_publicado_apresentado_congressos}/')
+        
+        return Util.response_bad_request('É necessário fornecer o nome do relatorio_docente no qual você deseja deletar um trabalho_completo_resumo_publicado_apresentado_congressos em trabalho_completo_resumo_publicado_apresentado_congressos/{nome_relatorio}/{id_trabalho_completo_resumo_publicado_apresentado_congressos}/')
     
 
 class OutraAtividadePesquisaProducaoIntelectualView(APIView):
@@ -1891,7 +1914,8 @@ class OutraAtividadePesquisaProducaoIntelectualView(APIView):
                     return Util.response_not_found('Não foi possível encontrar uma outra_atividade_pesquisa_producao_intelectual com o id fornecido.')
                
             return Util.response_bad_request('É necessário fornecer o id da outra_atividade_pesquisa_producao_intelectual que você deseja deletar em outra_atividade_pesquisa_producao_intelectual/{nome_relatorio}/{id_outra_atividade_pesquisa_producao_intelectual}/')
-
+        
+        return Util.response_bad_request('É necessário fornecer o nome do relatorio_docente no qual você deseja deletar uma outra_atividade_pesquisa_producao_intelectual em outra_atividade_pesquisa_producao_intelectual/{nome_relatorio}/{id_outra_atividade_pesquisa_producao_intelectual}/')
 
 
 class CHSemanalAtividadesPesquisaView(APIView):
@@ -2079,11 +2103,12 @@ class ProjetoExtensaoView(APIView):
                     return Util.response_ok_no_message('Objeto excluído com sucesso.')
                
                 except ProjetoExtensao.DoesNotExist:
-                    return Util.response_not_found('Não foi possível encontrar uma projeto_extensao com o id fornecido.')
+                    return Util.response_not_found('Não foi possível encontrar um projeto_extensao com o id fornecido.')
                
-            return Util.response_bad_request('É necessário fornecer o id da projeto_extensao que você deseja deletar em projeto_extensao/{nome_relatorio}/{id_projeto_extensao}/')
+            return Util.response_bad_request('É necessário fornecer o id do projeto_extensao que você deseja deletar em projeto_extensao/{nome_relatorio}/{id_projeto_extensao}/')
+        
+        return Util.response_bad_request('É necessário fornecer o nome do relatorio_docente no qual você deseja deletar um projeto_extensao em projeto_extensao/{nome_relatorio}/{id_projeto_extensao}/')
 
-    
         
 class EstagioExtensaoView(APIView):
     permission_classes = [IsAuthenticated]
@@ -2192,9 +2217,11 @@ class EstagioExtensaoView(APIView):
                     return Util.response_ok_no_message('Objeto excluído com sucesso.')
                
                 except EstagioExtensao.DoesNotExist:
-                    return Util.response_not_found('Não foi possível encontrar uma estagio_extensao com o id fornecido.')
+                    return Util.response_not_found('Não foi possível encontrar um estagio_extensao com o id fornecido.')
                
-            return Util.response_bad_request('É necessário fornecer o id da estagio_extensao que você deseja deletar em estagio_extensao/{nome_relatorio}/{id_estagio_extensao}/')
+            return Util.response_bad_request('É necessário fornecer o id do estagio_extensao que você deseja deletar em estagio_extensao/{nome_relatorio}/{id_estagio_extensao}/')
+        
+        return Util.response_bad_request('É necessário fornecer o nome do relatorio_docente no qual você deseja deletar um estagio_extensao em estagio_extensao/{nome_relatorio}/{id_estagio_extensao}/')
 
         
 class AtividadeEnsinoNaoFormalView(APIView):
@@ -2311,6 +2338,8 @@ class AtividadeEnsinoNaoFormalView(APIView):
                     return Util.response_not_found('Não foi possível encontrar uma atividade_ensino_nao_formal com o id fornecido.')
                
             return Util.response_bad_request('É necessário fornecer o id da atividade_ensino_nao_formal que você deseja deletar em atividade_ensino_nao_formal/{nome_relatorio}/{id_atividade_ensino_nao_formal}/')
+        
+        return Util.response_bad_request('É necessário fornecer o nome do relatorio_docente no qual você deseja deletar uma atividade_ensino_nao_formal em atividade_ensino_nao_formal/{nome_relatorio}/{id_atividade_ensino_nao_formal}/')
     
 
 class OutraAtividadeExtensaoView(APIView):
@@ -2419,6 +2448,8 @@ class OutraAtividadeExtensaoView(APIView):
                     return Util.response_not_found('Não foi possível encontrar uma outra_atividade_extensao com o id fornecido.')
                
             return Util.response_bad_request('É necessário fornecer o id da outra_atividade_extensao que você deseja deletar em outra_atividade_extensao/{nome_relatorio}/{id_outra_atividade_extensao}/')
+        
+        return Util.response_bad_request('É necessário fornecer o nome do relatorio_docente no qual você deseja deletar uma outra_atividade_extensao em outra_atividade_extensao/{nome_relatorio}/{id_outra_atividade_extensao}/')
 
     
 class CHSemanalAtividadesExtensaoView(APIView):
@@ -2736,6 +2767,8 @@ class AtividadeGestaoRepresentacaoView(APIView):
                
             return Util.response_bad_request('É necessário fornecer o id da atividade_gestao_representacao que você deseja deletar em atividade_gestao_representacao/{nome_relatorio}/{id_atividade_gestao_representacao}/')
         
+        return Util.response_bad_request('É necessário fornecer o nome do relatorio_docente no qual você deseja deletar uma atividade_gestao_representacao em atividade_gestao_representacao/{nome_relatorio}/{id_atividade_gestao_representacao}/')
+        
     
 class QualificacaoDocenteAcademicaProfissionalView(APIView):
     permission_classes = [IsAuthenticated]
@@ -2851,6 +2884,8 @@ class QualificacaoDocenteAcademicaProfissionalView(APIView):
                     return Util.response_not_found('Não foi possível encontrar uma qualificacao_docente_academica_profissional com o id fornecido.')
                
             return Util.response_bad_request('É necessário fornecer o id da qualificacao_docente_academica_profissional que você deseja deletar em qualificacao_docente_academica_profissional/{nome_relatorio}/{id_qualificacao_docente_academica_profissional}/')
+        
+        return Util.response_bad_request('É necessário fornecer o nome do relatorio_docente no qual você deseja deletar uma qualificacao_docente_academica_profissional em qualificacao_docente_academica_profissional/{nome_relatorio}/{id_qualificacao_docente_academica_profissional}/')
 
     
 class OutraInformacaoView(APIView):
