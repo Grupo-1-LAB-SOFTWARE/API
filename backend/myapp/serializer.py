@@ -445,7 +445,7 @@ class AtividadePedagogicaComplementarSerializer(serializers.ModelSerializer):
             else:
                 ch_semanal_atividade_ensino.ch_semanal_segundo_semestre = ch_semanal_atividade_ensino.ch_semanal_primeiro_semestre + instance.ch_semanal_total
 
-            ch_semanal_atividade_ensino.save()
+        ch_semanal_atividade_ensino.save()
         #Termina aqui
 
         return instance
@@ -547,7 +547,7 @@ class AtividadeOrientacaoSupervisaoPreceptoriaTutoriaSerializer(serializers.Mode
             else:
                 ch_semanal_atividade_ensino.ch_semanal_segundo_semestre = ch_semanal_atividade_ensino.ch_semanal_primeiro_semestre + instance.ch_semanal_total
             
-            ch_semanal_atividade_ensino.save()
+        ch_semanal_atividade_ensino.save()
         #Termina aqui
                 
         return instance
@@ -689,7 +689,7 @@ class BancaExaminadoraSerializer(serializers.ModelSerializer):
 
             ch_semanal_atividade_ensino.ch_semanal_segundo_semestre = ch_semanal_atividade_ensino.ch_semanal_segundo_semestre + instance.ch_semanal_segundo_semestre
             
-            ch_semanal_atividade_ensino.save()
+        ch_semanal_atividade_ensino.save()
         #Termina aqui
                 
         return instance
