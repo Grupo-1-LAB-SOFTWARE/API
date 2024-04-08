@@ -28,7 +28,7 @@ class Usuario(AbstractUser):
         ('Não selecionado', 'Não selecionado')
     )
     TITULACAO = (
-        ('Graduacão', 'Graduação'),
+        ('Graduação', 'Graduação'),
         ('Especialização', 'Especialização'),
         ('Mestre', 'Mestre'),
         ('Doutor', 'Doutor'),
@@ -40,7 +40,7 @@ class Usuario(AbstractUser):
     id = models.AutoField(primary_key=True)
     nome_completo = models.CharField(max_length=500)
     perfil = models.CharField(
-        max_length=25,
+        max_length=50,
         choices=PERFIL,
         default='Docente'
     )
@@ -79,6 +79,8 @@ class AtividadeLetiva(models.Model):
     NIVEL = (
         ('GRA', 'GRA'),
         ('POS', 'POS'),
+        ('MES', 'MES'),
+        ('DOC', 'DOC'),
     )
     relatorio_id = models.ForeignKey(RelatorioDocente, on_delete=models.CASCADE)
     semestre = models.IntegerField()
@@ -122,22 +124,42 @@ class AtividadeOrientacaoSupervisaoPreceptoriaTutoria(models.Model):
     ch_semanal_total = models.FloatField(null=True)
 
 class DescricaoOrientacaoCoorientacaoAcademica(models.Model):
+    NIVEL = (
+        ('GRA', 'GRA'),
+        ('POS', 'POS'),
+        ('MES', 'MES'),
+        ('DOC', 'DOC'),
+    )
     relatorio_id = models.ForeignKey(RelatorioDocente, on_delete=models.CASCADE)
     numero_doc = models.IntegerField()
     nome_e_ou_matricula_discente = models.CharField(max_length=300)
     curso = models.CharField(max_length=100)
     tipo = models.CharField(max_length=50)
-    nivel = models.CharField(max_length=50)
+    nivel = models.CharField(
+        max_length=50,
+        choices=NIVEL,
+        default='GRA'
+    )
     ch_semanal_primeiro_semestre = models.FloatField()
     ch_semanal_segundo_semestre = models.FloatField()
 
 class SupervisaoAcademica(models.Model):
+    NIVEL = (
+        ('GRA', 'GRA'),
+        ('POS', 'POS'),
+        ('MES', 'MES'),
+        ('DOC', 'DOC'),
+    )
     relatorio_id = models.ForeignKey(RelatorioDocente, on_delete=models.CASCADE)
     numero_doc = models.IntegerField()
     nome_e_ou_matricula_discente = models.CharField(max_length=300)
     curso = models.CharField(max_length=100)
     tipo = models.CharField(max_length=50)
-    nivel = models.CharField(max_length=50)
+    nivel = models.CharField(
+        max_length=50,
+        choices=NIVEL,
+        default='GRA'
+    )
     ch_semanal_primeiro_semestre = models.FloatField()
     ch_semanal_segundo_semestre = models.FloatField()
 
@@ -253,7 +275,7 @@ class EstagioExtensao(models.Model):
     relatorio_id = models.ForeignKey(RelatorioDocente, on_delete=models.CASCADE)
     numero_doc = models.IntegerField()
     area_conhecimento = models.CharField(max_length=400)
-    insituicao_ou_local = models.CharField(max_length=400)
+    instituicao_ou_local = models.CharField(max_length=400)
     periodo = models.CharField(max_length=100)
     ch_semanal = models.FloatField()
 
@@ -317,5 +339,6 @@ class Afastamento(models.Model):
 
 class DocumentoComprobatorio(models.Model):
     relatorio_id = models.ForeignKey(RelatorioDocente, on_delete=models.CASCADE)
+    nome_pdf = models.CharField(max_length=1000)
     binary_pdf = models.BinaryField()
 

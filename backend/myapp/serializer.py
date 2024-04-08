@@ -1,10 +1,12 @@
 from rest_framework import serializers
 from django.utils import timezone
+from .utils import Util
 from django.contrib.auth.hashers import make_password
 from rest_framework.exceptions import ValidationError
 from .utils import Util
 from django.forms.models import model_to_dict
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from rest_framework_simplejwt.tokens import RefreshToken
 from myapp.models import ( 
                           Usuario,
                           RelatorioDocente,
@@ -42,7 +44,12 @@ class CustomizarTokenSerializer(TokenObtainPairSerializer):
     @classmethod
     def get_token(cls, user):
         token = super().get_token(user)
-        #token['username'] = user.username
+    
+        refresh = RefreshToken.for_user(user)
+        token = {
+            #'refresh': str(refresh),
+            'token': str(refresh.access_token)
+        }
 
         return token
 
@@ -80,7 +87,8 @@ class UsuarioSerializer(serializers.ModelSerializer):
             titulacao = validated_data['titulacao'],
             campus = validated_data['campus'],
             instituto = validated_data['instituto'],
-            password = make_password(validated_data['password'])
+            password = make_password(validated_data['password']),
+            is_active = False
         )
         return usuario
 
@@ -126,24 +134,62 @@ class AtividadeLetivaSerializer(serializers.ModelSerializer):
         ch_total = (numero_turmas_teorico * ch_turmas_teorico) + (numero_turmas_pratico * ch_turmas_pratico)
 
         semestre = int(validated_data['semestre'])
-        if semestre > 2 or semestre < 1:
-            raise ValidationError({'semestre': ['ERRO: O semestre pode ser apenas 1 ou 2']})
-
-        semestre = int(validated_data['semestre'])
-        if semestre > 2 or semestre < 1:
-            raise ValidationError({'semestre': ['ERRO: O semestre pode ser apenas 1 ou 2']})
+        Util.validar_semestre(semestre = semestre)
 
         docentes_envolvidos_e_cargas_horarias = validated_data.get('docentes_envolvidos_e_cargas_horarias', None)
     
         relatorio = validated_data['relatorio_id']
         usuario = relatorio.usuario_id
+        nome_usuario = usuario.nome_completo.upper()
 
-        if 'Você' in docentes_envolvidos_e_cargas_horarias:
-            ch_usuario = docentes_envolvidos_e_cargas_horarias.pop('Você', None)
+        if nome_usuario in docentes_envolvidos_e_cargas_horarias:
+            ch_usuario = docentes_envolvidos_e_cargas_horarias.pop(nome_usuario, None)
             if ch_usuario:
-                docentes_envolvidos_e_cargas_horarias[usuario.nome_completo.upper()] = ch_usuario 
+                docentes_envolvidos_e_cargas_horarias[nome_usuario] = ch_usuario
         else:
-            raise ValidationError({'docentes_envolvidos_e_cargas_horarias': ['ERRO: O usuário precisa fazer parte da atividade_letiva para cadastrá-la. Inclua a chave "Você" para se referir à carga horária do docente usuário.']})
+            raise ValidationError({'docentes_envolvidos_e_cargas_horarias': ['ERRO: O usuário precisa fazer parte da atividade_letiva para cadastrá-la. Inclua uma chave igual ao "[nome do usuário em letras maiúsculas]" para se referir à carga horária do docente usuário.']})
+        
+        # try:
+        #     atividade_pedagogica_complementar = AtividadePedagogicaComplementar.objects.get(relatorio_id=relatorio, semestre=semestre)
+
+        #     ch_total_atividades_letivas = 0.0
+        #     calculo_ch_semanal_aulas_soma = 0.0
+
+        #     if validated_data['nivel'] == 'GRA':
+        #         atividades_letivas = AtividadeLetiva.objects.filter(relatorio_id=relatorio, semestre=semestre, nivel='GRA')
+        #         for instance in atividades_letivas:
+        #             ch_total_atividades_letivas = instance.docentes_envolvidos_e_cargas_horarias[nome_usuario] + ch_total_atividades_letivas
+
+        #         ch_total_atividades_letivas = round(ch_total_atividades_letivas, 1)
+        #         print(ch_total_atividades_letivas)
+
+        #         if ch_usuario % 15 == 0:
+        #             calculo_ch_semanal_aulas_soma = ch_total_atividades_letivas + round(ch_usuario / 15, 1)
+                            
+        #         else:
+        #             calculo_ch_semanal_aulas_soma = ch_total_atividades_letivas + round(ch_usuario / 17, 1)
+
+        #     elif validated_data['nivel'] == 'POS':
+        #         atividades_letivas = AtividadeLetiva.objects.filter(relatorio_id=relatorio, semestre=semestre, nivel='POS')
+        #         for instance in atividades_letivas:
+        #             ch_total_atividades_letivas = instance.docentes_envolvidos_e_cargas_horarias.pop(usuario.nome_completo.upper(), None) + ch_total_atividades_letivas
+
+        #         ch_total_atividades_letivas = round(ch_total_atividades_letivas, 1)
+
+        #         calculo_ch_semanal_aulas_soma = ch_total_atividades_letivas + round(ch_usuario / 15, 1)
+
+        #     if atividade_pedagogica_complementar:
+        #         calculo_ch_semanal_aulas_soma = 2 * calculo_ch_semanal_aulas_soma
+
+        #         if atividade_pedagogica_complementar.ch_semanal_total > calculo_ch_semanal_aulas_soma:
+        #                 return Util.response_bad_request(f'ERRO: não é possível criar uma atividade_letiva para esse nível e semestre sem antes atualizar a ch_semanal_total da sua atividade_pedagogica_complementar do mesmo nível e semestre para um valor menor ou igual a {calculo_ch_semanal_aulas_soma}.')
+                    
+        #         if atividade_pedagogica_complementar.ch_semanal_total > 32.0:
+        #                 return Util.response_bad_request('ERRO: não é possível criar uma atividade_letiva para esse nível e semestre sem antes atualizar a ch_semanal_total da sua atividade_pedagogica_complementar do mesmo nível e semestre para um valor menor ou igual a 32.0.')
+        
+        # except AtividadePedagogicaComplementar.DoesNotExist:
+        #     pass
+
         
         atividade_letiva = AtividadeLetiva.objects.create(
             relatorio_id = validated_data['relatorio_id'],
@@ -160,41 +206,121 @@ class AtividadeLetivaSerializer(serializers.ModelSerializer):
             docentes_envolvidos_e_cargas_horarias = docentes_envolvidos_e_cargas_horarias,
             ch_total = ch_total
         )
+
+        relatorio_id = atividade_letiva.relatorio_id
+
+        Util.resetar_valores_calculos_ch_semanal_aulas(relatorio_id = relatorio_id)
+
+        Util.recriar_calculos_ch_semanal_aulas(relatorio_id = relatorio_id)
+
+        Util.aplicar_maximos_e_minimos_calculos_ch_semanal_aulas(relatorio_id = relatorio_id)
+
         return atividade_letiva
 
-    def update(self, instance, validated_data):
+    def update(self, atividade_letiva_instance, validated_data):
+        atividade_letiva_id = atividade_letiva_instance.id
+        relatorio = atividade_letiva_instance.relatorio_id
+        usuario = relatorio.usuario_id
+        nome_usuario = usuario.nome_completo.upper()
+
         semestre = validated_data.get('semestre', None)
         if semestre:
-            if semestre > 2 or semestre < 1:
-                raise ValidationError({'semestre': ['ERRO: O semestre pode ser apenas 1 ou 2']})
-            instance.semestre = semestre
+            Util.validar_semestre(semestre = semestre)
+        else:
+            semestre = atividade_letiva_instance.semestre
 
-        instance.numero_turmas_teorico = validated_data.get('numero_turmas_teorico', instance.numero_turmar_teorico)
-        instance.numero_turmas_pratico = validated_data.get('numero_turmas_pratico', instance.numero_turmas_pratico)
-        instance.ch_turmas_teorico = validated_data.get('ch_turmas_teorico', instance.ch_turmas_teorico)
-        instance.ch_turmas_pratico = validated_data.get('ch_turmas_pratico', instance.ch_turmas_pratico)
+        docentes_envolvidos_e_cargas_horarias = validated_data.get('docentes_envolvidos_e_cargas_horarias', None)
 
-        instance.ch_total = (instance.numero_turmas_teorico * instance.ch_turmas_teorico) + (instance.numero_turmas_pratico * instance.ch_turmas_pratico)
-    
-        instance.save()
-        return instance
+        ch_usuario = None
 
-    def update(self, instance, validated_data):
-        semestre = validated_data.get('semestre', None)
-        if semestre:
-            if semestre > 2 or semestre < 1:
-                raise ValidationError({'semestre': ['ERRO: O semestre pode ser apenas 1 ou 2']})
-            instance.semestre = semestre
+        if docentes_envolvidos_e_cargas_horarias:
+            if nome_usuario in docentes_envolvidos_e_cargas_horarias:
+                ch_usuario = docentes_envolvidos_e_cargas_horarias[nome_usuario]
+                atividade_letiva_instance.docentes_envolvidos_e_cargas_horarias = docentes_envolvidos_e_cargas_horarias
+            else:
+                raise ValidationError({'docentes_envolvidos_e_cargas_horarias': ['ERRO: O usuário precisa fazer parte da atividade_letiva para cadastrá-la. Inclua uma chave igual ao "[nome do usuário em letras maiúsculas]" para se referir à carga horária do docente usuário.']})
+        else:
+            docentes_envolvidos_e_cargas_horarias = atividade_letiva_instance.docentes_envolvidos_e_cargas_horarias
+            ch_usuario = docentes_envolvidos_e_cargas_horarias[nome_usuario]
 
-        instance.numero_turmas_teorico = validated_data.get('numero_turmas_teorico', instance.numero_turmar_teorico)
-        instance.numero_turmas_pratico = validated_data.get('numero_turmas_pratico', instance.numero_turmas_pratico)
-        instance.ch_turmas_teorico = validated_data.get('ch_turmas_teorico', instance.ch_turmas_teorico)
-        instance.ch_turmas_pratico = validated_data.get('ch_turmas_pratico', instance.ch_turmas_pratico)
+        # try:
+        #     atividade_pedagogica_complementar = AtividadePedagogicaComplementar.objects.get(relatorio_id=relatorio, semestre=semestre)
 
-        instance.ch_total = (instance.numero_turmas_teorico * instance.ch_turmas_teorico) + (instance.numero_turmas_pratico * instance.ch_turmas_pratico)
-    
-        instance.save()
-        return instance
+        #     ch_total_atividades_letivas = 0.0
+        #     calculo_ch_semanal_aulas_soma = 0.0
+            
+        #     if validated_data.get('nivel', atividade_letiva_instance.nivel) == 'GRA':
+        #         atividades_letivas = AtividadeLetiva.objects.filter(relatorio_id=relatorio, semestre=semestre, nivel='GRA')
+        #         for instance in atividades_letivas:
+        #             if instance.pk == atividade_letiva_id:
+        #                 ch_total_atividades_letivas = docentes_envolvidos_e_cargas_horarias[nome_usuario] + ch_total_atividades_letivas
+        #             else:
+        #                 ch_total_atividades_letivas = instance.docentes_envolvidos_e_cargas_horarias[nome_usuario] + ch_total_atividades_letivas
+
+        #         ch_total_atividades_letivas = round(ch_total_atividades_letivas, 1)
+
+        #         if ch_usuario % 15 == 0:
+        #             calculo_ch_semanal_aulas_soma = ch_total_atividades_letivas + round(ch_usuario / 15, 1)
+                            
+        #         else:
+        #             calculo_ch_semanal_aulas_soma = ch_total_atividades_letivas + round(ch_usuario / 17, 1)
+
+        #     elif validated_data.get('nivel', atividade_letiva_instance.nivel) == 'POS':
+        #         atividades_letivas = AtividadeLetiva.objects.filter(relatorio_id=relatorio, semestre=semestre, nivel='POS')
+        #         for instance in atividades_letivas:
+        #             if instance.pk == atividade_letiva_id:
+        #                 ch_total_atividades_letivas = docentes_envolvidos_e_cargas_horarias[nome_usuario] + ch_total_atividades_letivas
+        #             else:
+        #                 ch_total_atividades_letivas = instance.docentes_envolvidos_e_cargas_horarias[nome_usuario] + ch_total_atividades_letivas
+
+        #         ch_total_atividades_letivas = round(ch_total_atividades_letivas, 1)
+
+        #         calculo_ch_semanal_aulas_soma = ch_total_atividades_letivas + round(ch_usuario / 15, 1)
+            
+        #     if atividade_pedagogica_complementar:
+        #         calculo_ch_semanal_aulas_soma = 2 * calculo_ch_semanal_aulas_soma
+        #         print(calculo_ch_semanal_aulas_soma)
+
+        #         if atividade_pedagogica_complementar.ch_semanal_total > calculo_ch_semanal_aulas_soma:
+        #                 return Util.response_bad_request(f'ERRO: não é possível atualizar uma atividade_letiva para esse nível e semestre sem antes atualizar a ch_semanal_total da sua atividade_pedagogica_complementar do mesmo nível e semestre para um valor menor ou igual a {calculo_ch_semanal_aulas_soma}.')
+                    
+        #         if atividade_pedagogica_complementar.ch_semanal_total > 32.0:
+        #                 return Util.response_bad_request('ERRO: não é possível atualizar uma atividade_letiva para esse nível e semestre sem antes atualizar a ch_semanal_total da sua atividade_pedagogica_complementar do mesmo nível e semestre para um valor menor ou igual a 32.0.')
+        
+        # except AtividadePedagogicaComplementar.DoesNotExist:
+        #     pass
+        
+        atividade_letiva_instance.semestre = semestre
+
+        atividade_letiva_instance.codigo_disciplina = validated_data.get('codigo_disciplina', atividade_letiva_instance.codigo_disciplina)
+
+        atividade_letiva_instance.nome_disciplina = validated_data.get('nome_disciplina', atividade_letiva_instance.nome_disciplina)
+
+        atividade_letiva_instance.ano_e_semestre = validated_data.get('ano_e_semestre', atividade_letiva_instance.ano_e_semestre)
+
+        atividade_letiva_instance.curso = validated_data.get('curso', atividade_letiva_instance.curso)
+
+        atividade_letiva_instance.nivel = validated_data.get('nivel', atividade_letiva_instance.nivel)
+
+        atividade_letiva_instance.numero_turmas_teorico = validated_data.get('numero_turmas_teorico', atividade_letiva_instance.numero_turmas_teorico)
+
+        atividade_letiva_instance.numero_turmas_pratico = validated_data.get('numero_turmas_pratico', atividade_letiva_instance.numero_turmas_pratico)
+
+        atividade_letiva_instance.ch_turmas_teorico = validated_data.get('ch_turmas_teorico', atividade_letiva_instance.ch_turmas_teorico)
+
+        atividade_letiva_instance.ch_turmas_pratico = validated_data.get('ch_turmas_pratico', atividade_letiva_instance.ch_turmas_pratico)
+
+        atividade_letiva_instance.ch_total = (atividade_letiva_instance.numero_turmas_teorico * atividade_letiva_instance.ch_turmas_teorico) + (atividade_letiva_instance.numero_turmas_pratico * atividade_letiva_instance.ch_turmas_pratico)
+
+        atividade_letiva_instance.save()
+        
+        Util.resetar_valores_calculos_ch_semanal_aulas(relatorio_id = relatorio)
+
+        Util.recriar_calculos_ch_semanal_aulas(relatorio_id = relatorio)
+
+        Util.aplicar_maximos_e_minimos_calculos_ch_semanal_aulas(relatorio_id=relatorio)
+
+        return atividade_letiva_instance
 
 
 class CalculoCHSemanalAulasSerializer(serializers.ModelSerializer):
@@ -211,8 +337,7 @@ class CalculoCHSemanalAulasSerializer(serializers.ModelSerializer):
         ch_semanal_total = ch_semanal_graduacao + ch_semanal_pos_graduacao
 
         semestre = int(validated_data['semestre'])
-        if semestre > 2 or semestre < 1:
-            raise ValidationError({'semestre': ['ERRO: O semestre pode ser apenas 1 ou 2']})
+        Util.validar_semestre(semestre = semestre)
 
         calculo_ch_semanal_aulas = CalculoCHSemanalAulas.objects.create(
             **validated_data,
@@ -223,8 +348,7 @@ class CalculoCHSemanalAulasSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         semestre = validated_data.get('semestre', None)
         if semestre:
-            if semestre > 2 or semestre < 1:
-                raise ValidationError({'semestre': ['ERRO: O semestre pode ser apenas 1 ou 2']})
+            Util.validar_semestre(semestre = semestre)
             instance.semestre = semestre
 
         instance.ch_semanal_graduacao = validated_data.get('ch_semanal_graduacao', instance.ch_semanal_graducao)
@@ -250,20 +374,42 @@ class AtividadePedagogicaComplementarSerializer(serializers.ModelSerializer):
         ch_semanal_total = ch_semanal_graduacao + ch_semanal_pos_graduacao
 
         semestre = int(validated_data['semestre'])
-        if semestre > 2 or semestre < 1:
-            raise ValidationError({'semestre': ['ERRO: O semestre pode ser apenas 1 ou 2']})
+        Util.validar_semestre(semestre = semestre)
 
         atividade_pedagogica_complementar = AtividadePedagogicaComplementar.objects.create(
             **validated_data,
             ch_semanal_total = ch_semanal_total
         )
+
+        #Lógica POST para ch_semanal_atividade_ensino
+        relatorio_id = atividade_pedagogica_complementar.relatorio_id
+        ch_semanal_atividade_ensino = None
+        try:
+            ch_semanal_atividade_ensino = CHSemanalAtividadeEnsino.objects.get(relatorio_id = relatorio_id)
+
+        except CHSemanalAtividadeEnsino.DoesNotExist:
+            ch_semanal_atividade_ensino = CHSemanalAtividadeEnsino.objects.create(
+                relatorio_id = relatorio_id,
+                ch_semanal_primeiro_semestre = 0.0,
+                ch_semanal_segundo_semestre = 0.0
+            )
+        
+        if atividade_pedagogica_complementar.semestre == 1:
+            ch_semanal_atividade_ensino.ch_semanal_primeiro_semestre = ch_semanal_atividade_ensino.ch_semanal_primeiro_semestre + atividade_pedagogica_complementar.ch_semanal_total
+        else:
+            ch_semanal_atividade_ensino.ch_semanal_segundo_semestre = ch_semanal_atividade_ensino.ch_semanal_primeiro_semestre + atividade_pedagogica_complementar.ch_semanal_total
+
+        ch_semanal_atividade_ensino.save()
+        #Termina aqui
+
         return atividade_pedagogica_complementar
 
     def update(self, instance, validated_data):
+        antigo_ch_semanal_total = instance.ch_semanal_total
+
         semestre = validated_data.get('semestre', None)
         if semestre:
-            if semestre > 2 or semestre < 1:
-                raise ValidationError({'semestre': ['ERRO: O semestre pode ser apenas 1 ou 2']})
+            Util.validar_semestre(semestre = semestre)
             instance.semestre = semestre
 
         instance.ch_semanal_graduacao = validated_data.get('ch_semanal_graduacao', instance.ch_semanal_graduacao)
@@ -272,6 +418,36 @@ class AtividadePedagogicaComplementarSerializer(serializers.ModelSerializer):
         instance.ch_semanal_total = instance.ch_semanal_graduacao + instance.ch_semanal_pos_graduacao
     
         instance.save()
+
+        #Lógica PUT para ch_semanal_atividade_ensino
+        relatorio_id = instance.relatorio_id
+        try:
+            ch_semanal_atividade_ensino = CHSemanalAtividadeEnsino.objects.get(relatorio_id = relatorio_id)
+            
+            if instance.semestre == 1:
+                ch_semanal_atividade_ensino.ch_semanal_primeiro_semestre = ch_semanal_atividade_ensino.ch_semanal_primeiro_semestre - antigo_ch_semanal_total
+
+                ch_semanal_atividade_ensino.ch_semanal_primeiro_semestre = ch_semanal_atividade_ensino.ch_semanal_primeiro_semestre + instance.ch_semanal_total
+            else:
+                ch_semanal_atividade_ensino.ch_semanal_segundo_semestre = ch_semanal_atividade_ensino.ch_semanal_segundo_semestre - antigo_ch_semanal_total
+
+                ch_semanal_atividade_ensino.ch_semanal_segundo_semestre = ch_semanal_atividade_ensino.ch_semanal_primeiro_semestre + instance.ch_semanal_total
+
+        except CHSemanalAtividadeEnsino.DoesNotExist:
+            ch_semanal_atividade_ensino = CHSemanalAtividadeEnsino.objects.create(
+                relatorio_id = relatorio_id,
+                ch_semanal_primeiro_semestre = 0.0,
+                ch_semanal_segundo_semestre = 0.0
+            )
+
+            if instance.semestre == 1:
+                ch_semanal_atividade_ensino.ch_semanal_primeiro_semestre = ch_semanal_atividade_ensino.ch_semanal_primeiro_semestre + instance.ch_semanal_total
+            else:
+                ch_semanal_atividade_ensino.ch_semanal_segundo_semestre = ch_semanal_atividade_ensino.ch_semanal_primeiro_semestre + instance.ch_semanal_total
+
+        ch_semanal_atividade_ensino.save()
+        #Termina aqui
+
         return instance
 
 
@@ -292,20 +468,42 @@ class AtividadeOrientacaoSupervisaoPreceptoriaTutoriaSerializer(serializers.Mode
         ch_semanal_total = ch_semanal_orientacao + ch_semanal_coorientacao + ch_semanal_supervisao + ch_semanal_preceptoria_e_ou_tutoria
 
         semestre = int(validated_data['semestre'])
-        if semestre > 2 or semestre < 1:
-            raise ValidationError({'semestre': ['ERRO: O semestre pode ser apenas 1 ou 2']})
+        Util.validar_semestre(semestre = semestre)
 
         atividades_orientacao_supervisao_preceptoria_tutoria = AtividadeOrientacaoSupervisaoPreceptoriaTutoria.objects.create(
             **validated_data,
             ch_semanal_total = ch_semanal_total
         )
+
+        #Lógica POST para ch_semanal_atividade_ensino
+        relatorio_id = atividades_orientacao_supervisao_preceptoria_tutoria.relatorio_id
+        ch_semanal_atividade_ensino = None
+        try:
+            ch_semanal_atividade_ensino = CHSemanalAtividadeEnsino.objects.get(relatorio_id = relatorio_id)
+
+        except CHSemanalAtividadeEnsino.DoesNotExist:
+            ch_semanal_atividade_ensino = CHSemanalAtividadeEnsino.objects.create(
+                relatorio_id = relatorio_id,
+                ch_semanal_primeiro_semestre = 0.0,
+                ch_semanal_segundo_semestre = 0.0
+            )
+        
+        if atividades_orientacao_supervisao_preceptoria_tutoria.semestre == 1:
+            ch_semanal_atividade_ensino.ch_semanal_primeiro_semestre = ch_semanal_atividade_ensino.ch_semanal_primeiro_semestre + atividades_orientacao_supervisao_preceptoria_tutoria.ch_semanal_total
+        else:
+            ch_semanal_atividade_ensino.ch_semanal_segundo_semestre = ch_semanal_atividade_ensino.ch_semanal_primeiro_semestre + atividades_orientacao_supervisao_preceptoria_tutoria.ch_semanal_total
+
+        ch_semanal_atividade_ensino.save()
+        #Termina aqui
+
         return atividades_orientacao_supervisao_preceptoria_tutoria
 
     def update(self, instance, validated_data):
+        antigo_ch_semanal_total = instance.ch_semanal_total
+
         semestre = validated_data.get('semestre', None)
         if semestre:
-            if semestre > 2 or semestre < 1:
-                raise ValidationError({'semestre': ['ERRO: O semestre pode ser apenas 1 ou 2']})
+            Util.validar_semestre(semestre = semestre)
             instance.semestre = semestre
 
         instance.ch_semanal_orientacao = validated_data.get('ch_semanal_orientacao', instance.ch_semanal_orientacao)
@@ -319,6 +517,39 @@ class AtividadeOrientacaoSupervisaoPreceptoriaTutoriaSerializer(serializers.Mode
         instance.ch_semanal_total = instance.ch_semanal_orientacao + instance.ch_semanal_coorientacao + instance.ch_semanal_supervisao + instance.ch_semanal_preceptoria_e_ou_tutoria
     
         instance.save()
+
+        #Lógica PUT para ch_semanal_atividade_ensino
+        relatorio_id = instance.relatorio_id
+        ch_semanal_atividade_ensino = None
+
+        try:
+            ch_semanal_atividade_ensino = CHSemanalAtividadeEnsino.objects.get(relatorio_id = relatorio_id)
+        
+            if instance.semestre == 1:
+                ch_semanal_atividade_ensino.ch_semanal_primeiro_semestre = ch_semanal_atividade_ensino.ch_semanal_primeiro_semestre - antigo_ch_semanal_total
+
+                ch_semanal_atividade_ensino.ch_semanal_primeiro_semestre = ch_semanal_atividade_ensino.ch_semanal_primeiro_semestre + instance.ch_semanal_total
+                
+            else:
+                ch_semanal_atividade_ensino.ch_semanal_segundo_semestre = ch_semanal_atividade_ensino.ch_semanal_segundo_semestre - antigo_ch_semanal_total
+
+                ch_semanal_atividade_ensino.ch_semanal_segundo_semestre = ch_semanal_atividade_ensino.ch_semanal_primeiro_semestre + instance.ch_semanal_total
+
+        except CHSemanalAtividadeEnsino.DoesNotExist:
+            ch_semanal_atividade_ensino = CHSemanalAtividadeEnsino.objects.create(
+                relatorio_id = relatorio_id,
+                ch_semanal_primeiro_semestre = 0.0,
+                ch_semanal_segundo_semestre = 0.0
+            )
+
+            if instance.semestre == 1:
+                ch_semanal_atividade_ensino.ch_semanal_primeiro_semestre = ch_semanal_atividade_ensino.ch_semanal_primeiro_semestre + instance.ch_semanal_total
+            else:
+                ch_semanal_atividade_ensino.ch_semanal_segundo_semestre = ch_semanal_atividade_ensino.ch_semanal_primeiro_semestre + instance.ch_semanal_total
+            
+        ch_semanal_atividade_ensino.save()
+        #Termina aqui
+                
         return instance
  
 
@@ -389,6 +620,79 @@ class BancaExaminadoraSerializer(serializers.ModelSerializer):
     class Meta:
         model = BancaExaminadora
         fields = '__all__'
+
+    def create(self, validated_data):
+
+        banca_examinadora = BancaExaminadora.objects.create(
+            **validated_data
+        )
+
+        #Lógica POST para ch_semanal_atividade_ensino
+        relatorio_id = banca_examinadora.relatorio_id
+        ch_semanal_atividade_ensino = None
+        try:
+            ch_semanal_atividade_ensino = CHSemanalAtividadeEnsino.objects.get(relatorio_id = relatorio_id)
+
+        except CHSemanalAtividadeEnsino.DoesNotExist:
+            ch_semanal_atividade_ensino = CHSemanalAtividadeEnsino.objects.create(
+                relatorio_id = relatorio_id,
+                ch_semanal_primeiro_semestre = 0.0,
+                ch_semanal_segundo_semestre = 0.0
+            )
+        
+        ch_semanal_atividade_ensino.ch_semanal_primeiro_semestre = ch_semanal_atividade_ensino.ch_semanal_primeiro_semestre + banca_examinadora.ch_semanal_primeiro_semestre
+
+        ch_semanal_atividade_ensino.ch_semanal_segundo_semestre = ch_semanal_atividade_ensino.ch_semanal_segundo_semestre + banca_examinadora.ch_semanal_segundo_semestre
+
+        ch_semanal_atividade_ensino.save()
+        #Termina aqui
+
+        return banca_examinadora
+    
+    def update(self, instance, validated_data):
+        antigo_ch_semanal_primeiro_semestre = instance.ch_semanal_primeiro_semestre
+        antigo_ch_semanal_segundo_semestre = instance.ch_semanal_segundo_semestre
+
+        instance.numero_doc = validated_data.get('numero_doc', instance.numero_doc)
+        instance.nome_candidato = validated_data.get('nome_candidato', instance.nome_candidato)
+        instance.titulo_trabalho = validated_data.get('titulo_trabalho', instance.titulo_trabalho)
+        instance.ies = validated_data.get('ies', instance.ies)
+        instance.tipo = validated_data.get('tipo', instance.tipo)
+        instance.ch_semanal_primeiro_semestre = validated_data.get('ch_semanal_primeiro_semestre', instance.ch_semanal_primeiro_semestre)
+        instance.ch_semanal_segundo_semestre = validated_data.get('ch_semanal_segundo_semestre', instance.ch_semanal_segundo_semestre)
+
+        instance.save()
+
+        #Lógica PUT para ch_semanal_atividade_ensino
+        relatorio_id = instance.relatorio_id
+        ch_semanal_atividade_ensino = None
+
+        try:
+            ch_semanal_atividade_ensino = CHSemanalAtividadeEnsino.objects.get(relatorio_id = relatorio_id)
+
+            ch_semanal_atividade_ensino.ch_semanal_primeiro_semestre = ch_semanal_atividade_ensino.ch_semanal_primeiro_semestre - antigo_ch_semanal_primeiro_semestre
+
+            ch_semanal_atividade_ensino.ch_semanal_primeiro_semestre = ch_semanal_atividade_ensino.ch_semanal_primeiro_semestre + instance.ch_semanal_primeiro_semestre
+        
+            ch_semanal_atividade_ensino.ch_semanal_segundo_semestre = ch_semanal_atividade_ensino.ch_semanal_segundo_semestre - antigo_ch_semanal_segundo_semestre
+
+            ch_semanal_atividade_ensino.ch_semanal_segundo_semestre = ch_semanal_atividade_ensino.ch_semanal_segundo_semestre + instance.ch_semanal_segundo_semestre
+
+        except CHSemanalAtividadeEnsino.DoesNotExist:
+            ch_semanal_atividade_ensino = CHSemanalAtividadeEnsino.objects.create(
+                relatorio_id = relatorio_id,
+                ch_semanal_primeiro_semestre = 0.0,
+                ch_semanal_segundo_semestre = 0.0
+            )
+
+            ch_semanal_atividade_ensino.ch_semanal_primeiro_semestre = ch_semanal_atividade_ensino.ch_semanal_primeiro_semestre + instance.ch_semanal_primeiro_semestre
+
+            ch_semanal_atividade_ensino.ch_semanal_segundo_semestre = ch_semanal_atividade_ensino.ch_semanal_segundo_semestre + instance.ch_semanal_segundo_semestre
+            
+        ch_semanal_atividade_ensino.save()
+        #Termina aqui
+                
+        return instance
 
 class CHSemanalAtividadeEnsinoSerializer(serializers.ModelSerializer):
 
@@ -549,8 +853,7 @@ class DistribuicaoCHSemanalSerializer(serializers.ModelSerializer):
             raise ValidationError({'ch_semanal_total': ['A carga horária semanal total não pode ultrapassar 40 horas.']})
         
         semestre = int(validated_data['semestre'])
-        if semestre > 2 or semestre < 1:
-            raise ValidationError({'semestre': ['ERRO: O semestre pode ser apenas 1 ou 2']})
+        Util.validar_semestre(semestre = semestre)
 
         distribuicao_ch_semanal = DistribuicaoCHSemanal.objects.create(
             **validated_data,
@@ -561,8 +864,7 @@ class DistribuicaoCHSemanalSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         semestre = validated_data.get('semestre', None)
         if semestre:
-            if semestre > 2 or semestre < 1:
-                raise ValidationError({'semestre': ['ERRO: O semestre pode ser apenas 1 ou 2']})
+            Util.validar_semestre(semestre = semestre)
             instance.semestre = semestre
         
         instance.ch_semanal_atividade_didatica = validated_data.get('ch_semanal_atividade_didatica', instance.ch_semanal_atividade_didatica)
@@ -598,8 +900,7 @@ class AtividadeGestaoRepresentacaoSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         semestre = int(validated_data['semestre'])
-        if semestre > 2 or semestre < 1:
-            raise ValidationError({'semestre': ['ERRO: O semestre pode ser apenas 1 ou 2']})
+        Util.validar_semestre(semestre = semestre)
 
         atividade_gestao_representacao = AtividadeGestaoRepresentacao.objects.create(
             **validated_data
@@ -609,8 +910,7 @@ class AtividadeGestaoRepresentacaoSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         semestre = validated_data.get('semestre', None)
         if semestre:
-            if semestre > 2 or semestre < 1:
-                raise ValidationError({'semestre': ['ERRO: O semestre pode ser apenas 1 ou 2']})
+            Util.validar_semestre(semestre = semestre)
             instance.semestre = semestre
         
         instance.numero_doc = validated_data.get('numero_doc', instance.numero_doc)
@@ -635,6 +935,7 @@ class OutraInformacaoSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class DocumentoComprobatorioSerializer(serializers.ModelSerializer):
+    nome_pdf = serializers.CharField(read_only=True)
     binary_pdf = serializers.FileField(max_length=None, use_url=True, write_only=True)
     
     class Meta:
@@ -645,6 +946,7 @@ class DocumentoComprobatorioSerializer(serializers.ModelSerializer):
         documento_pdf = validated_data.pop('binary_pdf', None)
         documento_comprobatorio = DocumentoComprobatorio.objects.create(
             binary_pdf=documento_pdf.read(),
+            nome_pdf = documento_pdf.name,
             **validated_data
         )
         return documento_comprobatorio
