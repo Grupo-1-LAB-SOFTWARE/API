@@ -3494,7 +3494,72 @@ class DownloadRelatorioDocenteView(APIView):
             return True  # Se abrir sem erros, é um PDF válido
         except Exception as e:
             return False
+        
+    def gerarPDFRadoc(self, relatorio_id, usuario_id):
+        id = relatorio_id
+        usuario_id = usuario_id
+        usuario_dicts = [model_to_dict(usuario_obj) for usuario_obj in Usuario.objects.filter(id=usuario_id)]
+        relatorio_docente_dicts = [model_to_dict(relatorio_obj) for relatorio_obj in RelatorioDocente.objects.filter(pk=id, usuario_id=usuario_id)]
+        atividade_letiva_dicts = [model_to_dict(atividade_obj) for atividade_obj in AtividadeLetiva.objects.filter(relatorio_id=id)]
+        calculo_ch_semanal_aulas_dicts = [model_to_dict(calculo_ch_obj) for calculo_ch_obj in CalculoCHSemanalAulas.objects.filter(relatorio_id=id)]
+        atividade_pedagogica_complementar_dicts = [model_to_dict(atividade_pedagogica_obj) for atividade_pedagogica_obj in AtividadePedagogicaComplementar.objects.filter(relatorio_id=id)]
+        atividade_orientacao_supervisao_preceptoria_tutoria_dicts = [model_to_dict(atividade_orientacao_obj) for atividade_orientacao_obj in AtividadeOrientacaoSupervisaoPreceptoriaTutoria.objects.filter(relatorio_id=id)]
+        descricao_orientacao_coorientacao_academica_dicts = [model_to_dict(descricao_orientacao_obj) for descricao_orientacao_obj in DescricaoOrientacaoCoorientacaoAcademica.objects.filter(relatorio_id=id)]
+        supervisao_academica_dicts = [model_to_dict(supervisao_academica_obj) for supervisao_academica_obj in SupervisaoAcademica.objects.filter(relatorio_id=id)]
+        preceptoria_tutoria_residencia_dicts = [model_to_dict(preceptoria_tutoria_obj) for preceptoria_tutoria_obj in PreceptoriaTutoriaResidencia.objects.filter(relatorio_id=id)]
+        banca_examinadora_dicts = [model_to_dict(banca_examinadora_obj) for banca_examinadora_obj in BancaExaminadora.objects.filter(relatorio_id=id)]
+        ch_semanal_atividade_ensino_dicts = [model_to_dict(ch_semanal_atividade_obj) for ch_semanal_atividade_obj in CHSemanalAtividadeEnsino.objects.filter(relatorio_id=id)]
+        avaliacao_discente_dicts = [model_to_dict(avaliacao_discente_obj) for avaliacao_discente_obj in AvaliacaoDiscente.objects.filter(relatorio_id=id)]
+        pesquisa_producao_dict = [model_to_dict(pesquisa_producao_obj) for pesquisa_producao_obj in ProjetoPesquisaProducaoIntelectual.objects.filter(relatorio_id=id)]
+        trabalhos_completos_dict = [model_to_dict(trabalhos_completos_obj) for trabalhos_completos_obj in TrabalhoCompletoPublicadoPeriodicoBoletimTecnico.objects.filter(relatorio_id=id)]
+        livros_verbetes_publicados_dict = [model_to_dict(livros_verbetes_publicados_obj) for livros_verbetes_publicados_obj in LivroCapituloVerbetePublicado.objects.filter(relatorio_id=id)]
+        trabalhos_completos_congressos_dict = [model_to_dict(trabalhos_completos_congressos_obj) for trabalhos_completos_congressos_obj in TrabalhoCompletoResumoPublicadoApresentadoCongressos.objects.filter(relatorio_id=id)]
+        outras_atividades_dict = [model_to_dict(outras_atividades_obj) for outras_atividades_obj in OutraAtividadePesquisaProducaoIntelectual.objects.filter(relatorio_id=id)]
+        ch_semanal_pesquisa_dict = [model_to_dict(ch_semanal_pesquisa_obj) for ch_semanal_pesquisa_obj in CHSemanalAtividadesPesquisa.objects.filter(relatorio_id=id)]
+        projetos_extensao_dict = [model_to_dict(projetos_extensao_obj) for projetos_extensao_obj in ProjetoExtensao.objects.filter(relatorio_id=id)]
+        estagios_extensao_dict = [model_to_dict(estagios_extensao_obj) for estagios_extensao_obj in EstagioExtensao.objects.filter(relatorio_id=id)]
+        atividade_ensino_naoformal_dict = [model_to_dict(atividade_ensino_naoformal_obj) for atividade_ensino_naoformal_obj in AtividadeEnsinoNaoFormal.objects.filter(relatorio_id=id)]
+        outras_atividade_extensao_dict = [model_to_dict(outras_atividade_extensao_obj) for outras_atividade_extensao_obj in OutraAtividadeExtensao.objects.filter(relatorio_id=id)]
+        ch_semanal_atividades_extensao_dict = [model_to_dict(ch_semanal_atividades_extensao_obj) for ch_semanal_atividades_extensao_obj in CHSemanalAtividadesExtensao.objects.filter(relatorio_id=id)]
+        atividades_gestao_representacao_dict = [model_to_dict(atividades_gestao_representacao_obj) for atividades_gestao_representacao_obj in AtividadeGestaoRepresentacao.objects.filter(relatorio_id=id)]
+        qualificacao_docente_dict = [model_to_dict(qualificacao_docente_obj) for qualificacao_docente_obj in QualificacaoDocenteAcademicaProfissional.objects.filter(relatorio_id=id)]
+        distribuicao_ch_semanal_dict = [model_to_dict(distribuicao_ch_semanal_obj) for distribuicao_ch_semanal_obj in DistribuicaoCHSemanal.objects.filter(relatorio_id=id)]
+        outras_informacoes_dict = [model_to_dict(outras_informacoes_obj) for outras_informacoes_obj in OutraInformacao.objects.filter(relatorio_id=id)]
+        afastamentos_dict = [model_to_dict(afastamentos_obj) for afastamentos_obj in Afastamento.objects.filter(relatorio_id=id)]
+
+        merged_data = {}
+        merged_data['usuario'] = usuario_dicts
+        merged_data['relatorio_docente'] = relatorio_docente_dicts
+        merged_data['atividade_letiva'] = atividade_letiva_dicts
+        merged_data['calculo_ch_semanal_aulas'] = calculo_ch_semanal_aulas_dicts
+        merged_data['atividade_pedagogica_complementar'] = atividade_pedagogica_complementar_dicts
+        merged_data['atividade_orientacao_supervisao_preceptoria_tutoria'] = atividade_orientacao_supervisao_preceptoria_tutoria_dicts
+        merged_data['descricao_orientacao_coorientacao_academica'] = descricao_orientacao_coorientacao_academica_dicts
+        merged_data['supervisao_academica'] = supervisao_academica_dicts
+        merged_data['preceptoria_tutoria_residencia'] = preceptoria_tutoria_residencia_dicts
+        merged_data['banca_examinadora'] = banca_examinadora_dicts
+        merged_data['ch_semanal_atividade_ensino'] = ch_semanal_atividade_ensino_dicts
+        merged_data['avaliacao_discente'] = avaliacao_discente_dicts
+        merged_data['pesquisa_producao'] = pesquisa_producao_dict
+        merged_data['trabalhos_completos'] = trabalhos_completos_dict
+        merged_data['livros_verbetes_publicados'] = livros_verbetes_publicados_dict
+        merged_data['trabalhos_completos_congressos'] = trabalhos_completos_congressos_dict
+        merged_data['outras_atividades'] = outras_atividades_dict
+        merged_data['ch_semanal_pesquisa'] = ch_semanal_pesquisa_dict
+        merged_data['projetos_extensao'] = projetos_extensao_dict
+        merged_data['estagios_extensao'] = estagios_extensao_dict
+        merged_data['atividade_ensino_naoformal'] = atividade_ensino_naoformal_dict
+        merged_data['outras_atividade_extensao'] = outras_atividade_extensao_dict
+        merged_data['ch_semanal_atividades_extensao'] = ch_semanal_atividades_extensao_dict
+        merged_data['atividades_gestao_representacao'] = atividades_gestao_representacao_dict
+        merged_data['qualificacao_docente'] = qualificacao_docente_dict
+        merged_data['distribuicao_ch_semanal'] = distribuicao_ch_semanal_dict
+        merged_data['outras_informacoes'] = outras_informacoes_dict
+        merged_data['afastamentos'] = afastamentos_dict
+
+        return escrever_dados_no_radoc(merged_data)
     
+
     def get(self, request, nome_relatorio=None):
         if nome_relatorio:
             usuario_id = request.user.id
@@ -3504,13 +3569,13 @@ class DownloadRelatorioDocenteView(APIView):
 
                 with tempfile.NamedTemporaryFile(delete=False) as temp_file_radoc:
                 # Aqui será inserida a lógica de preenchimento de RADOC
+                    binary_radoc = self.gerarPDFRadoc(instance.pk, usuario_id)
+                    temp_file_radoc.write(binary_radoc)
                     temp_file_radoc.seek(0)
 
-                    #if self.is_pdf(temp_file_radoc.name):
-                    #    temp_file_radoc = PdfReader(temp_file_radoc)
-                    #    output_pdf.append_pages_from_reader(temp_file_radoc)
-                    #else:
-                    #    return Util.response_bad_request(f'Erro da API: O RADOC de id {id} gerado não é um arquivo PDF válido.')
+                    temp_file_radoc = PdfReader(temp_file_radoc)
+                    output_pdf.append_pages_from_reader(temp_file_radoc)
+
                     documentos_comprobatorios = DocumentoComprobatorio.objects.filter(relatorio_id=instance.pk)
                     for documento in documentos_comprobatorios:
                         binary_data = documento.binary_pdf
@@ -3620,7 +3685,7 @@ class GerarRelatorioDocenteView(APIView):
         merged_data['outras_informacoes'] = outras_informacoes_dict
         merged_data['afastamentos'] = afastamentos_dict
 
-        return Response({escrever_dados_no_radoc(merged_data)})
+        return escrever_dados_no_radoc(merged_data)
  
 class EndpointsView(APIView):
     def get(self, request):
