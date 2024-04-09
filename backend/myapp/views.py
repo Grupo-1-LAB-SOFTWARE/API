@@ -7,6 +7,7 @@ from PyPDF2 import PdfReader, PdfWriter
 from django.http import HttpResponse
 from django.urls import get_resolver
 from django.forms.models import model_to_dict
+from myapp.extraction_strategy import PDFExtractionCoordinator
 from myapp.serializer import (UsuarioSerializer, RelatorioDocenteSerializer, AtividadeLetivaSerializer, CalculoCHSemanalAulasSerializer, AtividadePedagogicaComplementarSerializer, AtividadeOrientacaoSupervisaoPreceptoriaTutoriaSerializer, DescricaoOrientacaoCoorientacaoAcademicaSerializer, SupervisaoAcademicaSerializer, PreceptoriaTutoriaResidenciaSerializer, BancaExaminadoraSerializer, CHSemanalAtividadeEnsinoSerializer, AvaliacaoDiscenteSerializer, ProjetoPesquisaProducaoIntelectualSerializer, TrabalhoCompletoPublicadoPeriodicoBoletimTecnicoSerializer, LivroCapituloVerbetePublicadoSerializer, TrabalhoCompletoResumoPublicadoApresentadoCongressosSerializer, OutraAtividadePesquisaProducaoIntelectualSerializer, CHSemanalAtividadesPesquisaSerializer, ProjetoExtensaoSerializer, EstagioExtensaoSerializer, AtividadeEnsinoNaoFormalSerializer, OutraAtividadeExtensaoSerializer, CHSemanalAtividadesExtensaoSerializer, DistribuicaoCHSemanalSerializer, AtividadeGestaoRepresentacaoSerializer, QualificacaoDocenteAcademicaProfissionalSerializer, OutraInformacaoSerializer, AfastamentoSerializer, DocumentoComprobatorioSerializer, CustomizarTokenSerializer)
 from .models import (Usuario, RelatorioDocente, AtividadeLetiva, CalculoCHSemanalAulas, AtividadePedagogicaComplementar, AtividadeOrientacaoSupervisaoPreceptoriaTutoria, DescricaoOrientacaoCoorientacaoAcademica, SupervisaoAcademica, PreceptoriaTutoriaResidencia, BancaExaminadora, CHSemanalAtividadeEnsino, AvaliacaoDiscente, ProjetoPesquisaProducaoIntelectual, TrabalhoCompletoPublicadoPeriodicoBoletimTecnico, LivroCapituloVerbetePublicado, TrabalhoCompletoResumoPublicadoApresentadoCongressos, OutraAtividadePesquisaProducaoIntelectual, CHSemanalAtividadesPesquisa, ProjetoExtensao, EstagioExtensao, AtividadeEnsinoNaoFormal, OutraAtividadeExtensao, CHSemanalAtividadesExtensao, DistribuicaoCHSemanal, AtividadeGestaoRepresentacao, QualificacaoDocenteAcademicaProfissional, OutraInformacao, Afastamento, DocumentoComprobatorio)
 from rest_framework import status
@@ -15,7 +16,7 @@ from rest_framework.views import APIView
 from .utils import Util
 from rest_framework.authtoken.models import Token
 from django.contrib.auth.hashers import check_password
-from .services import extrair_texto_do_pdf, extrair_dados_de_atividades_letivas
+from .services import extrair_texto_do_pdf, extrair_dados_de_atividades_letivas, escrever_dados_no_radoc
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.permissions import IsAuthenticated
@@ -3542,11 +3543,12 @@ class ExtrairDadosAtividadesLetivasPDFAPIView(APIView):
 
     def post(self, request):
         arquivo_pdf = request.FILES.get('pdf')
+        opcao = request.data.get('opcao')
 
         if arquivo_pdf:
             try:
-                texto_extraido = extrair_texto_do_pdf(arquivo_pdf)
-                dados_extraidos = extrair_dados_de_atividades_letivas(texto_extraido)
+                coordinator = PDFExtractionCoordinator()
+                dados_extraidos = coordinator.extract_data(arquivo_pdf, opcao)
 
                 # Retorna os dados processados como parte da resposta
                 return Response({'dados': dados_extraidos}, status=status.HTTP_200_OK)
@@ -3554,6 +3556,71 @@ class ExtrairDadosAtividadesLetivasPDFAPIView(APIView):
                 return Response({'erro': str(e + "não foi possível extrair os dados")}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         else:
             return Response({'erro': 'Nenhum arquivo PDF enviado.'}, status=status.HTTP_400_BAD_REQUEST)
+
+class GerarRelatorioDocenteView(APIView):
+    def get(self, request, relatorio_id, usuario_id):
+        id = relatorio_id
+        usuario_id = usuario_id
+        usuario_dicts = [model_to_dict(usuario_obj) for usuario_obj in Usuario.objects.filter(id=usuario_id)]
+        relatorio_docente_dicts = [model_to_dict(relatorio_obj) for relatorio_obj in RelatorioDocente.objects.filter(pk=id, usuario_id=usuario_id)]
+        atividade_letiva_dicts = [model_to_dict(atividade_obj) for atividade_obj in AtividadeLetiva.objects.filter(relatorio_id=id)]
+        calculo_ch_semanal_aulas_dicts = [model_to_dict(calculo_ch_obj) for calculo_ch_obj in CalculoCHSemanalAulas.objects.filter(relatorio_id=id)]
+        atividade_pedagogica_complementar_dicts = [model_to_dict(atividade_pedagogica_obj) for atividade_pedagogica_obj in AtividadePedagogicaComplementar.objects.filter(relatorio_id=id)]
+        atividade_orientacao_supervisao_preceptoria_tutoria_dicts = [model_to_dict(atividade_orientacao_obj) for atividade_orientacao_obj in AtividadeOrientacaoSupervisaoPreceptoriaTutoria.objects.filter(relatorio_id=id)]
+        descricao_orientacao_coorientacao_academica_dicts = [model_to_dict(descricao_orientacao_obj) for descricao_orientacao_obj in DescricaoOrientacaoCoorientacaoAcademica.objects.filter(relatorio_id=id)]
+        supervisao_academica_dicts = [model_to_dict(supervisao_academica_obj) for supervisao_academica_obj in SupervisaoAcademica.objects.filter(relatorio_id=id)]
+        preceptoria_tutoria_residencia_dicts = [model_to_dict(preceptoria_tutoria_obj) for preceptoria_tutoria_obj in PreceptoriaTutoriaResidencia.objects.filter(relatorio_id=id)]
+        banca_examinadora_dicts = [model_to_dict(banca_examinadora_obj) for banca_examinadora_obj in BancaExaminadora.objects.filter(relatorio_id=id)]
+        ch_semanal_atividade_ensino_dicts = [model_to_dict(ch_semanal_atividade_obj) for ch_semanal_atividade_obj in CHSemanalAtividadeEnsino.objects.filter(relatorio_id=id)]
+        avaliacao_discente_dicts = [model_to_dict(avaliacao_discente_obj) for avaliacao_discente_obj in AvaliacaoDiscente.objects.filter(relatorio_id=id)]
+        pesquisa_producao_dict = [model_to_dict(pesquisa_producao_obj) for pesquisa_producao_obj in ProjetoPesquisaProducaoIntelectual.objects.filter(relatorio_id=id)]
+        trabalhos_completos_dict = [model_to_dict(trabalhos_completos_obj) for trabalhos_completos_obj in TrabalhoCompletoPublicadoPeriodicoBoletimTecnico.objects.filter(relatorio_id=id)]
+        livros_verbetes_publicados_dict = [model_to_dict(livros_verbetes_publicados_obj) for livros_verbetes_publicados_obj in LivroCapituloVerbetePublicado.objects.filter(relatorio_id=id)]
+        trabalhos_completos_congressos_dict = [model_to_dict(trabalhos_completos_congressos_obj) for trabalhos_completos_congressos_obj in TrabalhoCompletoResumoPublicadoApresentadoCongressos.objects.filter(relatorio_id=id)]
+        outras_atividades_dict = [model_to_dict(outras_atividades_obj) for outras_atividades_obj in OutraAtividadePesquisaProducaoIntelectual.objects.filter(relatorio_id=id)]
+        ch_semanal_pesquisa_dict = [model_to_dict(ch_semanal_pesquisa_obj) for ch_semanal_pesquisa_obj in CHSemanalAtividadesPesquisa.objects.filter(relatorio_id=id)]
+        projetos_extensao_dict = [model_to_dict(projetos_extensao_obj) for projetos_extensao_obj in ProjetoExtensao.objects.filter(relatorio_id=id)]
+        estagios_extensao_dict = [model_to_dict(estagios_extensao_obj) for estagios_extensao_obj in EstagioExtensao.objects.filter(relatorio_id=id)]
+        atividade_ensino_naoformal_dict = [model_to_dict(atividade_ensino_naoformal_obj) for atividade_ensino_naoformal_obj in AtividadeEnsinoNaoFormal.objects.filter(relatorio_id=id)]
+        outras_atividade_extensao_dict = [model_to_dict(outras_atividade_extensao_obj) for outras_atividade_extensao_obj in OutraAtividadeExtensao.objects.filter(relatorio_id=id)]
+        ch_semanal_atividades_extensao_dict = [model_to_dict(ch_semanal_atividades_extensao_obj) for ch_semanal_atividades_extensao_obj in CHSemanalAtividadesExtensao.objects.filter(relatorio_id=id)]
+        atividades_gestao_representacao_dict = [model_to_dict(atividades_gestao_representacao_obj) for atividades_gestao_representacao_obj in AtividadeGestaoRepresentacao.objects.filter(relatorio_id=id)]
+        qualificacao_docente_dict = [model_to_dict(qualificacao_docente_obj) for qualificacao_docente_obj in QualificacaoDocenteAcademicaProfissional.objects.filter(relatorio_id=id)]
+        distribuicao_ch_semanal_dict = [model_to_dict(distribuicao_ch_semanal_obj) for distribuicao_ch_semanal_obj in DistribuicaoCHSemanal.objects.filter(relatorio_id=id)]
+        outras_informacoes_dict = [model_to_dict(outras_informacoes_obj) for outras_informacoes_obj in OutraInformacao.objects.filter(relatorio_id=id)]
+        afastamentos_dict = [model_to_dict(afastamentos_obj) for afastamentos_obj in Afastamento.objects.filter(relatorio_id=id)]
+
+        merged_data = {}
+        merged_data['usuario'] = usuario_dicts
+        merged_data['relatorio_docente'] = relatorio_docente_dicts
+        merged_data['atividade_letiva'] = atividade_letiva_dicts
+        merged_data['calculo_ch_semanal_aulas'] = calculo_ch_semanal_aulas_dicts
+        merged_data['atividade_pedagogica_complementar'] = atividade_pedagogica_complementar_dicts
+        merged_data['atividade_orientacao_supervisao_preceptoria_tutoria'] = atividade_orientacao_supervisao_preceptoria_tutoria_dicts
+        merged_data['descricao_orientacao_coorientacao_academica'] = descricao_orientacao_coorientacao_academica_dicts
+        merged_data['supervisao_academica'] = supervisao_academica_dicts
+        merged_data['preceptoria_tutoria_residencia'] = preceptoria_tutoria_residencia_dicts
+        merged_data['banca_examinadora'] = banca_examinadora_dicts
+        merged_data['ch_semanal_atividade_ensino'] = ch_semanal_atividade_ensino_dicts
+        merged_data['avaliacao_discente'] = avaliacao_discente_dicts
+        merged_data['pesquisa_producao'] = pesquisa_producao_dict
+        merged_data['trabalhos_completos'] = trabalhos_completos_dict
+        merged_data['livros_verbetes_publicados'] = livros_verbetes_publicados_dict
+        merged_data['trabalhos_completos_congressos'] = trabalhos_completos_congressos_dict
+        merged_data['outras_atividades'] = outras_atividades_dict
+        merged_data['ch_semanal_pesquisa'] = ch_semanal_pesquisa_dict
+        merged_data['projetos_extensao'] = projetos_extensao_dict
+        merged_data['estagios_extensao'] = estagios_extensao_dict
+        merged_data['atividade_ensino_naoformal'] = atividade_ensino_naoformal_dict
+        merged_data['outras_atividade_extensao'] = outras_atividade_extensao_dict
+        merged_data['ch_semanal_atividades_extensao'] = ch_semanal_atividades_extensao_dict
+        merged_data['atividades_gestao_representacao'] = atividades_gestao_representacao_dict
+        merged_data['qualificacao_docente'] = qualificacao_docente_dict
+        merged_data['distribuicao_ch_semanal'] = distribuicao_ch_semanal_dict
+        merged_data['outras_informacoes'] = outras_informacoes_dict
+        merged_data['afastamentos'] = afastamentos_dict
+
+        return Response({escrever_dados_no_radoc(merged_data)})
  
 class EndpointsView(APIView):
     def get(self, request):
