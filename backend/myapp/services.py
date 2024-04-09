@@ -409,11 +409,18 @@ def preencher_banca_examinadora(lista_dicionario):
     return
 
 def preencher_ch_semanal_atividade_ensino(lista_dicionario):
-    ch_semanal = {
-        'ch_semanal_primeiro_semestre': lista_dicionario[0]['ch_semanal_primeiro_semestre'],
-        'ch_semanal_segundo_semestre': lista_dicionario[0]['ch_semanal_segundo_semestre'],
-    }
-    ch_atividade_ensino.update(ch_semanal)
+    if lista_dicionario:
+        ch_semanal = {
+            'ch_semanal_primeiro_semestre': lista_dicionario[0]['ch_semanal_primeiro_semestre'],
+            'ch_semanal_segundo_semestre': lista_dicionario[0]['ch_semanal_segundo_semestre'],
+        }
+        ch_atividade_ensino.update(ch_semanal)
+    else:
+        ch_semanal = {
+            'ch_semanal_primeiro_semestre': '',
+            'ch_semanal_segundo_semestre': '',
+        }
+        ch_atividade_ensino.update(ch_semanal)
     return
 
 def preencher_avaliacao_discente(lista_dicionario):
@@ -486,12 +493,19 @@ def preencher_outras_atividades(lista_dicionario):
     return
 
 def preencher_ch_semanal_pesquisa(lista_dicionario):
-    ch_semanal = {
-        'ch_semanal_primeiro_semestre': lista_dicionario[0]['ch_semanal_primeiro_semestre'],
-        'ch_semanal_segundo_semestre': lista_dicionario[0]['ch_semanal_segundo_semestre'],
-    }
-    ch_semanal_pesquisa.update(ch_semanal)
-    return   
+    if lista_dicionario:
+        ch_semanal = {
+            'ch_semanal_primeiro_semestre': lista_dicionario[0]['ch_semanal_primeiro_semestre'],
+            'ch_semanal_segundo_semestre': lista_dicionario[0]['ch_semanal_segundo_semestre'],
+        }
+        ch_semanal_pesquisa.update(ch_semanal)
+    else:
+        ch_semanal = {
+            'ch_semanal_primeiro_semestre': '',
+            'ch_semanal_segundo_semestre': '',
+        }
+        ch_semanal_pesquisa.update(ch_semanal)
+    return
 
 def preencher_projetos_extensao(lista_dicionario):
     index = 1
@@ -550,12 +564,19 @@ def preencher_outras_atividade_extensao(lista_dicionario):
     return
 
 def preencher_ch_semanal_atividades_extensao(lista_dicionario):
-    ch_semanal = {
-        'ch_semanal_primeiro_semestre': lista_dicionario[0]['ch_semanal_primeiro_semestre'],
-        'ch_semanal_segundo_semestre': lista_dicionario[0]['ch_semanal_segundo_semestre'],
-    }
-    ch_semanal_atividades_extensao.update(ch_semanal)
-    return 
+    if lista_dicionario:
+        ch_semanal = {
+            'ch_semanal_primeiro_semestre': lista_dicionario[0]['ch_semanal_primeiro_semestre'],
+            'ch_semanal_segundo_semestre': lista_dicionario[0]['ch_semanal_segundo_semestre'],
+        }
+        ch_semanal_atividades_extensao.update(ch_semanal)
+    else:
+        ch_semanal = {
+            'ch_semanal_primeiro_semestre': '',
+            'ch_semanal_segundo_semestre': '',
+        }
+        ch_semanal_atividades_extensao.update(ch_semanal)
+    return
 
 def preencher_atividades_gestao_representacao(lista_dicionario):
     for atividade in lista_dicionario[::-1]:
