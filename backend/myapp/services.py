@@ -4,7 +4,6 @@ import os
 from docxtpl import DocxTemplate
 from docx2pdf import convert
 from typing import List, Dict
-import aspose.words as aw
 
 def extrair_texto_do_pdf(caminho_do_pdf):
     pass
