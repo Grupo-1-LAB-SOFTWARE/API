@@ -170,7 +170,6 @@ def escrever_dados_no_radoc(dados: dict):
     convert(input_path, output_path)
     with open(output_path, 'rb') as pdf_file:
         pdf_binary = pdf_file.read()
-        print(pdf_binary)
         os.remove(output_path)
         os.remove(input_path)
         return pdf_binary
