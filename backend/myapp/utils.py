@@ -1,7 +1,7 @@
 from django.core.mail import send_mail, EmailMessage, get_connection
 from django.contrib.sites.shortcuts import get_current_site
 from django.urls import reverse
-from .models import Usuario, CalculoCHSemanalAulas, AtividadeLetiva, CHSemanalAtividadeEnsino
+from .models import Usuario, CalculoCHSemanalAulas, AtividadeLetiva, CHSemanalAtividadeEnsino, DistribuicaoCHSemanal
 from django.contrib.auth.models import User
 from django.conf import settings
 from decouple import config
@@ -94,8 +94,15 @@ class Util:
     @staticmethod
     def recriar_calculos_ch_semanal_aulas(relatorio_id):
         atividades_letivas = AtividadeLetiva.objects.filter(relatorio_id=relatorio_id)
+        ch_usuario = None
         for instance in atividades_letivas:
-                ch_usuario = instance.docentes_envolvidos_e_cargas_horarias.pop(relatorio_id.usuario_id.nome_completo.upper(), None)
+                lista = instance.docentes_envolvidos_e_cargas_horarias.pop('lista', None)
+                for json in lista:
+                    nome_docente = json['nome_docente']
+                    nome_usuario = relatorio_id.usuario_id.nome_completo.upper()
+                    if nome_docente == nome_usuario:
+                        ch_usuario = json['carga_horaria']
+                        
                 try:
                     calculo_ch_semanal_aulas = CalculoCHSemanalAulas.objects.get(relatorio_id=relatorio_id, semestre=instance.semestre)
 
@@ -173,3 +180,21 @@ class Util:
                 ch_semanal_atividade_ensino.ch_semanal_segundo_semestre = ch_semanal_atividade_ensino.ch_semanal_segundo_semestre + instance.ch_semanal_total
 
             ch_semanal_atividade_ensino.save()
+
+    #@staticmethod
+    #def calcular_distribuicao_ch_semanal(relatorio_id):
+        # distribuicao_ch_semanal_primeiro_semestre = None
+        # try:
+        #     distribuicao_ch_semanal_primeiro_semestre = DistribuicaoCHSemanal.objects.get(relatorio_id=relatorio_id, semestre=1)
+        # except DistribuicaoCHSemanal.DoesNotExist:
+        #     DistribuicaoCHSemanal.objects.create() #a fazer
+
+        # distribuicao_ch_semanal_segundo_semestre = None
+        # try:
+        #     distribuicao_ch_semanal_segundo_semestre = DistribuicaoCHSemanal.objects.get(relatorio_id=relatorio_id, semestre=2)
+        # except DistribuicaoCHSemanal.DoesNotExist:
+        #     DistribuicaoCHSemanal.objects.create() #a fazer
+
+        # chs_semanais_ensino = CHSemanalAtividadeEnsino.objects.filter(relatorio_id=relatorio_id)
+        # chs_semanais_pesquisa
+        # chs_semanais_extensao

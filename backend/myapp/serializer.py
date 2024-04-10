@@ -142,12 +142,24 @@ class AtividadeLetivaSerializer(serializers.ModelSerializer):
         usuario = relatorio.usuario_id
         nome_usuario = usuario.nome_completo
 
-        if nome_usuario in docentes_envolvidos_e_cargas_horarias or nome_usuario.upper() in docentes_envolvidos_e_cargas_horarias:
-            ch_usuario = docentes_envolvidos_e_cargas_horarias.pop(nome_usuario, None)
-            if ch_usuario:
-                docentes_envolvidos_e_cargas_horarias[nome_usuario.upper()] = ch_usuario
+        #por mais que um nao tenha o fornecida, os dois tem o msm proposito
+        nome_fornecido_usuario = None
+        ch_usuario = None
+
+        if 'lista' in docentes_envolvidos_e_cargas_horarias:
+            lista = docentes_envolvidos_e_cargas_horarias['lista']
+            for json in lista:
+                nome_docente = json['nome_docente']
+                carga_horaria = json['carga_horaria']
+
+                if nome_docente == nome_usuario or nome_docente == nome_usuario.upper():
+                    nome_fornecido_usuario = nome_docente.upper()
+                    ch_usuario = carga_horaria
+
+            if nome_fornecido_usuario is None:
+                raise ValidationError({'docentes_envolvidos_e_cargas_horarias': ['ERRO: O usuário precisa fazer parte da atividade_letiva para cadastrá-la. O valor de pelo menos um "nome_docente" deve ser igual ao nome do usuário autenticado.']})
         else:
-            raise ValidationError({'docentes_envolvidos_e_cargas_horarias': ['ERRO: O usuário precisa fazer parte da atividade_letiva para cadastrá-la. Inclua uma chave igual ao "[nome do usuário em letras maiúsculas]" para se referir à carga horária do docente usuário.']})
+            raise ValidationError({'docentes_envolvidos_e_cargas_horarias': ['ERRO: É necessário incluir a chave fixa "lista" dentro do JSON']})
         
         # try:
         #     atividade_pedagogica_complementar = AtividadePedagogicaComplementar.objects.get(relatorio_id=relatorio, semestre=semestre)
