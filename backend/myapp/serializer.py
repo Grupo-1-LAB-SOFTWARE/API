@@ -140,12 +140,12 @@ class AtividadeLetivaSerializer(serializers.ModelSerializer):
     
         relatorio = validated_data['relatorio_id']
         usuario = relatorio.usuario_id
-        nome_usuario = usuario.nome_completo.upper()
+        nome_usuario = usuario.nome_completo
 
-        if nome_usuario in docentes_envolvidos_e_cargas_horarias:
+        if nome_usuario in docentes_envolvidos_e_cargas_horarias or nome_usuario.upper() in docentes_envolvidos_e_cargas_horarias:
             ch_usuario = docentes_envolvidos_e_cargas_horarias.pop(nome_usuario, None)
             if ch_usuario:
-                docentes_envolvidos_e_cargas_horarias[nome_usuario] = ch_usuario
+                docentes_envolvidos_e_cargas_horarias[nome_usuario.upper()] = ch_usuario
         else:
             raise ValidationError({'docentes_envolvidos_e_cargas_horarias': ['ERRO: O usuário precisa fazer parte da atividade_letiva para cadastrá-la. Inclua uma chave igual ao "[nome do usuário em letras maiúsculas]" para se referir à carga horária do docente usuário.']})
         
