@@ -1,7 +1,7 @@
 from django.core.mail import send_mail, EmailMessage, get_connection
 from django.contrib.sites.shortcuts import get_current_site
 from django.urls import reverse
-from .models import Usuario, CalculoCHSemanalAulas, AtividadeLetiva, CHSemanalAtividadeEnsino, DistribuicaoCHSemanal
+from .models import Usuario, CalculoCHSemanalAulas, AtividadeLetiva, CHSemanalAtividadeEnsino, DistribuicaoCHSemanal, AtividadeGestaoRepresentacao, CHSemanalAtividadesPesquisa, CHSemanalAtividadesExtensao, RelatorioDocente
 from django.contrib.auth.models import User
 from django.conf import settings
 from decouple import config
@@ -182,20 +182,97 @@ class Util:
 
             ch_semanal_atividade_ensino.save()
 
-    #@staticmethod
-    #def calcular_distribuicao_ch_semanal(relatorio_id):
-        # distribuicao_ch_semanal_primeiro_semestre = None
-        # try:
-        #     distribuicao_ch_semanal_primeiro_semestre = DistribuicaoCHSemanal.objects.get(relatorio_id=relatorio_id, semestre=1)
-        # except DistribuicaoCHSemanal.DoesNotExist:
-        #     DistribuicaoCHSemanal.objects.create() #a fazer
+    @staticmethod
+    def calcular_distribuicao_ch_semanal(relatorio_id):
+        distribuicao_ch_semanal_primeiro_semestre = None
+        relatorio = RelatorioDocente.objects.get(pk=relatorio_id)
+        try:
+            distribuicao_ch_semanal_primeiro_semestre = DistribuicaoCHSemanal.objects.get(relatorio_id=relatorio_id, semestre=1)
+            distribuicao_ch_semanal_primeiro_semestre.ch_semanal_atividade_didatica = 0.0
+            distribuicao_ch_semanal_primeiro_semestre.ch_semanal_administracao = 0.0
+            distribuicao_ch_semanal_primeiro_semestre.ch_semanal_pesquisa = 0.0
+            distribuicao_ch_semanal_primeiro_semestre.ch_semanal_extensao = 0.0
+            distribuicao_ch_semanal_primeiro_semestre.ch_semanal_total = 0.0
 
-        # distribuicao_ch_semanal_segundo_semestre = None
-        # try:
-        #     distribuicao_ch_semanal_segundo_semestre = DistribuicaoCHSemanal.objects.get(relatorio_id=relatorio_id, semestre=2)
-        # except DistribuicaoCHSemanal.DoesNotExist:
-        #     DistribuicaoCHSemanal.objects.create() #a fazer
+        except DistribuicaoCHSemanal.DoesNotExist:
+            distribuicao_ch_semanal_primeiro_semestre = DistribuicaoCHSemanal.objects.create(
+                relatorio_id = relatorio,
+                semestre = 1,
+                ch_semanal_atividade_didatica = 0.0,
+                ch_semanal_administracao = 0.0,
+                ch_semanal_pesquisa = 0.0,
+                ch_semanal_extensao = 0.0,
+                ch_semanal_total = 0.0
+            )
 
-        # chs_semanais_ensino = CHSemanalAtividadeEnsino.objects.filter(relatorio_id=relatorio_id)
-        # chs_semanais_pesquisa
-        # chs_semanais_extensao
+        distribuicao_ch_semanal_segundo_semestre = None
+        try:
+            distribuicao_ch_semanal_segundo_semestre = DistribuicaoCHSemanal.objects.get(relatorio_id=relatorio_id, semestre=2)
+            distribuicao_ch_semanal_segundo_semestre.ch_semanal_atividade_didatica = 0.0
+            distribuicao_ch_semanal_segundo_semestre.ch_semanal_administracao = 0.0
+            distribuicao_ch_semanal_segundo_semestre.ch_semanal_pesquisa = 0.0
+            distribuicao_ch_semanal_segundo_semestre.ch_semanal_extensao = 0.0
+            distribuicao_ch_semanal_segundo_semestre.ch_semanal_total = 0.0
+
+        except DistribuicaoCHSemanal.DoesNotExist:
+            distribuicao_ch_semanal_segundo_semestre = DistribuicaoCHSemanal.objects.create(
+                relatorio_id = relatorio,
+                semestre = 2,
+                ch_semanal_atividade_didatica = 0.0,
+                ch_semanal_administracao = 0.0,
+                ch_semanal_pesquisa = 0.0,
+                ch_semanal_extensao = 0.0,
+                ch_semanal_total = 0.0
+            )
+
+        chs_semanais_ensino = CHSemanalAtividadeEnsino.objects.filter(relatorio_id=relatorio_id)
+        for ch_ensino in chs_semanais_ensino:
+            distribuicao_ch_semanal_primeiro_semestre.ch_semanal_atividade_didatica = distribuicao_ch_semanal_primeiro_semestre.ch_semanal_atividade_didatica + ch_ensino.ch_semanal_primeiro_semestre
+
+            distribuicao_ch_semanal_segundo_semestre.ch_semanal_atividade_didatica = distribuicao_ch_semanal_segundo_semestre.ch_semanal_atividade_didatica + ch_ensino.ch_semanal_segundo_semestre
+
+
+        atividades_gestao_representacao_primeiro_semestre = AtividadeGestaoRepresentacao.objects.filter(relatorio_id=relatorio_id, semestre=1)
+
+        for ch_gestao in atividades_gestao_representacao_primeiro_semestre:
+            distribuicao_ch_semanal_primeiro_semestre.ch_semanal_administracao = distribuicao_ch_semanal_primeiro_semestre.ch_semanal_administracao + ch_gestao.ch_semanal
+
+
+        atividades_gestao_representacao_segundo_semestre = AtividadeGestaoRepresentacao.objects.filter(relatorio_id=relatorio_id, semestre=2)
+
+        for ch_gestao in atividades_gestao_representacao_segundo_semestre:
+            distribuicao_ch_semanal_segundo_semestre.ch_semanal_administracao = distribuicao_ch_semanal_segundo_semestre.ch_semanal_administracao + ch_gestao.ch_semanal
+
+
+        chs_semanais_pesquisa = CHSemanalAtividadesPesquisa.objects.filter(relatorio_id=relatorio_id)
+
+        for ch_pesquisa in chs_semanais_pesquisa:
+            distribuicao_ch_semanal_primeiro_semestre.ch_semanal_pesquisa = distribuicao_ch_semanal_primeiro_semestre.ch_semanal_pesquisa + ch_pesquisa.ch_semanal_primeiro_semestre
+
+            distribuicao_ch_semanal_segundo_semestre.ch_semanal_pesquisa = distribuicao_ch_semanal_segundo_semestre.ch_semanal_pesquisa + ch_pesquisa.ch_semanal_segundo_semestre
+
+
+        chs_semanais_extensao = CHSemanalAtividadesExtensao.objects.filter(relatorio_id=relatorio_id)
+
+        for ch_extensao in chs_semanais_extensao:
+            distribuicao_ch_semanal_primeiro_semestre.ch_semanal_extensao = distribuicao_ch_semanal_primeiro_semestre.ch_semanal_extensao + ch_extensao.ch_semanal_primeiro_semestre
+
+            distribuicao_ch_semanal_segundo_semestre.ch_semanal_extensao = distribuicao_ch_semanal_segundo_semestre.ch_semanal_extensao + ch_extensao.ch_semanal_segundo_semestre
+        
+        ch_semanal_total_primeiro_semestre = distribuicao_ch_semanal_primeiro_semestre.ch_semanal_atividade_didatica + distribuicao_ch_semanal_primeiro_semestre.ch_semanal_administracao + distribuicao_ch_semanal_primeiro_semestre.ch_semanal_pesquisa + distribuicao_ch_semanal_primeiro_semestre.ch_semanal_extensao
+
+        if ch_semanal_total_primeiro_semestre >= 40.0:
+            ch_semanal_total_primeiro_semestre = 40.0
+
+        distribuicao_ch_semanal_primeiro_semestre.ch_semanal_total = ch_semanal_total_primeiro_semestre
+
+
+        ch_semanal_total_segundo_semestre = distribuicao_ch_semanal_segundo_semestre.ch_semanal_atividade_didatica + distribuicao_ch_semanal_segundo_semestre.ch_semanal_administracao + distribuicao_ch_semanal_segundo_semestre.ch_semanal_pesquisa + distribuicao_ch_semanal_segundo_semestre.ch_semanal_extensao
+
+        if ch_semanal_total_segundo_semestre >= 40.0:
+            ch_semanal_total_segundo_semestre = 40.0
+        
+        distribuicao_ch_semanal_segundo_semestre.ch_semanal_total = ch_semanal_total_segundo_semestre
+
+        distribuicao_ch_semanal_primeiro_semestre.save()
+        distribuicao_ch_semanal_segundo_semestre.save()
