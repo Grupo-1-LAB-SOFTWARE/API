@@ -243,17 +243,30 @@ class AtividadeLetivaSerializer(serializers.ModelSerializer):
 
         docentes_envolvidos_e_cargas_horarias = validated_data.get('docentes_envolvidos_e_cargas_horarias', None)
 
+        nome_fornecido_usuario = None
         ch_usuario = None
 
         if docentes_envolvidos_e_cargas_horarias:
-            if nome_usuario in docentes_envolvidos_e_cargas_horarias:
-                ch_usuario = docentes_envolvidos_e_cargas_horarias[nome_usuario]
+            if 'lista' in docentes_envolvidos_e_cargas_horarias:
+                lista = docentes_envolvidos_e_cargas_horarias['lista']
+                for json in lista:
+                    nome_docente = json['nome_docente']
+                    carga_horaria = json['carga_horaria']
+
+                    if nome_docente == nome_usuario or nome_docente == nome_usuario.upper():
+                        nome_fornecido_usuario = nome_docente.upper()
+                        ch_usuario = carga_horaria
+
+                if nome_fornecido_usuario is None:
+                    raise ValidationError({'docentes_envolvidos_e_cargas_horarias': ['ERRO: O usuário precisa fazer parte da atividade_letiva para cadastrá-la. O valor de pelo menos um "nome_docente" deve ser igual ao nome do usuário autenticado.']})
+                
                 atividade_letiva_instance.docentes_envolvidos_e_cargas_horarias = docentes_envolvidos_e_cargas_horarias
             else:
-                raise ValidationError({'docentes_envolvidos_e_cargas_horarias': ['ERRO: O usuário precisa fazer parte da atividade_letiva para cadastrá-la. Inclua uma chave igual ao "[nome do usuário em letras maiúsculas]" para se referir à carga horária do docente usuário.']})
+                raise ValidationError({'docentes_envolvidos_e_cargas_horarias': ['ERRO: É necessário incluir a chave fixa "lista" dentro do JSON']})
         else:
             docentes_envolvidos_e_cargas_horarias = atividade_letiva_instance.docentes_envolvidos_e_cargas_horarias
             ch_usuario = docentes_envolvidos_e_cargas_horarias[nome_usuario]
+
 
         # try:
         #     atividade_pedagogica_complementar = AtividadePedagogicaComplementar.objects.get(relatorio_id=relatorio, semestre=semestre)
@@ -327,7 +340,7 @@ class AtividadeLetivaSerializer(serializers.ModelSerializer):
         atividade_letiva_instance.save()
         
         Util.resetar_valores_calculos_ch_semanal_aulas(relatorio_id = relatorio)
-
+        
         Util.recriar_calculos_ch_semanal_aulas(relatorio_id = relatorio)
 
         Util.aplicar_maximos_e_minimos_calculos_ch_semanal_aulas(relatorio_id=relatorio)
