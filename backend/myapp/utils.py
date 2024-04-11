@@ -79,17 +79,18 @@ class Util:
                 ch_semanal_segundo_semestre = 0.0
             )
 
-            for calculo_ch_semanal_aulas in calculos_ch_semanal_aulas:
-                if calculo_ch_semanal_aulas.semestre == 1:
-                    ch_semanal_atividade_ensino.ch_semanal_primeiro_semestre = ch_semanal_atividade_ensino.ch_semanal_primeiro_semestre - calculo_ch_semanal_aulas.ch_semanal_total
-                else:
-                    ch_semanal_atividade_ensino.ch_semanal_segundo_semestre = ch_semanal_atividade_ensino.ch_semanal_segundo_semestre - calculo_ch_semanal_aulas.ch_semanal_total
+        for calculo_ch_semanal_aulas in calculos_ch_semanal_aulas:
+            if calculo_ch_semanal_aulas.semestre == 1:
+                ch_semanal_atividade_ensino.ch_semanal_primeiro_semestre = ch_semanal_atividade_ensino.ch_semanal_primeiro_semestre - calculo_ch_semanal_aulas.ch_semanal_total
+            else:
+                ch_semanal_atividade_ensino.ch_semanal_segundo_semestre = ch_semanal_atividade_ensino.ch_semanal_segundo_semestre - calculo_ch_semanal_aulas.ch_semanal_total
 
-                ch_semanal_atividade_ensino.save()
-                calculo_ch_semanal_aulas.ch_semanal_graduacao = 0.0
-                calculo_ch_semanal_aulas.ch_semanal_pos_graduacao = 0.0
-                calculo_ch_semanal_aulas.ch_semanal_total = 0.0
-                calculo_ch_semanal_aulas.save()
+            ch_semanal_atividade_ensino.save()
+            calculo_ch_semanal_aulas.ch_semanal_graduacao = 0.0
+            calculo_ch_semanal_aulas.ch_semanal_pos_graduacao = 0.0
+            calculo_ch_semanal_aulas.ch_semanal_total = 0.0
+            calculo_ch_semanal_aulas.save()
+
 
     @staticmethod
     def recriar_calculos_ch_semanal_aulas(relatorio_id):
@@ -102,7 +103,7 @@ class Util:
                     nome_usuario = relatorio_id.usuario_id.nome_completo.upper()
                     if nome_docente == nome_usuario:
                         ch_usuario = json['carga_horaria']
-                        
+
                 try:
                     calculo_ch_semanal_aulas = CalculoCHSemanalAulas.objects.get(relatorio_id=relatorio_id, semestre=instance.semestre)
 
