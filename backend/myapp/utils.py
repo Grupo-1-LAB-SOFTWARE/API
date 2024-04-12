@@ -100,10 +100,10 @@ class Util:
                 lista = instance.docentes_envolvidos_e_cargas_horarias.pop('lista', None)
                 for json in lista:
                     nome_docente = json['nome_docente']
-                    nome_usuario = relatorio_id.usuario_id.nome_completo.upper()
-                    if nome_docente == nome_usuario:
+                    nome_usuario = relatorio_id.usuario_id.nome_completo
+                    if nome_docente == nome_usuario or nome_docente == nome_usuario.upper():
                         ch_usuario = json['carga_horaria']
-
+                
                 try:
                     calculo_ch_semanal_aulas = CalculoCHSemanalAulas.objects.get(relatorio_id=relatorio_id, semestre=instance.semestre)
 
