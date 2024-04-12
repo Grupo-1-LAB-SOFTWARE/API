@@ -167,7 +167,7 @@ def escrever_dados_no_radoc(dados: dict):
     input_path = 'myapp/doc/Modelo_RADOC_preenchido.docx'
     output_path = 'myapp/pdfs/Modelo_RADOC_preenchido.pdf'
     doc.save(input_path)
-    convert(input_path, output_path)
+    convert(input_path, output_path, keep_active= True)
     with open(output_path, 'rb') as pdf_file:
         pdf_binary = pdf_file.read()
         os.remove(output_path)
@@ -253,11 +253,10 @@ def preencher_atividade_letiva(atividade_letiva_dict):
     disciplinas_semestre_2 = [atividade for atividade in atividade_letiva_dict[::-1] if atividade not in disciplinas_semestre_1]
 
     for atividade in disciplinas_semestre_1:
-        nomes_docentes = atividade['docentes_envolvidos_e_cargas_horarias'].keys()
-        docentes_ch = atividade['docentes_envolvidos_e_cargas_horarias'].values()
+        docentes = atividade['docentes_envolvidos_e_cargas_horarias']['lista']
+        nomes_docentes = [docente['nome_docente'] for docente in docentes]
+        docente_ch = [docente['carga_horaria'] for docente in docentes]
 
-        lista_nomes_docentes = list(nomes_docentes)
-        lista_docente_ch = list(docentes_ch)
         linha = {
             'nome_disciplina': f"{atividade['codigo_disciplina']} - {atividade['nome_disciplina']}",
             'curso': atividade['curso'],
@@ -267,17 +266,16 @@ def preencher_atividade_letiva(atividade_letiva_dict):
             'numero_turmas_pratico': str(atividade['numero_turmas_pratico']),
             'ch_turmas_teorico': str(atividade['ch_turmas_teorico']),
             'ch_turmas_pratico': str(atividade['ch_turmas_pratico']),
-            'docente': str(f'{lista_nomes_docentes}'.replace('[', '').replace("'", '').replace(']', '')),
-            'docente_ch': str(f'{lista_docente_ch}'.replace('[', '').replace("'", '').replace(']', '')),
+            'docente': "\n".join(nomes_docentes),
+            'docente_ch': "\n".join(map(str, docente_ch)),
         }
         lista_atividades_letivas_1.append(linha)
 
     for atividade in disciplinas_semestre_2:
-        nomes_docentes = atividade['docentes_envolvidos_e_cargas_horarias'].keys()
-        docentes_ch = atividade['docentes_envolvidos_e_cargas_horarias'].values()
+        docentes = atividade['docentes_envolvidos_e_cargas_horarias']['lista']
+        nomes_docentes = [docente['nome_docente'] for docente in docentes]
+        docente_ch = [docente['carga_horaria'] for docente in docentes]
 
-        lista_nomes_docentes = list(nomes_docentes)
-        lista_docente_ch = list(docentes_ch)
         linha = {
             'nome_disciplina': f"{atividade['codigo_disciplina']} - {atividade['nome_disciplina']}",
             'curso': atividade['curso'],
@@ -287,8 +285,8 @@ def preencher_atividade_letiva(atividade_letiva_dict):
             'numero_turmas_pratico': str(atividade['numero_turmas_pratico']),
             'ch_turmas_teorico': str(atividade['ch_turmas_teorico']),
             'ch_turmas_pratico': str(atividade['ch_turmas_pratico']),
-            'docente': str(f'{lista_nomes_docentes}'.replace('[', '').replace("'", '').replace(']', '')),
-            'docente_ch': str(f'{lista_docente_ch}'.replace('[', '').replace("'", '').replace(']', '')),
+            'docente': "\n".join(nomes_docentes),
+            'docente_ch': "\n".join(map(str, docente_ch)),
         }
         lista_atividades_letivas_2.append(linha)
     return
