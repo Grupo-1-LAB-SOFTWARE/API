@@ -502,13 +502,13 @@ class AtividadePedagogicaComplementarView(APIView):
                     instances = AtividadePedagogicaComplementar.objects.filter(relatorio_id=relatorio_docente.pk)
                     if instances.count() > 0:
                         if instances.count() == 2:
-                            return Util.response_bad_request('Objeto não criado: só podem ser adicionadas duas atividade_pedagogica_complementar para cada relatorio_docente. Uma para cada semestre.')
+                            return Util.response_bad_request('Objeto não criado: só podem ser adicionadas duas Atividades Pedagógicas Complementares para cada Relatório de Docência, sendo uma para cada semestre.')
                         
                         for instance in instances:
-                            if instance.semestre is 1 and serializer.validated_data.get('semestre') is 1:
-                                return Util.response_bad_request('Objeto não criado: só pode ser adicionada uma atividade_pedagogica_complementar por semestre para cada relatorio_docente.')
-                            if instance.semestre is 2 and serializer.validated_data.get('semestre') is 2:
-                                return Util.response_bad_request('Objeto não criado: só pode ser adicionada uma atividade_pedagogica_complementar por semestre para cada relatorio_docente.')
+                            if instance.semestre is 1 and request.data['semestre'] is 1:
+                                return Util.response_bad_request('Objeto não criado: só pode ser adicionada uma Atividade Pedagógica Complementar por semestre para cada Relatório de Docência')
+                            if instance.semestre is 2 and request.data['semestre'] is 2:
+                                return Util.response_bad_request('Objeto não criado: só pode ser adicionada uma Atividade Pedagógica Complementar por semestre para cada Relatório de Docência.')
                             
                 except AtividadePedagogicaComplementar.DoesNotExist:
                     pass
@@ -516,21 +516,20 @@ class AtividadePedagogicaComplementarView(APIView):
                 request.data['relatorio_id'] = relatorio_docente.pk
                 serializer = AtividadePedagogicaComplementarSerializer(data=request.data)
                 if serializer.is_valid():
-                    try:
-                        relatorio_id = serializer.validated_data.get('relatorio_id')
-                        semestre = serializer.validated_data.get('semestre')
+                    # try:
+                    #     relatorio_id = serializer.validated_data.get('relatorio_id')
+                    #     semestre = serializer.validated_data.get('semestre')
 
-                        calculo_ch_semanal_aulas = CalculoCHSemanalAulas.objects.get(relatorio_id=relatorio_id, semestre=semestre)
+                    #     calculo_ch_semanal_aulas = CalculoCHSemanalAulas.objects.get(relatorio_id=relatorio_id, semestre=semestre)
                         
-                        ch_semanal_total = serializer.validated_data.get('ch_semanal_graduacao') + serializer.validated_data.get('ch_semanal_pos_graduacao')
+                    #     ch_semanal_total = serializer.validated_data.get('ch_semanal_graduacao') + serializer.validated_data.get('ch_semanal_pos_graduacao')
 
-                        if ch_semanal_total > 2 * calculo_ch_semanal_aulas.ch_semanal_total:
-                            return Util.response_bad_request('ERRO: não é possível criar uma atividade_pedagogica_complementar em que a soma entre ch_semanal_graduacao e ch_semanal_pos_graduacao seja maior que o dobro do ch_semanal_total do seu calculo_ch_semanal_aulas correspondente')
+                    #     if ch_semanal_total > 2 * calculo_ch_semanal_aulas.ch_semanal_total:
+                    #         return Util.response_bad_request('ERRO: não é possível criar uma atividade_pedagogica_complementar em que a soma entre ch_semanal_graduacao e ch_semanal_pos_graduacao seja maior que o dobro do ch_semanal_total do seu calculo_ch_semanal_aulas correspondente')
 
-                    except CalculoCHSemanalAulas.DoesNotExist:
-                        return Util.response_bad_request('ERRO: não é possível criar uma atividade_pedagogica_complementar para um semestre em específico sem antes criar uma atividade_letiva para o mesmo semestre.')
+                    # except CalculoCHSemanalAulas.DoesNotExist:
+                    #     return Util.response_bad_request('ERRO: não é possível criar uma atividade_pedagogica_complementar para um semestre em específico sem antes criar uma Atividade Letiva para o mesmo semestre.')
             
-                
                     atividade_pedagogica_complementar = serializer.save()
                     return Util.response_created(f'id: {atividade_pedagogica_complementar.pk}')
                 
