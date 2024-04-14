@@ -153,8 +153,6 @@ class Util:
         for instance in calculos_ch_semanal_aulas:
             if instance.ch_semanal_graduacao >= 16.0: instance.ch_semanal_graduacao = 16.0
             if instance.ch_semanal_pos_graduacao >= 16.0: instance.ch_semanal_pos_graduacao = 16.0
-            if instance.ch_semanal_graduacao < 8.0: instance.ch_semanal_graduacao = 0.0
-            if instance.ch_semanal_pos_graduacao < 8.0: instance.ch_semanal_pos_graduacao = 0.0
 
             instance.ch_semanal_graduacao = round(instance.ch_semanal_graduacao, 1)
             instance.ch_semanal_pos_graduacao = round(instance.ch_semanal_pos_graduacao, 1)
