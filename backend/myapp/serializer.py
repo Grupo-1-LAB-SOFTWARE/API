@@ -157,7 +157,7 @@ class AtividadeLetivaSerializer(serializers.ModelSerializer):
                     ch_usuario = carga_horaria
 
             if nome_fornecido_usuario is None:
-                raise ValidationError({'docentes_envolvidos_e_cargas_horarias': ['ERRO: O usuário precisa fazer parte da atividade_letiva para cadastrá-la. O valor de pelo menos um "nome_docente" deve ser igual ao nome do usuário autenticado.']})
+                raise ValidationError('Para cadastrar uma Atividade Letiva, é necessário que você tenha participação nela. Por isso, o seu nome completo e a sua carga horária também devem ser incluídos na seção "Docentes Envolvidos e Cargas Horárias" da sua Atividade Letiva.')
         else:
             raise ValidationError({'docentes_envolvidos_e_cargas_horarias': ['ERRO: É necessário incluir a chave fixa "lista" dentro do JSON']})
         
@@ -258,7 +258,7 @@ class AtividadeLetivaSerializer(serializers.ModelSerializer):
                         ch_usuario = carga_horaria
 
                 if nome_fornecido_usuario is None:
-                    raise ValidationError({'docentes_envolvidos_e_cargas_horarias': ['ERRO: O usuário precisa fazer parte da atividade_letiva para cadastrá-la. O valor de pelo menos um "nome_docente" deve ser igual ao nome do usuário autenticado.']})
+                    raise ValidationError('Para atualizar uma Atividade Letiva, é necessário que você tenha participação nela. Por isso, o seu nome completo e a sua carga horária também devem ser incluídos na seção "Docentes Envolvidos e Cargas Horárias" da sua Atividade Letiva atualizada.')
                 
                 atividade_letiva_instance.docentes_envolvidos_e_cargas_horarias = docentes_envolvidos_e_cargas_horarias
             else:
