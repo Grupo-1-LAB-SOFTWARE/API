@@ -27,7 +27,7 @@ SECRET_KEY = 'django-insecure-rt9(b0xlz!m(0%_9j41zh^je3t#*09en&ve)29y2(sr$*(r*^f
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['api-sisradoc.up.railway.app',]
 
 
 # Application definition
