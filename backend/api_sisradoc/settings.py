@@ -96,13 +96,24 @@ WSGI_APPLICATION = 'api_sisradoc.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql',
+#         'NAME': 'sisradoc',
+#         'USER': 'postgres',
+#         'PASSWORD': '',
+#         'HOST': 'localhost'
+#     }
+# }
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'sisradoc',
+        'NAME': 'railway',
         'USER': 'postgres',
-        'PASSWORD': 'admin',
-        'HOST': 'localhost'
+        'PASSWORD': 'HWRiSPFqcQZEDYJAhhfLgIeghHFgpQKg',
+        'HOST': 'viaduct.proxy.rlwy.net',
+        'PORT': '29190',
     }
 }
 
