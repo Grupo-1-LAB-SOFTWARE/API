@@ -33,3 +33,4 @@ typing_extensions==4.10.0
 urwid==2.6.8
 urwid_readline==0.14
 wcwidth==0.2.13
+gunicorn==21.2.0
