@@ -233,17 +233,6 @@ class LoginView(APIView):
             return self.getToken(login, password)
         return Util.response_unauthorized('É necessário fornecer login e senha para logar.')
 
-
-        username = request.data.get('username', None)
-        email = request.data.get('email', None)
-        password = request.data.get('password', None)
-        if email and password and username is None:
-            return self.getToken(None, email, password)
-        elif username and password and email is None:
-            return self.getToken(username, None, password)
-        else:
-            return Util.response_unauthorized('É necessário fornecer email e senha ou username e senha para logar')
-
     def getToken(self, login, password):
         usuario = None
         try:
