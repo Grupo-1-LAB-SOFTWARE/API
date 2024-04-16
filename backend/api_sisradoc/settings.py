@@ -29,7 +29,6 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
-
 # Application definition
 
 INSTALLED_APPS = [
@@ -99,10 +98,11 @@ WSGI_APPLICATION = 'api_sisradoc.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'sisradoc',
+        'NAME': 'railway',
         'USER': 'postgres',
-        'PASSWORD': 'admin',
-        'HOST': 'localhost'
+        'PASSWORD': 'HWRiSPFqcQZEDYJAhhfLgIeghHFgpQKg',
+        'HOST': 'viaduct.proxy.rlwy.net',
+        'PORT': '29190',
     }
 }
 

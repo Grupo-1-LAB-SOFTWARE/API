@@ -8,6 +8,7 @@ from decouple import config
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.exceptions import ValidationError
+from django.contrib.sessions.models import Session
 
 class Util:
     @staticmethod
@@ -276,3 +277,18 @@ class Util:
 
         distribuicao_ch_semanal_primeiro_semestre.save()
         distribuicao_ch_semanal_segundo_semestre.save()
+    
+    @staticmethod
+    def limpar_cache_sessao(request):
+        # Obter a sessão do usuário
+        session_key = request.session.session_key
+        if session_key:
+            try:
+                session = Session.objects.get(session_key=session_key)
+                session.clear()  # Limpar o cache da sessão
+                session.save()   # Salvar a sessão para aplicar as alterações
+                return True  # Indicar que o cache da sessão foi limpo com sucesso
+            except Session.DoesNotExist:
+                return False  # Indicar que a sessão não foi encontrada
+        else:
+            return False

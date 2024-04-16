@@ -3419,6 +3419,8 @@ class DownloadRelatorioDocenteView(APIView):
         return escrever_dados_no_radoc(merged_data)
 
     def get(self, request, nome_relatorio=None):
+        Util.limpar_cache_sessao(request)
+
         if nome_relatorio:
             usuario_id = request.user.id
             try:
