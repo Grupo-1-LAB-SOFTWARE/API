@@ -29,7 +29,6 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['api-sisradoc.up.railway.app', '127.0.0.1',]
 
-
 # Application definition
 
 INSTALLED_APPS = [
