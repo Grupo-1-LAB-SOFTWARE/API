@@ -226,6 +226,14 @@ class UsuarioAdminView(APIView):
 
 class LoginView(APIView):
     def post(self, request):
+        login = request.data.get('login', None)
+        password = request.data.get('password', None)
+
+        if login and password:
+            return self.getToken(login, password)
+        return Util.response_unauthorized('É necessário fornecer login e senha para logar.')
+
+
         username = request.data.get('username', None)
         email = request.data.get('email', None)
         password = request.data.get('password', None)
@@ -236,18 +244,15 @@ class LoginView(APIView):
         else:
             return Util.response_unauthorized('É necessário fornecer email e senha ou username e senha para logar')
 
-    def getToken(self, username, email, password):
+    def getToken(self, login, password):
         usuario = None
-        if email and password:
+        try:
+            usuario = Usuario.objects.get(email=login)
+        except Usuario.DoesNotExist:
             try:
-                usuario = Usuario.objects.get(email=email)
+                usuario = Usuario.objects.get(username=login)
             except Usuario.DoesNotExist:
-               return Util.response_not_found('Não existe nenhum usuário cadastrado com esse e-mail.')
-        elif username and password:
-            try:
-                usuario = Usuario.objects.get(username=username)
-            except Usuario.DoesNotExist:
-                return Util.response_not_found('Não existe nenhum usuário cadastrado com esse username.')
+                return Util.response_not_found('Não existe nenhum usuário cadastrado com esse e-mail ou username.')
 
         if usuario:
             if usuario.is_active == False:
