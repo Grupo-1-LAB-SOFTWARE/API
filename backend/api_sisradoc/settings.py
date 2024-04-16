@@ -27,7 +27,7 @@ SECRET_KEY = 'django-insecure-rt9(b0xlz!m(0%_9j41zh^je3t#*09en&ve)29y2(sr$*(r*^f
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['api-sisradoc.up.railway.app', '127.0.0.1',]
 
 
 # Application definition
@@ -96,10 +96,20 @@ WSGI_APPLICATION = 'api_sisradoc.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql',
+#         'NAME': 'sisradoc',
+#         'USER': 'postgres',
+#         'PASSWORD': '',
+#         'HOST': 'localhost'
+#     }
+# }
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'sisradoc',
+        'NAME': 'railway',
         'USER': 'postgres',
         'PASSWORD': 'postgres',
         'HOST': 'localhost'
