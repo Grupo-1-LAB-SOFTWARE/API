@@ -7,6 +7,8 @@ WORKDIR /app
 
 RUN pip install pipenv
 
+RUN pip install requeriments.txt
+
 COPY Pipfile Pipfile.lock ./
 
 RUN pipenv install --deploy --ignore-pipfile
