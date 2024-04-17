@@ -1,18 +1,10 @@
 {
     "$schema": "https://railway.app/railway.schema.json",
     "build": {
-        "builder": "NIXPACKS",
-        "aptPkgs": [
-            "python3-pip",
-            "python3-cffi",
-            "python3-brotli",
-            "libpango-1.0-0",
-            "libpangoft2-1.0-0",
-            "libglib2.0-0"
-        ]
+        "builder": "NIXPACKS"
     },
     "deploy": {
-        "startCommand": "python manage.py runserver",
+        "startCommand": "apt-get -y install python3-pip python3-cffi python3-brotli libpango-1.0-0 libpangoft2-1.0-0 && python manage.py runserver",
         "restartPolicyType": "NEVER",
         "restartPolicyMaxRetries": 10
     } 
