@@ -1,8 +1,8 @@
 import os
 import tempfile
 import io
+from xhtml2pdf import pisa
 import mammoth
-from weasyprint import HTML, CSS
 from docxtpl import DocxTemplate
 from typing import List, Dict
 
@@ -116,7 +116,7 @@ def docx_to_html(docx_path):
              <style>
                 table {
                      border-collapse: collapse;
-                     width: 100%;
+                     width: 100%
                  }
                 table th, table td {
                      border: 1px solid black;
@@ -134,6 +134,33 @@ def docx_to_html(docx_path):
          """ + html
 
     return html_with_styles
+
+def convert_html_to_pdf(html_content):
+    try:
+        # Criar um arquivo temporário para o HTML
+        with tempfile.NamedTemporaryFile(suffix='.html', delete=False) as temp_html_file:
+            temp_html_file.write(html_content.encode('utf-8'))
+            html_path = temp_html_file.name
+
+            # Definir o caminho do arquivo PDF
+            pdf_path = html_path.replace('.html', '.pdf')
+
+            # Criar um buffer para o PDF
+            with open(pdf_path, 'wb') as pdf_file:
+                # Converter HTML para PDF usando pisa
+                pisa.CreatePDF(html_content, dest=pdf_file)
+
+            # Ler o PDF em modo binário
+            with open(pdf_path, 'rb') as pdf_file:
+                pdf_binary = pdf_file.read()
+
+            # Excluir arquivos temporários
+            os.unlink(html_path)
+            os.unlink(pdf_path)
+
+            return pdf_binary
+    except Exception as e:
+        print(f"PDF generation failed: {e}")
 
 def escrever_dados_no_radoc(dados: dict):
 
@@ -220,31 +247,7 @@ def escrever_dados_no_radoc(dados: dict):
     os.unlink(input_path)
     os.unlink(modelo)
 
-    pdf_binary = html_to_pdf(html_content)
-
-    return pdf_binary
-
-def html_to_pdf(html_content):
-    # Criar um arquivo temporário para o HTML
-    with tempfile.NamedTemporaryFile(suffix='.html', delete=False) as temp_html_file:
-        temp_html_file.write(html_content.encode('utf-8'))
-        html_path = temp_html_file.name
-
-        # Configurar o estilo CSS para lidar com caracteres pt-br
-        font_style = "@font-face { font-family: 'Arial'; src: url('Arial.ttf'); }"
-        css = CSS(string=font_style)
-
-        # Converter o HTML para PDF
-        pdf_path = html_path.replace('.html', '.pdf')
-        HTML(string=html_content).write_pdf(pdf_path, stylesheets=[css])
-
-    # Ler o PDF em modo binário
-    with open(pdf_path, 'rb') as pdf_file:
-        pdf_binary = pdf_file.read()
-
-    # Excluir arquivo temporário HTML e PDF
-    os.unlink(html_path)
-    os.unlink(pdf_path)
+    pdf_binary = convert_html_to_pdf(html_content)
 
     return pdf_binary
 
