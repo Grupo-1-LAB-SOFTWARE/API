@@ -13,7 +13,7 @@ RUN apt-get -y install python3-pip python3-cffi python3-brotli libpango-1.0-0 li
 RUN python -m venv --copies /opt/venv && . /opt/venv/bin/activate
 
 # Copie os arquivos de requisitos e instale-os
-COPY requirements.txt /tmp/
+COPY ./backend/requirements.txt /tmp/
 RUN pip install -r /tmp/requirements.txt
 
 COPY Pipfile Pipfile.lock ./
