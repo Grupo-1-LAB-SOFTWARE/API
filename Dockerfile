@@ -16,11 +16,11 @@ RUN python -m venv --copies /opt/venv && . /opt/venv/bin/activate
 COPY /backend/requirements.txt /tmp/
 RUN pip install -r /tmp/requirements.txt
 
-COPY Pipfile Pipfile.lock ./
+# COPY Pipfile Pipfile.lock ./
 
-RUN pipenv install --deploy --ignore-pipfile
+# RUN pipenv install --deploy --ignore-pipfile
 
-COPY . ./
+# COPY . ./
 
 # Copie o restante dos arquivos da aplicação para o contêiner
 COPY . /app
@@ -32,6 +32,6 @@ WORKDIR /app
 CMD pipenv run python DepistClic/manage.py migrate && pipenv run python DepistClic/manage.py collectstatic --no-input && pipenv run gunicorn locallibrary.wsgi
 
 
-CMD python manage.py migrate && gunicorn api_sisradoc.wsgi
+#CMD python manage.py migrate && gunicorn api_sisradoc.wsgi
 
-CMD pipenv run python DepistClic/manage.py migrate && pipenv run python DepistClic/manage.py collectstatic --no-input && pipenv run gunicorn locallibrary.wsgi
+#CMD pipenv run python DepistClic/manage.py migrate && pipenv run python DepistClic/manage.py collectstatic --no-input && pipenv run gunicorn locallibrary.wsgi
