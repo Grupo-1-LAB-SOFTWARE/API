@@ -18,4 +18,4 @@ WORKDIR /app
 
 COPY . /app
 
-CMD python ./backend/manage.py migrate
+CMD python ./backend/manage.py migrate && python ./backend/manage.py runserver
