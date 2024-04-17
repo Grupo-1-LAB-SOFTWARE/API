@@ -4,8 +4,15 @@
         "builder": "NIXPACKS"
     },
     "deploy": {
-        "startCommand": "apt install python3-pip libpango-1.0-0 && apt install weasyprint && python manage.py runserver",
+        "startCommand": "python manage.py runserver",
         "restartPolicyType": "NEVER",
         "restartPolicyMaxRetries": 10
+    },
+    "nix": {
+        "packages": [
+          "python3",
+          "python3Packages.pip",
+          "libpango"
+        ]
     }
 }
