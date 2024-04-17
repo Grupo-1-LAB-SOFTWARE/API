@@ -1,11 +1,16 @@
-FROM python:3.8
+FROM python:3.10.12
 
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends \
-    libcairo2 \
-    libpango-1.0-0 \
-    libpangocairo-1.0-0 \
-    libgdk-pixbuf2.0-0 \
-    libffi-dev \
-    shared-mime-info \
-    gir1.2-pango-1.0
+RUN apt-get update
+RUN apt-get -y install python3-pip python3-cffi python3-brotli libpango-1.0-0 libpangoft2-1.0-0
+
+WORKDIR /app
+
+RUN pip install pipenv
+
+COPY Pipfile Pipfile.lock ./
+
+RUN pipenv install --deploy --ignore-pipfile
+
+COPY . ./
+
+CMD pipenv run python DepistClic/manage.py migrate && pipenv run python DepistClic/manage.py collectstatic --no-input && pipenv run gunicorn locallibrary.wsgi
