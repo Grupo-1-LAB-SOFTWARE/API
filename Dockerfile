@@ -1,4 +1,7 @@
-FROM python:3.10.12
+FROM python:3.9-slim-buster
+
+ENV PYTHONDONTWRITEBYTECODE 1
+ENV PYTHONUNBUFFERED 1
 
 # Instale as dependências necessárias
 RUN apt-get update && \
@@ -16,6 +19,11 @@ RUN pip install -r /tmp/requirements.txt
 
 WORKDIR /app
 
-COPY . /app
+ADD . /app/
 
-CMD python ./backend/manage.py migrate && python ./backend/manage.py runserver
+EXPOSE 8000
+
+CMD python ./backend/manage.py migrate
+CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+
+#CMD python ./backend/manage.py migrate && python ./backend/manage.py runserver
