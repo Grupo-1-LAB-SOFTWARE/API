@@ -116,18 +116,20 @@ def docx_to_html(docx_path):
              <style>
                 table {
                      border-collapse: collapse;
-                     width: 100%
+                     display: content;
                  }
                 table th, table td {
-                     border: 1px solid black;
-                     padding: 1px;
-                 }
+                    border: 1px solid black;
+                    padding-top: 10px;
+                    table-layout: auto;
+                } 
                 img {
-                     display: block;
+                     display: flex;
                      margin-left: auto;
                      margin-right: auto;
                  }
                 body {
+                    text-align: center;
                     font-family: Arial, sans-serif;
                 }
              </style>
