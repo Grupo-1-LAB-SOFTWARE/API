@@ -29,7 +29,7 @@ WORKDIR /app
 COPY . /app
 
 
-CMD python ./backend/manage.py migrate && gunicorn api_sisradoc.wsgi
+CMD python ./backend/manage.py migrate && gunicorn ./api_sisradoc/wsgi.py
 # Execute as migrações do Django e inicie o servidor Gunicorn
 #CMD pipenv run python DepistClic/manage.py migrate && pipenv run python DepistClic/manage.py collectstatic --no-input && pipenv run gunicorn locallibrary.wsgi
 
