@@ -3,7 +3,6 @@
     "build": {
         "builder": "NIXPACKS",
         "nixpacksPlan": {
-            "providers": ["python"],
             "phases": {
                 "setup": {"nixPkgs": ["pango", "cowsay"]}
             }
