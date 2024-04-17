@@ -57,7 +57,23 @@ SIMPLE_JWT = {
     'AUTH_HEADER_TYPES': ('Bearer',),
     'ACCESS_TOKEN_LIFETIME': timedelta(days=1),
 }
-    
+
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
+]
+
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:4200"  # Adicione aqui o URL do seu aplicativo Angular
+]
+
 CORS_ORIGIN_ALLOW_ALL = True
 
 MIDDLEWARE = [
@@ -100,7 +116,7 @@ WSGI_APPLICATION = 'api_sisradoc.wsgi.application'
 #         'ENGINE': 'django.db.backends.postgresql',
 #         'NAME': 'sisradoc',
 #         'USER': 'postgres',
-#         'PASSWORD': '',
+#         'PASSWORD': '1234',
 #         'HOST': 'localhost'
 #     }
 # }

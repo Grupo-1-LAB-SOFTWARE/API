@@ -20,6 +20,9 @@ from .services import extrair_texto_do_pdf, extrair_dados_de_atividades_letivas,
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.permissions import IsAuthenticated
+from django.shortcuts import redirect
+from django.contrib.auth.decorators import login_required
+
 
 class CriarUsuarioView(APIView):
     def post(self, request):
@@ -258,15 +261,14 @@ class LoginView(APIView):
             return Util.response_not_found('Ocorreu algum erro desconhecido')
 
 class ActivateEmail(APIView):
-    def get(self, request, username):
-        try:
-            Usuario.objects.filter(username=username).update(
-                is_active=True
-            )
-        except Usuario.DoesNotExist:
-            return Util.response_not_found('Usuário não encontrado')
-
-        return Util.response_ok('Ativação do usuário bem-sucedida')
+        def get(self, request, username):
+            try:               
+                Usuario.objects.filter(username=username).update(
+                    is_active=True     
+                )               
+            except Usuario.DoesNotExist:
+                return Util.response_not_found('Usuário não encontrado')
+            return redirect('http://localhost:4200/login/?ativacao_sucesso=true')
 
 class AtividadeLetivaView(APIView):
     permission_classes = [IsAuthenticated]
