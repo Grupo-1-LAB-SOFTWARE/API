@@ -15,6 +15,7 @@ RUN python -m venv --copies /opt/venv && . /opt/venv/bin/activate
 # Copie os arquivos de requisitos e instale-os
 COPY /backend/requirements.txt /tmp/
 RUN pip install -r /tmp/requirements.txt
+RUN pip install pipenv
 
 # COPY Pipfile Pipfile.lock ./
 
