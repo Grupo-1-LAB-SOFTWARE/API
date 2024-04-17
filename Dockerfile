@@ -18,4 +18,4 @@ WORKDIR /app
 
 COPY . /app
 
-CMD python ./backend/manage.py migrate && gunicorn ./api_sisradoc.wsgi
+CMD python ./backend/manage.py migrate
