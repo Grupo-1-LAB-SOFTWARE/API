@@ -15,7 +15,6 @@ RUN python -m venv --copies /opt/venv && . /opt/venv/bin/activate
 # Copie os arquivos de requisitos e instale-os
 COPY /backend/requirements.txt /tmp/
 RUN pip install -r /tmp/requirements.txt
-RUN python manage.py migrate && gunicorn api_sisradoc.wsgi
 
 # COPY Pipfile Pipfile.lock ./
 
@@ -23,12 +22,14 @@ RUN python manage.py migrate && gunicorn api_sisradoc.wsgi
 
 # COPY . ./
 
-# Copie o restante dos arquivos da aplicação para o contêiner
-COPY . /app
-
 # Defina o diretório de trabalho da aplicação
 WORKDIR /app
 
+# Copie o restante dos arquivos da aplicação para o contêiner
+COPY . /app
+
+
+CMD python manage.py migrate && gunicorn api_sisradoc.wsgi
 # Execute as migrações do Django e inicie o servidor Gunicorn
 #CMD pipenv run python DepistClic/manage.py migrate && pipenv run python DepistClic/manage.py collectstatic --no-input && pipenv run gunicorn locallibrary.wsgi
 
