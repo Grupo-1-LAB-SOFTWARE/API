@@ -1,16 +1,34 @@
 FROM python:3.10.12
 
-RUN apt-get update
+# Instale as dependências necessárias
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+    python3-dev \
+    postgresql \
+    gcc
+
 RUN apt-get -y install python3-pip python3-cffi python3-brotli libpango-1.0-0 libpangoft2-1.0-0
 
-WORKDIR /app
+# Crie e ative o ambiente virtual
+RUN python -m venv --copies /opt/venv && . /opt/venv/bin/activate
 
-RUN pip install pipenv
+# Copie os arquivos de requisitos e instale-os
+COPY requirements.txt /tmp/
+RUN pip install -r /tmp/requirements.txt
 
 COPY Pipfile Pipfile.lock ./
 
 RUN pipenv install --deploy --ignore-pipfile
 
 COPY . ./
+
+# Copie o restante dos arquivos da aplicação para o contêiner
+COPY . /app
+
+# Defina o diretório de trabalho da aplicação
+WORKDIR /app
+
+# Execute as migrações do Django e inicie o servidor Gunicorn
+CMD python manage.py migrate && gunicorn api_sisradoc.wsgi
 
 CMD pipenv run python DepistClic/manage.py migrate && pipenv run python DepistClic/manage.py collectstatic --no-input && pipenv run gunicorn locallibrary.wsgi
