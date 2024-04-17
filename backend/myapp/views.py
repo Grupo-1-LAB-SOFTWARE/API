@@ -20,6 +20,8 @@ from .services import extrair_texto_do_pdf, extrair_dados_de_atividades_letivas,
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.permissions import IsAuthenticated
+from django.shortcuts import redirect
+from django.contrib.auth.decorators import login_required
 
 class CriarUsuarioView(APIView):
     def post(self, request):
@@ -226,28 +228,22 @@ class UsuarioAdminView(APIView):
 
 class LoginView(APIView):
     def post(self, request):
-        username = request.data.get('username', None)
-        email = request.data.get('email', None)
+        login = request.data.get('login', None)
         password = request.data.get('password', None)
-        if email and password and username is None:
-            return self.getToken(None, email, password)
-        elif username and password and email is None:
-            return self.getToken(username, None, password)
-        else:
-            return Util.response_unauthorized('É necessário fornecer email e senha ou username e senha para logar')
 
-    def getToken(self, username, email, password):
+        if login and password:
+            return self.getToken(login, password)
+        return Util.response_unauthorized('É necessário fornecer login e senha para logar.')
+
+    def getToken(self, login, password):
         usuario = None
-        if email and password:
+        try:
+            usuario = Usuario.objects.get(email=login)
+        except Usuario.DoesNotExist:
             try:
-                usuario = Usuario.objects.get(email=email)
+                usuario = Usuario.objects.get(username=login)
             except Usuario.DoesNotExist:
-               return Util.response_not_found('Não existe nenhum usuário cadastrado com esse e-mail.')
-        elif username and password:
-            try:
-                usuario = Usuario.objects.get(username=username)
-            except Usuario.DoesNotExist:
-                return Util.response_not_found('Não existe nenhum usuário cadastrado com esse username.')
+                return Util.response_not_found('Não existe nenhum usuário cadastrado com esse e-mail ou username.')
 
         if usuario:
             if usuario.is_active == False:
@@ -265,14 +261,15 @@ class LoginView(APIView):
 
 class ActivateEmail(APIView):
     def get(self, request, username):
-        try:
+        try:               
             Usuario.objects.filter(username=username).update(
-                is_active=True
-            )
+                is_active=True     
+            )               
         except Usuario.DoesNotExist:
             return Util.response_not_found('Usuário não encontrado')
-
-        return Util.response_ok('Ativação do usuário bem-sucedida')
+        
+        origin = "http://localhost:4200"
+        return redirect(f'{origin}/login/?ativacao_sucesso=true')
 
 class AtividadeLetivaView(APIView):
     permission_classes = [IsAuthenticated]
@@ -3418,6 +3415,8 @@ class DownloadRelatorioDocenteView(APIView):
         return escrever_dados_no_radoc(merged_data)
 
     def get(self, request, nome_relatorio=None):
+        Util.limpar_cache_sessao(request)
+
         if nome_relatorio:
             usuario_id = request.user.id
             try:

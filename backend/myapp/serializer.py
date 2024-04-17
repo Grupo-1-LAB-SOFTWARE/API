@@ -48,7 +48,8 @@ class CustomizarTokenSerializer(TokenObtainPairSerializer):
         refresh = RefreshToken.for_user(user)
         token = {
             #'refresh': str(refresh),
-            'token': str(refresh.access_token)
+            'token': str(refresh.access_token),
+            'perfil': str(user.perfil)
         }
 
         return token

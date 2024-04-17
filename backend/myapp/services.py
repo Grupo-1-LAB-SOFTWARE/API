@@ -1,8 +1,9 @@
-import re
-import pypdf
 import os
+import tempfile
+import io
+from xhtml2pdf import pisa
+import mammoth
 from docxtpl import DocxTemplate
-from docx2pdf import convert
 from typing import List, Dict
 
 def extrair_texto_do_pdf(caminho_do_pdf):
@@ -105,7 +106,66 @@ global_context = {
     'afastamentos': afastamentos,
 }
 
+def docx_to_html(docx_path):
+    with open(docx_path, 'rb') as docx_file:
+        # Realiza a conversão do arquivo docx para HTML
+        result = mammoth.convert_to_html(docx_file)
+        html = result.value
+
+        html_with_styles = """
+             <style>
+                table {
+                     border-collapse: collapse;
+                     display: content;
+                 }
+                table th, table td {
+                    border: 1px solid black;
+                    padding-top: 10px;
+                    table-layout: auto;
+                } 
+                img {
+                     display: flex;
+                     margin-left: auto;
+                     margin-right: auto;
+                 }
+                body {
+                    text-align: center;
+                    font-family: Arial, sans-serif;
+                }
+             </style>
+         """ + html
+
+    return html_with_styles
+
+def convert_html_to_pdf(html_content):
+    try:
+        # Criar um arquivo temporário para o HTML
+        with tempfile.NamedTemporaryFile(suffix='.html', delete=False) as temp_html_file:
+            temp_html_file.write(html_content.encode('utf-8'))
+            html_path = temp_html_file.name
+
+            # Definir o caminho do arquivo PDF
+            pdf_path = html_path.replace('.html', '.pdf')
+
+            # Criar um buffer para o PDF
+            with open(pdf_path, 'wb') as pdf_file:
+                # Converter HTML para PDF usando pisa
+                pisa.CreatePDF(html_content, dest=pdf_file)
+
+            # Ler o PDF em modo binário
+            with open(pdf_path, 'rb') as pdf_file:
+                pdf_binary = pdf_file.read()
+
+            # Excluir arquivos temporários
+            os.unlink(html_path)
+            os.unlink(pdf_path)
+
+            return pdf_binary
+    except Exception as e:
+        print(f"PDF generation failed: {e}")
+
 def escrever_dados_no_radoc(dados: dict):
+
     data = dados
     usuario_dict = data['usuario']
     relatorio_docente_dict = data['relatorio_docente']
@@ -163,16 +223,35 @@ def escrever_dados_no_radoc(dados: dict):
     preencher_distribuicao_ch_semanal(distribuicao_ch_semanal_dict)
     preencher_outras_informacoes(outras_informacoes_dict)
     preencher_afastamentos(afastamentos_dict)
-    doc.render(global_context)
-    input_path = 'myapp/doc/Modelo_RADOC_preenchido.docx'
-    output_path = 'myapp/pdfs/Modelo_RADOC_preenchido.pdf'
-    doc.save(input_path)
-    convert(input_path, output_path, keep_active= True)
-    with open(output_path, 'rb') as pdf_file:
-        pdf_binary = pdf_file.read()
-        os.remove(output_path)
-        os.remove(input_path)
-        return pdf_binary
+    with tempfile.NamedTemporaryFile(suffix='.docx', delete=False) as temp_model_file:
+        temp_model_file.write(open("myapp/doc/Modelo_RADOC.docx", "rb").read())
+        temp_model_file.seek(0)
+        modelo = temp_model_file.name
+
+        # Carregar o modelo RADOC a partir do arquivo temporário
+        doc = DocxTemplate(modelo)
+        doc.render(global_context)
+    # Criar um buffer de memória para o docx
+    with io.BytesIO() as temp_docx_buffer:
+        doc.save(temp_docx_buffer)
+        temp_docx_buffer.seek(0)  # Voltar para o início do buffer
+
+        # Criar um arquivo temporário para o docx
+        with tempfile.NamedTemporaryFile(suffix='.docx', delete=False) as temp_docx_file:
+            temp_docx_file.write(temp_docx_buffer.getvalue())
+            input_path = temp_docx_file.name
+
+            html_content = docx_to_html(input_path)
+            
+    temp_docx_buffer.close()
+
+    # Excluir arquivos temporários
+    os.unlink(input_path)
+    os.unlink(modelo)
+
+    pdf_binary = convert_html_to_pdf(html_content)
+
+    return pdf_binary
 
 def preencher_cabecalho(usuario, relatorio):
     classe = usuario[0]['classe']

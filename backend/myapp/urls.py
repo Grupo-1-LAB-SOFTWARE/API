@@ -1,4 +1,6 @@
 from django.urls import path
+from django.views.generic import RedirectView
+from .views import ActivateEmail
 
 from .views import (UsuarioView, ActivateEmail, LoginView, EndpointsView,
                     RelatorioDocenteAdminView, RelatorioDocenteView, AtividadeLetivaView, AtividadePedagogicaComplementarView, AtividadeOrientacaoSupervisaoPreceptoriaTutoriaView, DescricaoOrientacaoCoorientacaoAcademicaView, SupervisaoAcademicaView, PreceptoriaTutoriaResidenciaView, BancaExaminadoraView, AvaliacaoDiscenteView, ProjetoPesquisaProducaoIntelectualView, TrabalhoCompletoPublicadoPeriodicoBoletimTecnicoView, LivroCapituloVerbetePublicadoView, TrabalhoCompletoResumoPublicadoApresentadoCongressosView, OutraAtividadePesquisaProducaoIntelectualView, CHSemanalAtividadesPesquisaView, ProjetoExtensaoView, EstagioExtensaoView, AtividadeEnsinoNaoFormalView, OutraAtividadeExtensaoView, CHSemanalAtividadesExtensaoView, AtividadeGestaoRepresentacaoView, QualificacaoDocenteAcademicaProfissionalView, OutraInformacaoView, AfastamentoView, DocumentoComprobatorioView, DownloadRelatorioDocenteView, CriarUsuarioView, UsuarioAdminView, ExtrairDadosAtividadesLetivasPDFAPIView)
