@@ -70,6 +70,9 @@ class UsuarioView(APIView):
     
     def put(self, request):
         instance = request.user
+        usuario_autenticado = Usuario.objects.get(pk = request.user.id)
+        old_username = usuario_autenticado.username
+        old_email = usuario_autenticado.email
         
         data = request.data.copy()
         if 'id' in data:
@@ -85,16 +88,16 @@ class UsuarioView(APIView):
         
         new_username = request.data.get('username')
         new_email = request.data.get('email')
-        if self.is_username_disponivel(new_username) == False:
+        if self.is_username_disponivel(new_username) == False and new_username != old_username:
             return Util.response_bad_request('Já existe um usuário cadastrado com esse username.')
-        if self.is_email_disponivel(new_email) == False:
+        if self.is_email_disponivel(new_email) == False and new_email != old_email:
             return Util.response_bad_request('Já existe um usuário cadastrado com esse e-mail.')
         
         serializer = UsuarioSerializer(instance, data=data, partial=True)
 
         if serializer.is_valid():
             usuario = serializer.save()
-            if new_email:
+            if new_email and new_email != old_email:
                 usuario.is_active = False
                 usuario.save()
                 user_dict = model_to_dict(usuario)
@@ -137,6 +140,9 @@ class UsuarioAdminView(APIView):
     def put(self, request, username=None):
         if username is not None:
             usuario_autenticado = Usuario.objects.get(pk = request.user.id)
+            old_username = usuario_autenticado.username
+            old_email = usuario_autenticado.email
+
             if usuario_autenticado.perfil != "Administrador":
                 return Util.response_unauthorized("Apenas usuários administradores podem realizar essa requisição!")
             try:
@@ -153,16 +159,16 @@ class UsuarioAdminView(APIView):
 
                 new_username = request.data.get('username')
                 new_email = request.data.get('email')
-                if self.is_username_disponivel(new_username) == False:
+                if self.is_username_disponivel(new_username) == False and new_username != old_username:
                     return Util.response_bad_request('Já existe um usuário cadastrado com esse username.')
-                if self.is_email_disponivel(new_email) == False:
+                if self.is_email_disponivel(new_email) == False and new_email != old_email:
                     return Util.response_bad_request('Já existe um usuário cadastrado com esse e-mail.')
 
                 serializer = UsuarioSerializer(user, data=data, partial=True)
 
                 if serializer.is_valid():
                     usuario = serializer.save()
-                    if new_email:
+                    if new_email and new_email != old_email:
                         usuario.is_active = False
                         usuario.save()
                         user_dict = model_to_dict(usuario)
