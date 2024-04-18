@@ -57,6 +57,18 @@ SIMPLE_JWT = {
     'AUTH_HEADER_TYPES': ('Bearer',),
     'ACCESS_TOKEN_LIFETIME': timedelta(days=1),
 }
+
+CORS_ALLOW_HEADERS = [
+     'accept',
+     'accept-encoding',
+     'authorization',
+     'content-type',
+     'dnt',
+     'origin',
+     'user-agent',
+     'x-csrftoken',
+     'x-requested-with',
+ ]
     
 CORS_ORIGIN_ALLOW_ALL = True
 
