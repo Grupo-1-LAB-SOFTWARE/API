@@ -2,6 +2,8 @@ import json
 from django.utils import timezone
 import tempfile
 import os
+from io import BytesIO
+import subprocess
 import fitz 
 from PyPDF2 import PdfReader, PdfWriter
 from django.http import HttpResponse
@@ -20,6 +22,8 @@ from .services import extrair_texto_do_pdf, extrair_dados_de_atividades_letivas,
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.permissions import IsAuthenticated
+from django.views.decorators.cache import never_cache
+from django.utils.decorators import method_decorator
 
 class CriarUsuarioView(APIView):
     def post(self, request):
@@ -3412,8 +3416,6 @@ class DownloadRelatorioDocenteView(APIView):
         return escrever_dados_no_radoc(merged_data)
 
     def get(self, request, nome_relatorio=None):
-        Util.limpar_cache_sessao(request)
-
         if nome_relatorio:
             usuario_id = request.user.id
             try:
@@ -3421,42 +3423,33 @@ class DownloadRelatorioDocenteView(APIView):
                 Util.calcular_distribuicao_ch_semanal(instance.pk)
                 output_pdf = PdfWriter()
 
-                with tempfile.NamedTemporaryFile(delete=False) as temp_file_radoc:
                 # Aqui será inserida a lógica de preenchimento de RADOC
-                    binary_radoc = self.gerarPDFRadoc(instance.pk, usuario_id)
-                    temp_file_radoc.write(binary_radoc)
-                    temp_file_radoc.seek(0)
+                binary_radoc = self.gerarPDFRadoc(instance.pk, usuario_id)
+                output_pdf.append_pages_from_reader(PdfReader(BytesIO(binary_radoc)))
 
-                    temp_file_radoc = PdfReader(temp_file_radoc)
-                    output_pdf.append_pages_from_reader(temp_file_radoc)
+                documentos_comprobatorios = DocumentoComprobatorio.objects.filter(relatorio_id=instance.pk)
+                for documento in documentos_comprobatorios:
+                    binary_data = documento.binary_pdf
+                    if not self.is_pdf(binary_data):
+                        return Util.response_bad_request(f'Erro: O documento comprobatório não é um arquivo PDF válido.')
 
-                    documentos_comprobatorios = DocumentoComprobatorio.objects.filter(relatorio_id=instance.pk)
-                    for documento in documentos_comprobatorios:
-                        binary_data = documento.binary_pdf
-                        with tempfile.NamedTemporaryFile(delete=False) as temp_file_doc:
-                            temp_file_doc.write(binary_data)
-                            temp_file_doc.seek(0)
+                    output_pdf.append_pages_from_reader(PdfReader(BytesIO(binary_data)))
 
-                            if not self.is_pdf(temp_file_doc.name):
-                                return Util.response_bad_request(f'Erro: O documento comprobatório {temp_file_doc.name} não é um arquivo PDF válido.')
-                                        
-                            temp_file_doc = PdfReader(temp_file_doc)
-                            output_pdf.append_pages_from_reader(temp_file_doc)
-                           
-                    with tempfile.NamedTemporaryFile(delete=False) as merged_file:
-                        output_pdf.write(merged_file)
-                        merged_file.seek(0)
-                        
-                        # Retorna o arquivo PDF diretamente como resposta
-                        response = HttpResponse(merged_file, content_type='application/pdf')
-                        response['Content-Disposition'] = f'inline; filename="Relatório Docente - UFRA"'
-                        return response
+                output_buffer = BytesIO()
+                output_buffer.truncate(0)
+                output_pdf.write(output_buffer)
+                output_buffer.seek(0)
+
+                # Retorna o arquivo PDF diretamente como resposta
+                response = HttpResponse(output_buffer, content_type='application/pdf')
+                response['Content-Disposition'] = f'inline; filename="Relatório Docente - UFRA"'
+                return response
 
             except RelatorioDocente.DoesNotExist:
                 return Util.response_not_found('Não foi possível encontrar um relatorio_docente com o nome fornecido')
-            
-        return Util.response_bad_request('É necessário fornecer o nome do relatorio_docente que você deseja gerar em download_relatorio/{nome_relatorio}/')
 
+        return Util.response_bad_request('É necessário fornecer o nome do relatorio_docente que você deseja gerar em download_relatorio/{nome_relatorio}/')
+    
 class ExtrairDadosAtividadesLetivasPDFAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
