@@ -22,8 +22,8 @@ from .services import extrair_texto_do_pdf, extrair_dados_de_atividades_letivas,
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.permissions import IsAuthenticated
-from django.views.decorators.cache import never_cache
-from django.utils.decorators import method_decorator
+from django.shortcuts import redirect
+from django.contrib.auth.decorators import login_required
 
 class CriarUsuarioView(APIView):
     def post(self, request):
@@ -72,6 +72,9 @@ class UsuarioView(APIView):
     
     def put(self, request):
         instance = request.user
+        usuario_autenticado = Usuario.objects.get(pk = request.user.id)
+        old_username = usuario_autenticado.username
+        old_email = usuario_autenticado.email
         
         data = request.data.copy()
         if 'id' in data:
@@ -87,16 +90,16 @@ class UsuarioView(APIView):
         
         new_username = request.data.get('username')
         new_email = request.data.get('email')
-        if self.is_username_disponivel(new_username) == False:
+        if self.is_username_disponivel(new_username) == False and new_username != old_username:
             return Util.response_bad_request('Já existe um usuário cadastrado com esse username.')
-        if self.is_email_disponivel(new_email) == False:
+        if self.is_email_disponivel(new_email) == False and new_email != old_email:
             return Util.response_bad_request('Já existe um usuário cadastrado com esse e-mail.')
         
         serializer = UsuarioSerializer(instance, data=data, partial=True)
 
         if serializer.is_valid():
             usuario = serializer.save()
-            if new_email:
+            if new_email and new_email != old_email:
                 usuario.is_active = False
                 usuario.save()
                 user_dict = model_to_dict(usuario)
@@ -139,6 +142,9 @@ class UsuarioAdminView(APIView):
     def put(self, request, username=None):
         if username is not None:
             usuario_autenticado = Usuario.objects.get(pk = request.user.id)
+            old_username = usuario_autenticado.username
+            old_email = usuario_autenticado.email
+
             if usuario_autenticado.perfil != "Administrador":
                 return Util.response_unauthorized("Apenas usuários administradores podem realizar essa requisição!")
             try:
@@ -155,16 +161,16 @@ class UsuarioAdminView(APIView):
 
                 new_username = request.data.get('username')
                 new_email = request.data.get('email')
-                if self.is_username_disponivel(new_username) == False:
+                if self.is_username_disponivel(new_username) == False and new_username != old_username:
                     return Util.response_bad_request('Já existe um usuário cadastrado com esse username.')
-                if self.is_email_disponivel(new_email) == False:
+                if self.is_email_disponivel(new_email) == False and new_email != old_email:
                     return Util.response_bad_request('Já existe um usuário cadastrado com esse e-mail.')
 
                 serializer = UsuarioSerializer(user, data=data, partial=True)
 
                 if serializer.is_valid():
                     usuario = serializer.save()
-                    if new_email:
+                    if new_email and new_email != old_email:
                         usuario.is_active = False
                         usuario.save()
                         user_dict = model_to_dict(usuario)
@@ -263,14 +269,16 @@ class LoginView(APIView):
 
 class ActivateEmail(APIView):
     def get(self, request, username):
-        try:
+        try:               
             Usuario.objects.filter(username=username).update(
-                is_active=True
-            )
+                is_active=True     
+            )               
         except Usuario.DoesNotExist:
             return Util.response_not_found('Usuário não encontrado')
-
-        return Util.response_ok('Ativação do usuário bem-sucedida')
+        
+        #origin = "http://localhost:4200"
+        origin = "https://9ffa-2804-1b2-d082-593a-8156-5713-b520-7a8e.ngrok-free.app"
+        return redirect(f'{origin}/login/?ativacao_sucesso=true')
 
 class AtividadeLetivaView(APIView):
     permission_classes = [IsAuthenticated]
