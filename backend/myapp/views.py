@@ -275,8 +275,8 @@ class ActivateEmail(APIView):
         except Usuario.DoesNotExist:
             return Util.response_not_found('Usuário não encontrado')
         
-        #origin = "http://localhost:4200"
-        origin = "https://9ffa-2804-1b2-d082-593a-8156-5713-b520-7a8e.ngrok-free.app"
+        origin = "http://localhost:4200"
+        #origin = "https://9ffa-2804-1b2-d082-593a-8156-5713-b520-7a8e.ngrok-free.app"
         return redirect(f'{origin}/login/?ativacao_sucesso=true')
 
 class AtividadeLetivaView(APIView):
