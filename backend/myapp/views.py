@@ -35,6 +35,11 @@ class CriarUsuarioView(APIView):
         if self.is_email_disponivel(new_email) == False:
             return Util.response_bad_request('Já existe um usuário cadastrado com esse e-mail.')
 
+        perfil = request.data.get('perfil', None)
+
+        if perfil is None:
+            request.data['perfil'] = 'Docente'
+
         serializer = UsuarioSerializer(data=request.data)
         if serializer.is_valid():
             user = serializer.save()
