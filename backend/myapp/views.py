@@ -3,7 +3,6 @@ from django.utils import timezone
 import tempfile
 import os
 from io import BytesIO
-import subprocess
 import fitz 
 from PyPDF2 import PdfReader, PdfWriter
 from django.http import HttpResponse
@@ -22,8 +21,8 @@ from .services import extrair_texto_do_pdf, extrair_dados_de_atividades_letivas,
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.permissions import IsAuthenticated
-from django.shortcuts import redirect
-from django.contrib.auth.decorators import login_required
+from django.views.decorators.cache import never_cache
+from django.utils.decorators import method_decorator
 
 class CriarUsuarioView(APIView):
     def post(self, request):
@@ -76,9 +75,6 @@ class UsuarioView(APIView):
     
     def put(self, request):
         instance = request.user
-        usuario_autenticado = Usuario.objects.get(pk = request.user.id)
-        old_username = usuario_autenticado.username
-        old_email = usuario_autenticado.email
         
         data = request.data.copy()
         if 'id' in data:
@@ -94,16 +90,16 @@ class UsuarioView(APIView):
         
         new_username = request.data.get('username')
         new_email = request.data.get('email')
-        if self.is_username_disponivel(new_username) == False and new_username != old_username:
+        if self.is_username_disponivel(new_username) == False:
             return Util.response_bad_request('Já existe um usuário cadastrado com esse username.')
-        if self.is_email_disponivel(new_email) == False and new_email != old_email:
+        if self.is_email_disponivel(new_email) == False:
             return Util.response_bad_request('Já existe um usuário cadastrado com esse e-mail.')
         
         serializer = UsuarioSerializer(instance, data=data, partial=True)
 
         if serializer.is_valid():
             usuario = serializer.save()
-            if new_email and new_email != old_email:
+            if new_email:
                 usuario.is_active = False
                 usuario.save()
                 user_dict = model_to_dict(usuario)
@@ -146,9 +142,6 @@ class UsuarioAdminView(APIView):
     def put(self, request, username=None):
         if username is not None:
             usuario_autenticado = Usuario.objects.get(pk = request.user.id)
-            old_username = usuario_autenticado.username
-            old_email = usuario_autenticado.email
-
             if usuario_autenticado.perfil != "Administrador":
                 return Util.response_unauthorized("Apenas usuários administradores podem realizar essa requisição!")
             try:
@@ -165,16 +158,16 @@ class UsuarioAdminView(APIView):
 
                 new_username = request.data.get('username')
                 new_email = request.data.get('email')
-                if self.is_username_disponivel(new_username) == False and new_username != old_username:
+                if self.is_username_disponivel(new_username) == False:
                     return Util.response_bad_request('Já existe um usuário cadastrado com esse username.')
-                if self.is_email_disponivel(new_email) == False and new_email != old_email:
+                if self.is_email_disponivel(new_email) == False:
                     return Util.response_bad_request('Já existe um usuário cadastrado com esse e-mail.')
 
                 serializer = UsuarioSerializer(user, data=data, partial=True)
 
                 if serializer.is_valid():
                     usuario = serializer.save()
-                    if new_email and new_email != old_email:
+                    if new_email:
                         usuario.is_active = False
                         usuario.save()
                         user_dict = model_to_dict(usuario)
@@ -273,10 +266,10 @@ class LoginView(APIView):
 
 class ActivateEmail(APIView):
     def get(self, request, username):
-        try:               
+        try:
             Usuario.objects.filter(username=username).update(
-                is_active=True     
-            )               
+                is_active=True
+            )
         except Usuario.DoesNotExist:
             return Util.response_not_found('Usuário não encontrado')
         
@@ -3428,6 +3421,7 @@ class DownloadRelatorioDocenteView(APIView):
         return escrever_dados_no_radoc(merged_data)
 
     def get(self, request, nome_relatorio=None):
+        Util.limpar_cache_sessao(request)
         if nome_relatorio:
             usuario_id = request.user.id
             try:
@@ -3448,7 +3442,6 @@ class DownloadRelatorioDocenteView(APIView):
                     output_pdf.append_pages_from_reader(PdfReader(BytesIO(binary_data)))
 
                 output_buffer = BytesIO()
-                output_buffer.truncate(0)
                 output_pdf.write(output_buffer)
                 output_buffer.seek(0)
 
@@ -3461,7 +3454,6 @@ class DownloadRelatorioDocenteView(APIView):
                 return Util.response_not_found('Não foi possível encontrar um relatorio_docente com o nome fornecido')
 
         return Util.response_bad_request('É necessário fornecer o nome do relatorio_docente que você deseja gerar em download_relatorio/{nome_relatorio}/')
-    
 class ExtrairDadosAtividadesLetivasPDFAPIView(APIView):
     permission_classes = [IsAuthenticated]
 

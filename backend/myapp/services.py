@@ -213,18 +213,20 @@ def escrever_dados_no_radoc(dados: dict):
             conteudo_arquivo = file.read()
 
             with io.BytesIO() as arquivo_em_memoria:
-                arquivo_em_memoria.truncate(0)
                 arquivo_em_memoria = io.BytesIO(conteudo_arquivo)
                 doc = DocxTemplate(arquivo_em_memoria)
 
-        temp_docx_buffer.truncate(0)
-        doc.is_rendered = False
         doc.render(global_context)
         doc.save(temp_docx_buffer)
-        temp_docx_buffer.seek(0)  # Voltar para o início do buffer
+        doc.__setattr__("is_rendered", False)
         html_content = docx_to_html(temp_docx_buffer.getvalue())
         pdf_binary = convert_html_to_pdf(html_content)
-    lista_atividades_letivas_1.clear()
+        temp_docx_buffer.truncate(0)
+        arquivo_em_memoria.truncate(0)
+        temp_docx_buffer.close()
+        arquivo_em_memoria.close()
+        file.close()
+
     return pdf_binary
 
 def preencher_cabecalho(usuario, relatorio):
@@ -583,7 +585,7 @@ def preencher_estagios_extensao(lista_dicionario):
         linha = {
             'numero_doc': atividade['numero_doc'],
             'area_conhecimento': atividade['area_conhecimento'],
-            'insituicao_ou_local': atividade['insituicao_ou_local'],
+            'instituicao_ou_local': atividade['instituicao_ou_local'],
             'periodo': atividade['periodo'],
             'ch_semanal': atividade['ch_semanal'],
         }
