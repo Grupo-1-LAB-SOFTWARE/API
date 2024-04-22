@@ -830,8 +830,8 @@ class OutraAtividadeExtensaoSerializer(serializers.ModelSerializer):
         ch_total_primeiro_semestre = validated_data['ch_total_primeiro_semestre']
         ch_total_segundo_semestre = validated_data['ch_total_segundo_semestre']
 
-        ch_semanal_primeiro_semestre = ch_total_primeiro_semestre / 23
-        ch_semanal_segundo_semestre = ch_total_segundo_semestre / 23
+        ch_semanal_primeiro_semestre = round(ch_total_primeiro_semestre / 23, 2)
+        ch_semanal_segundo_semestre = round(ch_total_segundo_semestre / 23, 2)
 
         outra_atividade_extensao = OutraAtividadeExtensao.objects.create(
             **validated_data,
@@ -847,8 +847,8 @@ class OutraAtividadeExtensaoSerializer(serializers.ModelSerializer):
         instance.ch_total_primeiro_semestre = validated_data.get('ch_total_primeiro_semestre', instance.ch_total_primeiro_semestre)
         instance.ch_total_segundo_semestre = validated_data.get('ch_total_segundo_semestre', instance.ch_total_segundo_semestre)
 
-        instance.ch_semanal_primeiro_semestre = instance.ch_total_primeiro_semestre / 23
-        instance.ch_semanal_segundo_semestre = instance.ch_total_segundo_semestre / 23
+        instance.ch_semanal_primeiro_semestre = round(instance.ch_total_primeiro_semestre / 23, 2)
+        instance.ch_semanal_segundo_semestre = round(instance.ch_total_segundo_semestre / 23, 2)
     
         instance.save()
         return instance
