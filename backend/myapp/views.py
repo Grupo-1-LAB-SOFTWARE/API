@@ -21,6 +21,7 @@ from .services import extrair_texto_do_pdf, extrair_dados_de_atividades_letivas,
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.permissions import IsAuthenticated
+from django.shortcuts import redirect
 from django.views.decorators.cache import never_cache
 from django.utils.decorators import method_decorator
 
@@ -3421,7 +3422,6 @@ class DownloadRelatorioDocenteView(APIView):
         return escrever_dados_no_radoc(merged_data)
 
     def get(self, request, nome_relatorio=None):
-        Util.limpar_cache_sessao(request)
         if nome_relatorio:
             usuario_id = request.user.id
             try:
