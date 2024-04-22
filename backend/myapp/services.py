@@ -688,8 +688,8 @@ def preencher_afastamentos(lista_dicionario):
     for atividade in lista_dicionario[::-1]:
         linha = {
             'numero_doc': atividade['numero_doc'],
-            'atividades': atividade['atividades'],
-            'portaria_e_ou_data_de_realizacao': atividade['portaria_e_ou_data_de_realizacao'],
+            'motivacao': atividade['atividades'],
+            'portaria': atividade['portaria'],
         }
         afastamentos.append(linha)
     return
