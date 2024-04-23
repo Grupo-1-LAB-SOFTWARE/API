@@ -258,8 +258,8 @@ class AtividadeLetivaSerializer(serializers.ModelSerializer):
                         nome_fornecido_usuario = nome_docente.upper()
                         ch_usuario = carga_horaria
 
-                if nome_fornecido_usuario is None:
-                    raise ValidationError('Para atualizar uma Atividade Letiva, é necessário que você tenha participação nela. Por isso, o seu nome completo e a sua carga horária também devem ser incluídos na seção "Docentes Envolvidos e Cargas Horárias" da sua Atividade Letiva atualizada.')
+                #if nome_fornecido_usuario is None:
+                    #raise ValidationError('Para atualizar uma Atividade Letiva, é necessário que você tenha participação nela. Por isso, o seu nome completo e a sua carga horária também devem ser incluídos na seção "Docentes Envolvidos e Cargas Horárias" da sua Atividade Letiva atualizada.')
                 
                 atividade_letiva_instance.docentes_envolvidos_e_cargas_horarias = docentes_envolvidos_e_cargas_horarias
             else:
