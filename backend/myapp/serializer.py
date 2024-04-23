@@ -595,11 +595,11 @@ class SupervisaoAcademicaSerializer(serializers.ModelSerializer):
         ch_semanal_primeiro_semestre = validated_data['ch_semanal_primeiro_semestre']
         ch_semanal_segundo_semestre = validated_data['ch_semanal_segundo_semestre']
         
-        if ch_semanal_primeiro_semestre > 12.0:
-            raise ValidationError({'ch_semanal_primeiro_semestre': ['ERRO: A carga horária semanal de uma supervisao_academica não pode ser maior que 12 horas.']})
+        #if ch_semanal_primeiro_semestre > 12.0:
+            #raise ValidationError({'ch_semanal_primeiro_semestre': ['ERRO: A carga horária semanal de uma supervisao_academica não pode ser maior que 12 horas.']})
         
-        if ch_semanal_segundo_semestre > 12.0:
-            raise ValidationError({'ch_semanal_segundo_semestre': ['ERRO: A carga horária semanal de uma supervisao_academica não pode ser maior que 12 horas.']})
+        #if ch_semanal_segundo_semestre > 12.0:
+            #raise ValidationError({'ch_semanal_segundo_semestre': ['ERRO: A carga horária semanal de uma supervisao_academica não pode ser maior que 12 horas.']})
 
         supervisao_academica = SupervisaoAcademica.objects.create(
             **validated_data
