@@ -95,7 +95,7 @@ TEMPLATES = [
                 'django.template.context_processors.debug',
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
-                'django.contrib.messages.context_processors.messages',
+-------------------                'django.contrib.messages.context_processors.messages',
             ],
         },
     },
@@ -108,24 +108,15 @@ WSGI_APPLICATION = 'api_sisradoc.wsgi.application'
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
 DATABASES = {
-     'default': {
-         'ENGINE': 'django.db.backends.postgresql',
-         'NAME': 'sisradoc',
-         'USER': 'postgres',
-         'PASSWORD': 'postgres',
-         'HOST': 'localhost'
-     }
- }
-
-#DATABASES = {
-#    'default': {
-#        'ENGINE': 'django.db.backends.postgresql',
-#        'NAME': 'railway',
-#        'USER': 'postgres',
-#        'PASSWORD': 'postgres',
-#        'HOST': 'localhost'
-#    }
-#}
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'railway',
+        'USER': 'postgres',
+        'PASSWORD': 'yrwthOdDAfuwndxGWJEzpWyqcNKWLTnT',
+        'HOST': 'roundhouse.proxy.rlwy.net',
+        'PORT': '49343',
+    }
+}
 
 
 # Password validation
