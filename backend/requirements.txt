@@ -35,3 +35,4 @@ urwid_readline==0.14
 wcwidth==0.2.13
 xhtml2pdf==0.2.15
 gunicorn==21.2.0
+cloudmersive_convert_api_client==3.3.0

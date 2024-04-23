@@ -6,6 +6,17 @@ from xhtml2pdf import pisa
 import mammoth
 from docxtpl import DocxTemplate
 from typing import List, Dict
+import cloudmersive_convert_api_client
+from cloudmersive_convert_api_client.rest import ApiException
+
+# Configure API key authorization: Apikey
+configuration = cloudmersive_convert_api_client.Configuration()
+configuration.api_key['Apikey'] = '6b60b176-b799-4564-85a0-7310742e1795'
+# Uncomment below to setup prefix (e.g. Bearer) for API key, if needed
+# configuration.api_key_prefix['Apikey'] = 'Bearer'
+
+# create an instance of the API class
+api_instance = cloudmersive_convert_api_client.ConvertDocumentApi(cloudmersive_convert_api_client.ApiClient(configuration))
 
 def extrair_texto_do_pdf(caminho_do_pdf):
     pass
@@ -106,48 +117,48 @@ global_context = {
     'afastamentos': afastamentos,
 }
 
-def docx_to_html(docx_path):
-    # Realiza a conversão do conteúdo do arquivo docx para HTML
-    result = mammoth.convert_to_html(io.BytesIO(docx_path))
-    html = result.value
-    html_with_styles = """
-         <style>
-            table {
-                 border-collapse: collapse;
-                 display: content;
-             }
-            table th, table td {
-                border: 1px solid black;
-                padding-top: 10px;
-                table-layout: auto;
-            } 
-            img {
-                 display: flex;
-                 margin-left: auto;
-                 margin-right: auto;
-             }
-            body {
-                text-align: center;
-                font-family: Arial, sans-serif;
-            }
-         </style>
-     """ + html
+# def docx_to_html(docx_path):
+#     # Realiza a conversão do conteúdo do arquivo docx para HTML
+#     result = mammoth.convert_to_html(io.BytesIO(docx_path))
+#     html = result.value
+#     html_with_styles = """
+#          <style>
+#             table {
+#                  border-collapse: collapse;
+#                  display: content;
+#              }
+#             table th, table td {
+#                 border: 1px solid black;
+#                 padding-top: 10px;
+#                 table-layout: auto;
+#             } 
+#             img {
+#                  display: flex;
+#                  margin-left: auto;
+#                  margin-right: auto;
+#              }
+#             body {
+#                 text-align: center;
+#                 font-family: Arial, sans-serif;
+#             }
+#          </style>
+#      """ + html
 
-    return html_with_styles
+#     return html_with_styles
 
-def convert_html_to_pdf(html_content):
-    try:
-        # Criar um buffer de memória para o PDF
-        with io.BytesIO() as pdf_buffer:
-            # Converter HTML para PDF usando pisa
-            pdf_buffer.truncate(0)
-            pisa.CreatePDF(io.BytesIO(html_content.encode('utf-8')), dest=pdf_buffer)
+# def convert_html_to_pdf(html_content):
+#     try:
+#         # Criar um buffer de memória para o PDF
+#         with io.BytesIO() as pdf_buffer:
+#             # Converter HTML para PDF usando pisa
+#             pdf_buffer.truncate(0)
+#             pisa.CreatePDF(io.BytesIO(html_content.encode('utf-8')), dest=pdf_buffer)
 
-            pdf_binary = pdf_buffer.getvalue()
+#             pdf_binary = pdf_buffer.getvalue()
 
-            return pdf_binary
-    except Exception as e:
-        print(f"PDF generation failed: {e}")
+#             return pdf_binary
+#     except Exception as e:
+#         print(f"PDF generation failed: {e}")
 
 def escrever_dados_no_radoc(dados: dict):
 
@@ -208,26 +219,28 @@ def escrever_dados_no_radoc(dados: dict):
     preencher_distribuicao_ch_semanal(distribuicao_ch_semanal_dict)
     preencher_outras_informacoes(outras_informacoes_dict)
     preencher_afastamentos(afastamentos_dict)
-    with io.BytesIO() as temp_docx_buffer:
-        with open("myapp/doc/Modelo_RADOC.docx", 'rb') as file:
-            conteudo_arquivo = file.read()
+    caminho_arquivo_docx_head = "myapp/doc/Modelo_RADOC"
+    caminho_arquivo_docx = "myapp/doc/Modelo_RADOC.docx"
+    radoc = relatorio_docente_dict[0]["nome"]
+    doc = DocxTemplate(caminho_arquivo_docx)
+    doc.is_rendered = False
+    doc.render(global_context)
+    # Salvar o arquivo DOCX renderizado temporariamente
+    caminho_arquivo_docx_renderizado = caminho_arquivo_docx_head + '_' + radoc + '.docx'
+    caminho_radoc = caminho_arquivo_docx_renderizado
+    doc.save(caminho_radoc)
 
-            with io.BytesIO() as arquivo_em_memoria:
-                arquivo_em_memoria = io.BytesIO(conteudo_arquivo)
-                doc = DocxTemplate(arquivo_em_memoria)
+    api_response = None
+    try:
+        # Convert Word DOCX Document to PDF
+            api_response = api_instance.convert_document_docx_to_pdf(caminho_radoc)
+    except ApiException as e:
+        print("Exception when calling ConvertDocumentApi->convert_document_docx_to_pdf: %s\n" % e)
+    finally:
+        # Remover o arquivo DOCX renderizado temporário
+        os.remove(caminho_radoc)
 
-        doc.render(global_context)
-        doc.save(temp_docx_buffer)
-        doc.__setattr__("is_rendered", False)
-        html_content = docx_to_html(temp_docx_buffer.getvalue())
-        pdf_binary = convert_html_to_pdf(html_content)
-        temp_docx_buffer.truncate(0)
-        arquivo_em_memoria.truncate(0)
-        temp_docx_buffer.close()
-        arquivo_em_memoria.close()
-        file.close()
-
-    return pdf_binary
+    return api_response
 
 def preencher_cabecalho(usuario, relatorio):
     classe = usuario[0]['classe']
